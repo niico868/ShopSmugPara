@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+html, body { background: #0b0b0c; color: #f4f4f5; }
+body { @apply font-sans antialiased; }
+::selection { background: #c6ff3d; color: #0b0b0c; }
+input[type='number']::-webkit-inner-spin-button { opacity: .4; }
+
+@media print {
+  html, body { background: #fff !important; color: #000 !important; }
+  aside, header { display: none !important; }
+  .rounded-2xl { border-color: #ddd !important; background: #fff !important; }
+}

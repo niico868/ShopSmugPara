@@ -1,0 +1,244 @@
+-- =====================================================================
+-- Smug Para Portal: database setup
+-- Paste this whole file into Supabase > SQL Editor > New query > Run.
+-- Safe to re-run.
+-- =====================================================================
+
+create extension if not exists pgcrypto;
+
+-- ---------- Admins ---------------------------------------------------
+create table if not exists public.admins (
+  user_id uuid primary key references auth.users on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+create or replace function public.is_admin() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.admins where user_id = auth.uid());
+$$;
+
+-- ---------- Settings (single row) -------------------------------------
+create table if not exists public.settings (
+  id int primary key default 1 check (id = 1),
+  store_name text not null default 'Smug Para',
+  currency text not null default 'USD',
+  custom_base_price numeric(10,2) not null default 35,
+  custom_back_price numeric(10,2) not null default 8,
+  shipping_fee numeric(10,2) not null default 6,
+  free_shipping_over numeric(10,2) not null default 80,
+  whatsapp text not null default '',
+  announcement text not null default 'Custom tees printed to order. Design yours in minutes.',
+  payment_instructions text not null default 'Pay by bank transfer using your order code as the reference. We start printing once payment reflects.'
+);
+insert into public.settings (id) values (1) on conflict do nothing;
+
+-- ---------- Products --------------------------------------------------
+create table if not exists public.products (
+  id uuid primary key default gen_random_uuid(),
+  slug text unique not null,
+  name text not null,
+  description text not null default '',
+  price numeric(10,2) not null check (price >= 0),
+  category text not null default 'Graphic',
+  colors text[] not null default '{#111111}',
+  sizes text[] not null default '{S,M,L,XL,2XL}',
+  image_url text not null default '',
+  featured boolean not null default false,
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+-- ---------- Orders ----------------------------------------------------
+create table if not exists public.orders (
+  id uuid primary key default gen_random_uuid(),
+  code text unique not null,
+  created_at timestamptz not null default now(),
+  customer_name text not null,
+  email text not null,
+  phone text not null default '',
+  fulfillment text not null default 'delivery' check (fulfillment in ('delivery','pickup')),
+  address text not null default '',
+  notes text not null default '',
+  status text not null default 'pending'
+    check (status in ('pending','confirmed','in_production','ready','shipped','delivered','cancelled')),
+  payment_status text not null default 'unpaid' check (payment_status in ('unpaid','paid','refunded')),
+  payment_method text not null default '',
+  subtotal numeric(10,2) not null default 0,
+  shipping numeric(10,2) not null default 0,
+  total numeric(10,2) not null default 0
+);
+create index if not exists orders_created_idx on public.orders (created_at desc);
+
+create table if not exists public.order_items (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid not null references public.orders on delete cascade,
+  kind text not null check (kind in ('catalog','custom')),
+  product_id uuid references public.products on delete set null,
+  name text not null,
+  color text not null default '#111111',
+  size text not null default 'L',
+  qty int not null check (qty > 0),
+  unit_price numeric(10,2) not null,
+  image_url text not null default '',
+  design jsonb,
+  preview text
+);
+create index if not exists order_items_order_idx on public.order_items (order_id);
+
+create table if not exists public.order_events (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid not null references public.orders on delete cascade,
+  created_at timestamptz not null default now(),
+  status text,
+  note text not null default ''
+);
+create index if not exists order_events_order_idx on public.order_events (order_id);
+
+-- ---------- Row Level Security ----------------------------------------
+alter table public.admins enable row level security;
+alter table public.settings enable row level security;
+alter table public.products enable row level security;
+alter table public.orders enable row level security;
+alter table public.order_items enable row level security;
+alter table public.order_events enable row level security;
+
+drop policy if exists "read own admin row" on public.admins;
+create policy "read own admin row" on public.admins for select using (user_id = auth.uid());
+
+drop policy if exists "settings readable" on public.settings;
+create policy "settings readable" on public.settings for select using (true);
+drop policy if exists "settings admin write" on public.settings;
+create policy "settings admin write" on public.settings for all using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "products readable" on public.products;
+create policy "products readable" on public.products for select using (active or public.is_admin());
+drop policy if exists "products admin write" on public.products;
+create policy "products admin write" on public.products for all using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "orders admin" on public.orders;
+create policy "orders admin" on public.orders for all using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "items admin" on public.order_items;
+create policy "items admin" on public.order_items for all using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "events admin" on public.order_events;
+create policy "events admin" on public.order_events for all using (public.is_admin()) with check (public.is_admin());
+
+-- ---------- Place an order (customers call this; prices are computed here) ----
+create or replace function public.place_order(payload jsonb) returns text
+language plpgsql security definer set search_path = public as $$
+declare
+  s public.settings;
+  p public.products;
+  item jsonb;
+  v_order uuid;
+  v_code text;
+  v_sub numeric := 0;
+  v_price numeric;
+  v_qty int;
+  v_ship numeric;
+  chars text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+begin
+  select * into s from public.settings where id = 1;
+  if coalesce(trim(payload->>'customer_name'), '') = '' or coalesce(trim(payload->>'email'), '') = '' then
+    raise exception 'Name and email are required';
+  end if;
+  if jsonb_array_length(coalesce(payload->'items', '[]'::jsonb)) = 0 then
+    raise exception 'Your bag is empty';
+  end if;
+  if jsonb_array_length(payload->'items') > 50 then
+    raise exception 'Too many items in one order';
+  end if;
+
+  loop
+    v_code := 'SP-' || (select string_agg(substr(chars, 1 + floor(random() * length(chars))::int, 1), '') from generate_series(1, 6));
+    exit when not exists (select 1 from public.orders where code = v_code);
+  end loop;
+
+  insert into public.orders (code, customer_name, email, phone, fulfillment, address, notes, payment_method)
+  values (
+    v_code,
+    left(trim(payload->>'customer_name'), 120),
+    lower(left(trim(payload->>'email'), 200)),
+    left(coalesce(payload->>'phone', ''), 40),
+    case when payload->>'fulfillment' = 'pickup' then 'pickup' else 'delivery' end,
+    left(coalesce(payload->>'address', ''), 500),
+    left(coalesce(payload->>'notes', ''), 1000),
+    left(coalesce(payload->>'payment_method', ''), 60)
+  ) returning id into v_order;
+
+  for item in select * from jsonb_array_elements(payload->'items') loop
+    v_qty := greatest(1, least(500, coalesce((item->>'qty')::int, 1)));
+    if item->>'kind' = 'custom' then
+      v_price := s.custom_base_price
+        + case when jsonb_array_length(coalesce(item->'design'->'front', '[]'::jsonb)) > 0
+                and jsonb_array_length(coalesce(item->'design'->'back', '[]'::jsonb)) > 0
+               then s.custom_back_price else 0 end;
+      insert into public.order_items (order_id, kind, name, color, size, qty, unit_price, design, preview)
+      values (v_order, 'custom', 'Custom Tee', coalesce(item->'design'->>'color', item->>'color'), item->>'size', v_qty, v_price, item->'design', item->>'preview');
+    else
+      select * into p from public.products where id = (item->>'product_id')::uuid and active;
+      if not found then raise exception 'A product in your bag is no longer available'; end if;
+      v_price := p.price;
+      insert into public.order_items (order_id, kind, product_id, name, color, size, qty, unit_price, image_url)
+      values (v_order, 'catalog', p.id, p.name, item->>'color', item->>'size', v_qty, v_price, p.image_url);
+    end if;
+    v_sub := v_sub + v_price * v_qty;
+  end loop;
+
+  v_ship := case
+    when payload->>'fulfillment' = 'pickup' then 0
+    when s.free_shipping_over > 0 and v_sub >= s.free_shipping_over then 0
+    else s.shipping_fee end;
+
+  update public.orders set subtotal = v_sub, shipping = v_ship, total = v_sub + v_ship where id = v_order;
+  insert into public.order_events (order_id, status, note) values (v_order, 'pending', 'Order placed');
+  return v_code;
+end;
+$$;
+
+-- ---------- Track an order (needs the code AND the email) -------------
+create or replace function public.track_order(p_code text, p_email text) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select to_jsonb(o)
+    || jsonb_build_object(
+      'items', coalesce((select jsonb_agg(to_jsonb(i)) from public.order_items i where i.order_id = o.id), '[]'::jsonb),
+      'events', coalesce((select jsonb_agg(to_jsonb(e) order by e.created_at) from public.order_events e where e.order_id = o.id), '[]'::jsonb)
+    )
+  from public.orders o
+  where o.code = upper(trim(p_code)) and o.email = lower(trim(p_email));
+$$;
+
+grant execute on function public.place_order(jsonb) to anon, authenticated;
+grant execute on function public.track_order(text, text) to anon, authenticated;
+grant execute on function public.is_admin() to anon, authenticated;
+
+-- ---------- File storage ----------------------------------------------
+insert into storage.buckets (id, name, public) values ('media', 'media', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "media public read" on storage.objects;
+create policy "media public read" on storage.objects for select using (bucket_id = 'media');
+
+drop policy if exists "customers upload designs" on storage.objects;
+create policy "customers upload designs" on storage.objects for insert to anon, authenticated
+  with check (bucket_id = 'media' and (storage.foldername(name))[1] = 'designs');
+
+drop policy if exists "admins manage media" on storage.objects;
+create policy "admins manage media" on storage.objects for all to authenticated
+  using (bucket_id = 'media' and public.is_admin())
+  with check (bucket_id = 'media' and public.is_admin());
+
+-- ---------- Realtime (new-order alerts on the dashboard) --------------
+do $$ begin
+  alter publication supabase_realtime add table public.orders;
+exception when duplicate_object then null; end $$;
+do $$ begin
+  alter publication supabase_realtime add table public.order_events;
+exception when duplicate_object then null; end $$;
+
+-- =====================================================================
+-- LAST STEP: make yourself an admin. Create your user first under
+-- Authentication > Users > Add user, then run this with your email:
+--
+--   insert into public.admins (user_id)
+--   select id from auth.users where email = 'you@example.com';
+-- =====================================================================
