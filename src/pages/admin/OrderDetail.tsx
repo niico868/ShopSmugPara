@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, Download, Link2, Mail, MessageCircle, Phone, Printer } from 'lucide-react'
 import { getOrder, subscribeOrders, updateOrder } from '../../lib/api'
 import type { Order, OrderItem, OrderStatus, PaymentStatus, Side } from '../../lib/types'
-import { STATUS_FLOW, STATUS_META, colorName, fontCss } from '../../lib/constants'
+import { STATUS_FLOW, STATUS_META, colorName, fitName, fontCss } from '../../lib/constants'
 import { Button, Card, Empty, PageLoader, StatusBadge, Textarea } from '../../components/ui'
 import { EventList } from '../../components/OrderTimeline'
 import { ItemThumb } from '../../components/ItemThumb'
@@ -43,7 +43,7 @@ export default function OrderDetail() {
 
   return (
     <div className="space-y-6">
-      <Link to="/admin/orders" className="inline-flex items-center gap-2 text-sm text-ink-400 hover:text-white print:hidden"><ArrowLeft size={16} /> Orders</Link>
+      <Link to="/admin/orders" className="inline-flex items-center gap-2 text-sm text-ink-400 hover:text-black print:hidden"><ArrowLeft size={16} /> Orders</Link>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-mono text-4xl font-bold">{order.code}</h1>
@@ -64,7 +64,7 @@ export default function OrderDetail() {
               {[...flow, 'cancelled' as OrderStatus].map((s) => (
                 <button key={s} disabled={busy || s === order.status} onClick={() => act({ status: s })}
                   className={cx('rounded-full border px-3 py-1.5 text-xs font-semibold transition disabled:cursor-default', s === order.status ? 'border-transparent' : 'border-ink-700 hover:border-white')}
-                  style={s === order.status ? { background: STATUS_META[s].color, color: '#0b0b0c' } : undefined}>
+                  style={s === order.status ? { background: STATUS_META[s].color, color: '#111111' } : undefined}>
                   {STATUS_META[s].label}
                 </button>
               ))}
@@ -149,19 +149,19 @@ function ItemRow({ item, code }: { item: OrderItem; code: string }) {
   return (
     <li className="grid gap-4 sm:grid-cols-[220px_1fr]">
       <div>
-        <div className="rounded-xl bg-ink-800 p-2"><TeeMockup ref={ref} color={d.color} side={side} layers={layers} className="w-full" /></div>
+        <div className="rounded-xl bg-ink-900 p-2"><TeeMockup ref={ref} color={d.color} fit={d.fit} side={side} layers={layers} className="w-full" /></div>
         <div className="mt-2 flex gap-1 print:hidden">
           {(['front', 'back'] as Side[]).map((s) => (
-            <button key={s} onClick={() => setSide(s)} className={cx('flex-1 rounded-lg py-1 text-xs font-semibold capitalize', side === s ? 'bg-acid text-ink-950' : 'bg-ink-800 text-ink-400')}>{s} ({d[s].length})</button>
+            <button key={s} onClick={() => setSide(s)} className={cx('flex-1 rounded-lg py-1 text-xs font-semibold capitalize', side === s ? 'bg-black text-white' : 'bg-ink-800 text-ink-400')}>{s} ({d[s].length})</button>
           ))}
         </div>
       </div>
       <div>
         <div className="flex justify-between gap-2">
-          <p className="font-semibold">{item.name} <span className="ml-1 rounded-full bg-[#b48cff22] px-2 py-0.5 text-[11px] font-semibold text-[#b48cff]">Custom</span></p>
+          <p className="font-semibold">{item.name} <span className="ml-1 rounded-full bg-acid/15 px-2 py-0.5 text-[11px] font-semibold text-acid-dark">Custom</span></p>
           <p className="font-semibold">{money(item.unit_price * item.qty)}</p>
         </div>
-        <p className="text-sm text-ink-400">{colorName(d.color)} · Size {item.size} · Qty {item.qty}</p>
+        <p className="text-sm text-ink-400">{fitName(d.fit)} · {colorName(d.color)} · Size {item.size} · Qty {item.qty}</p>
         <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-ink-400">Print spec · {side}</p>
         {layers.length === 0 ? <p className="text-sm text-ink-400">Nothing printed on this side.</p> : (
           <ul className="mt-2 space-y-2 text-sm">

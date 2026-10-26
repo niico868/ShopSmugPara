@@ -6,7 +6,7 @@ import {
 import type { Design, Layer, Side } from '../lib/types'
 import { TeeMockup, PRINT, svgToPng } from '../components/TeeMockup'
 import { Button, Field, Select, Swatch, Textarea } from '../components/ui'
-import { FONTS, SIZES, TEE_COLORS, colorName } from '../lib/constants'
+import { FITS, FONTS, SIZES, TEE_COLORS, colorName, fitName } from '../lib/constants'
 import { cx, money, uid } from '../lib/format'
 import { useSettings } from '../lib/settings'
 import { useCart } from '../store/cart'
@@ -15,11 +15,19 @@ import { getProduct } from '../lib/api'
 import { SEED_ART } from '../lib/seed'
 
 const DRAFT = 'sp.designer.draft'
-const INK = ['#111111', '#ffffff', '#c6ff3d', '#ff5c39', '#ffd23d', '#8fc6f0', '#b48cff', '#5ee6c1', '#e8467c', '#1d2a4d']
-const blank = (): Design => ({ color: '#111111', front: [], back: [] })
+const INK = ['#111111', '#ffffff', '#5caedb', '#ff5c39', '#ffd23d', '#b48cff', '#5ee6c1', '#e8467c']
+const blank = (): Design => ({ color: '#111111', fit: 'regular', front: [], back: [] })
 
 const loadDraft = (): Design => {
-  try { const d = localStorage.getItem(DRAFT); if (d) return JSON.parse(d) } catch { /* ignore */ }
+  try {
+    const d = localStorage.getItem(DRAFT)
+    if (d) {
+      const draft = { ...blank(), ...JSON.parse(d) } as Design
+      // Drafts from before the colour list changed fall back to black.
+      if (!TEE_COLORS.some((c) => c.hex === draft.color)) draft.color = '#111111'
+      return draft
+    }
+  } catch { /* ignore */ }
   return blank()
 }
 
@@ -86,7 +94,7 @@ export default function Designer() {
         } catch { /* fall back to the URL */ }
       }
       const l: Layer = { id: uid(), type: 'image', x: 0, y: -40, rotation: 0, src, width: 180, aspect: 1 }
-      setDesign({ color: p.colors[0], front: [l], back: [] })
+      setDesign({ ...blank(), color: p.colors[0], front: [l] })
       setSel(l.id)
       toast.info(`Loaded ${p.name}. Make it yours.`)
     })
@@ -218,7 +226,7 @@ export default function Designer() {
     try {
       const preview = await renderPreview(hasFront ? 'front' : 'back')
       add({
-        id: uid(), kind: 'custom', product_id: null, name: 'Custom Tee', color: design.color, size, qty,
+        id: uid(), kind: 'custom', product_id: null, name: design.fit === 'oversized' ? 'Custom Tee (Oversized)' : 'Custom Tee', color: design.color, size, qty,
         unit_price: unit, image_url: '', design: structuredClone(design), preview,
       })
       toast.success('Your custom tee is in the bag')
@@ -286,8 +294,8 @@ export default function Designer() {
                     {l.type === 'image' ? <img src={l.src} alt="" className="h-full w-full object-contain" /> : <Type size={16} />}
                   </span>
                   <span className="flex-1 truncate text-sm">{l.type === 'text' ? l.text : 'Image'}</span>
-                  <button onClick={(e) => { e.stopPropagation(); move(l.id, 1) }} className="text-ink-400 hover:text-white" aria-label="Bring forward"><ArrowUp size={14} /></button>
-                  <button onClick={(e) => { e.stopPropagation(); move(l.id, -1) }} className="text-ink-400 hover:text-white" aria-label="Send backward"><ArrowDown size={14} /></button>
+                  <button onClick={(e) => { e.stopPropagation(); move(l.id, 1) }} className="text-ink-400 hover:text-black" aria-label="Bring forward"><ArrowUp size={14} /></button>
+                  <button onClick={(e) => { e.stopPropagation(); move(l.id, -1) }} className="text-ink-400 hover:text-black" aria-label="Send backward"><ArrowDown size={14} /></button>
                 </li>
               ))}
             </ul>
@@ -296,10 +304,10 @@ export default function Designer() {
 
         {/* Centre: canvas */}
         <section className="order-1 lg:order-2">
-          <div className="relative rounded-3xl border border-ink-800 bg-[radial-gradient(circle_at_50%_30%,#26262b,#0b0b0c_70%)] p-4 sm:p-8">
+          <div className="relative rounded-3xl border border-ink-800 bg-[radial-gradient(circle_at_50%_30%,#ffffff,#ececea_75%)] p-4 sm:p-8">
             <div className="absolute left-4 top-4 z-10 flex rounded-full bg-ink-950/80 p-1 backdrop-blur">
               {(['front', 'back'] as Side[]).map((s) => (
-                <button key={s} onClick={() => { setSide(s); setSel(null) }} className={cx('rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider', side === s ? 'bg-acid text-ink-950' : 'text-ink-400')}>
+                <button key={s} onClick={() => { setSide(s); setSel(null) }} className={cx('rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider', side === s ? 'bg-black text-white' : 'text-ink-400')}>
                   {s}{design[s].length > 0 && ` · ${design[s].length}`}
                 </button>
               ))}
@@ -307,6 +315,7 @@ export default function Designer() {
             <TeeMockup
               ref={svgRef}
               color={design.color}
+              fit={design.fit}
               side={side}
               layers={layers}
               selectedId={sel}
@@ -317,10 +326,18 @@ export default function Designer() {
               onPointerUp={onUp}
             />
           </div>
+          <div className="mx-auto mt-4 grid max-w-sm grid-cols-2 gap-2">
+            {FITS.map((f) => (
+              <button key={f.id} onClick={() => commit((d) => ({ ...d, fit: f.id }))} className={cx('rounded-xl border px-3 py-2 text-left transition', (design.fit ?? 'regular') === f.id ? 'border-black bg-black text-white' : 'border-ink-700 hover:border-ink-400')}>
+                <b className="block text-sm">{f.name}</b>
+                <span className={cx('text-xs', (design.fit ?? 'regular') === f.id ? 'text-ink-600' : 'text-ink-400')}>{f.blurb}</span>
+              </button>
+            ))}
+          </div>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
             {TEE_COLORS.map((c) => <Swatch key={c.hex} hex={c.hex} title={c.name} active={design.color === c.hex} onClick={() => commit((d) => ({ ...d, color: c.hex }))} />)}
           </div>
-          <p className="mt-2 text-center text-xs text-ink-400">Tee colour: {colorName(design.color)}</p>
+          <p className="mt-2 text-center text-xs text-ink-400">{fitName(design.fit)} · {colorName(design.color)} · Shaka Wear blank</p>
         </section>
 
         {/* Right: properties + order */}
@@ -330,8 +347,8 @@ export default function Designer() {
               <div className="flex items-center justify-between">
                 <p className="flex items-center gap-2 text-sm font-semibold"><Layers size={16} className="text-acid" /> {selected.type === 'text' ? 'Text' : 'Image'}</p>
                 <div className="flex gap-1">
-                  <button onClick={() => patch(selected.id, { x: 0 })} className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-800 hover:text-white" title="Centre"><AlignCenter size={16} /></button>
-                  <button onClick={() => duplicate(selected)} className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-800 hover:text-white" title="Duplicate"><Copy size={16} /></button>
+                  <button onClick={() => patch(selected.id, { x: 0 })} className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-800 hover:text-black" title="Centre"><AlignCenter size={16} /></button>
+                  <button onClick={() => duplicate(selected)} className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-800 hover:text-black" title="Duplicate"><Copy size={16} /></button>
                   <button onClick={() => remove(selected.id)} className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-800 hover:text-flame" title="Delete"><Trash2 size={16} /></button>
                 </div>
               </div>
@@ -363,11 +380,11 @@ export default function Designer() {
           <div className="space-y-4 rounded-2xl border border-ink-800 bg-ink-900 p-4">
             <Field label="Size">
               <div className="flex flex-wrap gap-1.5">
-                {SIZES.map((s) => <button key={s} onClick={() => setSize(s)} className={cx('h-9 min-w-10 rounded-lg border px-2 text-xs font-bold', s === size ? 'border-acid bg-acid text-ink-950' : 'border-ink-700')}>{s}</button>)}
+                {SIZES.map((s) => <button key={s} onClick={() => setSize(s)} className={cx('h-9 min-w-10 rounded-lg border px-2 text-xs font-bold', s === size ? 'border-black bg-black text-white' : 'border-ink-700')}>{s}</button>)}
               </div>
             </Field>
             <div className="space-y-1 text-sm">
-              <div className="flex justify-between text-ink-400"><span>Custom tee</span><span>{money(settings.custom_base_price)}</span></div>
+              <div className="flex justify-between text-ink-400"><span>Custom tee, {fitName(design.fit).toLowerCase()}</span><span>{money(settings.custom_base_price)}</span></div>
               {hasFront && hasBack && <div className="flex justify-between text-ink-400"><span>Front + back print</span><span>+{money(settings.custom_back_price)}</span></div>}
             </div>
             <div className="flex items-center gap-3">
@@ -389,8 +406,8 @@ export default function Designer() {
 function Range({ label, value, onChange, min, max, step = 1, suffix = '' }: { label: string; value: number; onChange: (v: number) => void; min: number; max: number; step?: number; suffix?: string }) {
   return (
     <label className="block">
-      <span className="mb-1 flex justify-between text-xs font-semibold uppercase tracking-wider text-ink-400"><span>{label}</span><span className="text-white">{value}{suffix}</span></span>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full accent-[#c6ff3d]" />
+      <span className="mb-1 flex justify-between text-xs font-semibold uppercase tracking-wider text-ink-400"><span>{label}</span><span className="text-black">{value}{suffix}</span></span>
+      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full accent-[#5caedb]" />
     </label>
   )
 }

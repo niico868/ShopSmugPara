@@ -12,7 +12,7 @@ export function OrderProgress({ order }: { order: Order }) {
       <ol className="flex items-center">
         {flow.map((s, i) => (
           <li key={s} className={cx('flex items-center', i < flow.length - 1 && 'flex-1')}>
-            <span className={cx('grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 text-xs font-bold transition', i <= at ? 'border-acid bg-acid text-ink-950' : 'border-ink-700 text-ink-400')}>
+            <span className={cx('grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 text-xs font-bold transition', i <= at ? 'border-black bg-black text-white' : 'border-ink-700 text-ink-400')}>
               {i < at ? <Check size={14} /> : i + 1}
             </span>
             {i < flow.length - 1 && <span className={cx('mx-1 h-0.5 flex-1 rounded', i < at ? 'bg-acid' : 'bg-ink-700')} />}

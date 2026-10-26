@@ -31,7 +31,7 @@ export function CartDrawer() {
           <>
             {settings.free_shipping_over > 0 && (
               <div className="border-b border-ink-800 px-5 py-3 text-xs text-ink-400">
-                {toFree > 0 ? <>Add <b className="text-white">{money(toFree)}</b> more for free delivery.</> : <span className="text-acid">You unlocked free delivery.</span>}
+                {toFree > 0 ? <>Add <b className="text-black">{money(toFree)}</b> more for free delivery.</> : <span className="text-acid">You unlocked free delivery.</span>}
                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink-800">
                   <div className="h-full rounded-full bg-acid transition-all" style={{ width: `${Math.min(100, (sub / settings.free_shipping_over) * 100)}%` }} />
                 </div>

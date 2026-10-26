@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Brush, Minus, Plus, Ruler, ShieldCheck, Truck } from 'lucide-react'
+import { ArrowLeft, Minus, Plus, Ruler, ShieldCheck, Truck } from 'lucide-react'
 import { getProduct, listProducts } from '../lib/api'
 import type { Product as P } from '../lib/types'
-import { TeeMockup } from '../components/TeeMockup'
 import { Button, Empty, PageLoader, Swatch } from '../components/ui'
 import { ProductCard } from '../components/ProductCard'
 import { colorName } from '../lib/constants'
@@ -23,9 +22,11 @@ export default function Product() {
   const [size, setSize] = useState('')
   const [qty, setQty] = useState(1)
   const [guide, setGuide] = useState(false)
+  const [shot, setShot] = useState(0)
 
   useEffect(() => {
     setP(undefined)
+    setShot(0)
     getProduct(slug).then((x) => {
       setP(x)
       if (x) { setColor(x.colors[0]); setSize(x.sizes.includes('M') ? 'M' : x.sizes[0]) }
@@ -36,6 +37,8 @@ export default function Product() {
   if (p === undefined) return <PageLoader />
   if (p === null) return <div className="mx-auto max-w-xl px-4 py-20"><Empty title="Design not found"><Link to="/shop" className="text-acid">Back to the shop</Link></Empty></div>
 
+  const photos = [p.image_url, ...(p.images ?? [])].filter(Boolean)
+
   const addToBag = () => {
     add({ id: uid(), kind: 'catalog', product_id: p.id, name: p.name, color, size, qty, unit_price: p.price, image_url: p.image_url })
     toast.success(`${p.name} added to your bag`)
@@ -43,30 +46,42 @@ export default function Product() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
-      <button onClick={() => nav(-1)} className="mb-6 inline-flex items-center gap-2 text-sm text-ink-400 hover:text-white"><ArrowLeft size={16} /> Back</button>
-      <div className="grid gap-10 md:grid-cols-2">
-        <div className="rounded-3xl border border-ink-800 bg-gradient-to-br from-ink-800 to-ink-950 p-6 md:p-10">
-          <TeeMockup color={color} art={p.image_url} className="w-full animate-rise" key={color} />
+      <button onClick={() => nav(-1)} className="mb-6 inline-flex items-center gap-2 text-sm text-ink-400 hover:text-black"><ArrowLeft size={16} /> Back</button>
+      <div className="grid gap-10 md:grid-cols-2 [&>*]:min-w-0">
+        <div>
+          <div className="aspect-square border border-ink-800 bg-white">
+            <img src={photos[shot]} alt={p.name} className="h-full w-full animate-rise object-contain p-4" key={shot} />
+          </div>
+          {photos.length > 1 && (
+            <div className="mt-3 flex gap-3">
+              {photos.map((src, i) => (
+                <button key={src} onClick={() => setShot(i)} className={cx('h-20 w-20 border bg-white p-1 transition', i === shot ? 'border-black' : 'border-transparent hover:border-ink-600')} aria-label={`Photo ${i + 1}`}>
+                  <img src={src} alt="" className="h-full w-full object-contain" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div>
           <p className="text-sm font-semibold uppercase tracking-widest text-acid">{p.category}</p>
-          <h1 className="mt-2 font-poster text-6xl leading-none">{p.name}</h1>
+          <h1 className="mt-2 break-words font-poster text-5xl leading-none sm:text-6xl">{p.name}</h1>
           <p className="mt-3 text-2xl font-semibold">{money(p.price)}</p>
-          <p className="mt-5 text-ink-200">{p.description}</p>
+          <p className="mt-5 whitespace-pre-line text-ink-200">{p.description}</p>
 
-          <div className="mt-8">
+          {p.colors.length > 1 && <div className="mt-8">
             <p className="mb-3 text-sm font-semibold">Colour: <span className="text-ink-400">{colorName(color)}</span></p>
             <div className="flex flex-wrap gap-3">{p.colors.map((c) => <Swatch key={c} hex={c} title={colorName(c)} active={c === color} onClick={() => setColor(c)} />)}</div>
-          </div>
+          </div>}
+          {p.colors.length === 1 && <p className="mt-6 text-sm font-semibold">Colour: <span className="text-ink-400">{colorName(color)}</span></p>}
 
           <div className="mt-8">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm font-semibold">Size</p>
-              <button onClick={() => setGuide(!guide)} className="inline-flex items-center gap-1 text-xs text-ink-400 hover:text-white"><Ruler size={14} /> Size guide</button>
+              <button onClick={() => setGuide(!guide)} className="inline-flex items-center gap-1 text-xs text-ink-400 hover:text-black"><Ruler size={14} /> Size guide</button>
             </div>
             <div className="flex flex-wrap gap-2">
               {p.sizes.map((s) => (
-                <button key={s} onClick={() => setSize(s)} className={cx('h-11 min-w-12 rounded-xl border px-3 text-sm font-semibold transition', s === size ? 'border-acid bg-acid text-ink-950' : 'border-ink-700 hover:border-ink-400')}>{s}</button>
+                <button key={s} onClick={() => setSize(s)} className={cx('h-11 min-w-12 rounded-xl border px-3 text-sm font-semibold transition', s === size ? 'border-black bg-black text-white' : 'border-ink-700 hover:border-ink-400')}>{s}</button>
               ))}
             </div>
             {guide && (
@@ -85,7 +100,6 @@ export default function Product() {
             </div>
             <Button size="lg" className="flex-1" onClick={addToBag}>Add to bag · {money(p.price * qty)}</Button>
           </div>
-          <Link to={`/design?from=${p.slug}`}><Button variant="outline" className="mt-3 w-full"><Brush size={16} /> Customise this design</Button></Link>
 
           <div className="mt-8 grid gap-3 text-sm text-ink-400 sm:grid-cols-2">
             <p className="flex items-center gap-2"><Truck size={16} className="text-acid" /> Delivery or free pickup</p>

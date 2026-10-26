@@ -33,7 +33,7 @@ export default function Shop() {
         </div>
         <div className="flex gap-2 overflow-x-auto">
           {cats.map((c) => (
-            <button key={c} onClick={() => setCat(c)} className={cx('whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition', c === cat ? 'bg-white text-ink-950' : 'bg-ink-800 text-ink-200 hover:bg-ink-700')}>{c}</button>
+            <button key={c} onClick={() => setCat(c)} className={cx('whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition', c === cat ? 'bg-black text-white' : 'bg-ink-800 text-ink-200 hover:bg-ink-700')}>{c}</button>
           ))}
         </div>
         <Select value={sort} onChange={(e) => setSort(e.target.value)} className="md:w-48">

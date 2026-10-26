@@ -8,7 +8,7 @@ import { STATUS_META } from '../../lib/constants'
 import type { OrderStatus } from '../../lib/types'
 import { dateShort, money } from '../../lib/format'
 
-const tooltip = { contentStyle: { background: '#121214', border: '1px solid #26262b', borderRadius: 12, fontSize: 12 }, labelStyle: { color: '#d4d4d8' } }
+const tooltip = { contentStyle: { background: '#ffffff', border: '1px solid #dcdcd8', borderRadius: 12, fontSize: 12 }, labelStyle: { color: '#2b2b2b' } }
 
 export default function Dashboard() {
   const { orders } = useOrders()
@@ -93,15 +93,15 @@ export default function Dashboard() {
               <AreaChart data={stats.days} margin={{ left: -10, right: 10 }}>
                 <defs>
                   <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stopColor="#c6ff3d" stopOpacity={0.4} />
-                    <stop offset="1" stopColor="#c6ff3d" stopOpacity={0} />
+                    <stop offset="0" stopColor="#5caedb" stopOpacity={0.4} />
+                    <stop offset="1" stopColor="#5caedb" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="#1a1a1d" vertical={false} />
                 <XAxis dataKey="label" tick={{ fill: '#8a8a94', fontSize: 11 }} tickLine={false} axisLine={false} interval={4} />
                 <YAxis tick={{ fill: '#8a8a94', fontSize: 11 }} tickLine={false} axisLine={false} />
                 <Tooltip {...tooltip} formatter={(v: number) => money(v)} />
-                <Area type="monotone" dataKey="revenue" stroke="#c6ff3d" strokeWidth={2} fill="url(#rev)" />
+                <Area type="monotone" dataKey="revenue" stroke="#5caedb" strokeWidth={2} fill="url(#rev)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -133,7 +133,7 @@ export default function Dashboard() {
                 <XAxis type="number" hide />
                 <YAxis type="category" dataKey="name" width={100} tick={{ fill: '#d4d4d8', fontSize: 12 }} tickLine={false} axisLine={false} />
                 <Tooltip {...tooltip} cursor={{ fill: '#1a1a1d' }} />
-                <Bar dataKey="qty" fill="#c6ff3d" radius={[0, 6, 6, 0]} />
+                <Bar dataKey="qty" fill="#5caedb" radius={[0, 6, 6, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

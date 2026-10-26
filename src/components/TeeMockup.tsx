@@ -1,12 +1,25 @@
 import { forwardRef, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import type { Layer, Side } from '../lib/types'
-import { fontCss } from '../lib/constants'
+import { fontCss, type Fit } from '../lib/constants'
 
 export const VIEW = { w: 500, h: 560 }
 export const PRINT = { x: 150, y: 130, w: 200, h: 260, cx: 250, cy: 260 }
 
-const FRONT = 'M175 40 Q250 100 325 40 L420 75 L495 170 L430 215 L400 190 L400 540 Q250 556 100 540 L100 190 L70 215 L5 170 L80 75 Z'
-const BACK = 'M175 40 Q250 62 325 40 L420 75 L495 170 L430 215 L400 190 L400 540 Q250 556 100 540 L100 190 L70 215 L5 170 L80 75 Z'
+const SHAPES: Record<Fit, { front: string; back: string; seams: string; body: { x: number; w: number } }> = {
+  regular: {
+    front: 'M175 40 Q250 100 325 40 L420 75 L495 170 L430 215 L400 190 L400 540 Q250 556 100 540 L100 190 L70 215 L5 170 L80 75 Z',
+    back: 'M175 40 Q250 62 325 40 L420 75 L495 170 L430 215 L400 190 L400 540 Q250 556 100 540 L100 190 L70 215 L5 170 L80 75 Z',
+    seams: 'M100 190 L70 215 M400 190 L430 215',
+    body: { x: 100, w: 300 },
+  },
+  // Boxy cut: wider body, dropped shoulders, longer sleeves, slightly shorter hem.
+  oversized: {
+    front: 'M172 38 Q250 104 328 38 L438 66 Q470 140 497 236 L420 256 L414 222 L416 520 Q250 534 84 520 L86 222 L80 256 L3 236 Q30 140 62 66 Z',
+    back: 'M172 38 Q250 64 328 38 L438 66 Q470 140 497 236 L420 256 L414 222 L416 520 Q250 534 84 520 L86 222 L80 256 L3 236 Q30 140 62 66 Z',
+    seams: 'M108 70 Q96 150 86 222 M392 70 Q404 150 414 222',
+    body: { x: 84, w: 332 },
+  },
+}
 
 export const luminance = (hex: string) => {
   const h = hex.replace('#', '')
@@ -65,7 +78,7 @@ export function LayerView({ layer, selected }: { layer: Layer; selected?: boolea
           width={box.width + 12}
           height={box.height + 12}
           fill="none"
-          stroke="#c6ff3d"
+          stroke="#5caedb"
           strokeWidth={2}
           strokeDasharray="6 4"
           rx={4}
@@ -78,6 +91,7 @@ export function LayerView({ layer, selected }: { layer: Layer; selected?: boolea
 
 interface Props {
   color: string
+  fit?: Fit
   side?: Side
   layers?: Layer[]
   art?: string
@@ -91,12 +105,13 @@ interface Props {
 }
 
 export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
-  { color, side = 'front', layers = [], art, showPrintArea, selectedId, className, children, ...handlers },
+  { color, fit = 'regular', side = 'front', layers = [], art, showPrintArea, selectedId, className, children, ...handlers },
   ref,
 ) {
   const id = useId().replace(/:/g, '')
   const light = luminance(color) > 0.6
-  const path = side === 'front' ? FRONT : BACK
+  const shape = SHAPES[fit] ?? SHAPES.regular
+  const path = side === 'front' ? shape.front : shape.back
   return (
     <svg
       ref={ref}
@@ -120,15 +135,15 @@ export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
         </linearGradient>
         <clipPath id={`clip${id}`}><path d={path} /></clipPath>
       </defs>
-      <ellipse cx="250" cy="548" rx="170" ry="10" fill="#000" opacity=".35" />
+      <ellipse cx="250" cy="548" rx="170" ry="10" fill="#000" opacity=".12" />
       <path d={path} fill={color} stroke={light ? '#00000033' : '#ffffff1f'} strokeWidth="2" />
       <g clipPath={`url(#clip${id})`} pointerEvents="none">
         <rect width={VIEW.w} height={VIEW.h} fill={`url(#fold${id})`} />
-        <rect x="100" width="300" height={VIEW.h} fill={`url(#shade${id})`} />
-        <path d="M100 190 L70 215 M400 190 L430 215" stroke="#000" strokeOpacity=".15" strokeWidth="3" />
+        <rect x={shape.body.x} width={shape.body.w} height={VIEW.h} fill={`url(#shade${id})`} />
+        <path d={shape.seams} fill="none" stroke="#000" strokeOpacity=".15" strokeWidth="3" />
       </g>
       <path
-        d={side === 'front' ? 'M175 40 Q250 100 325 40' : 'M175 40 Q250 62 325 40'}
+        d={path.split(' L')[0]}
         fill="none"
         stroke={light ? '#00000026' : '#ffffff22'}
         strokeWidth="9"

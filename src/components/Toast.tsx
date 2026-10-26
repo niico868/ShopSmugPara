@@ -31,7 +31,7 @@ export function Toaster() {
           <div key={t.id} className="pointer-events-auto flex animate-rise items-start gap-3 rounded-xl border border-ink-700 bg-ink-900/95 p-3 shadow-2xl backdrop-blur">
             <Icon size={18} className={t.kind === 'error' ? 'text-flame' : 'text-acid'} />
             <p className="flex-1 text-sm">{t.text}</p>
-            <button onClick={() => drop(t.id)} className="text-ink-400 hover:text-white" aria-label="Dismiss"><X size={16} /></button>
+            <button onClick={() => drop(t.id)} className="text-ink-400 hover:text-black" aria-label="Dismiss"><X size={16} /></button>
           </div>
         )
       })}

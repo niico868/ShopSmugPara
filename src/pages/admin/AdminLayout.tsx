@@ -53,7 +53,7 @@ export default function AdminLayout() {
         <Logo className="mb-8 px-2" />
         <nav className="space-y-1">
           {NAV.map((n) => (
-            <NavLink key={n.to} to={n.to} end={n.end} onClick={() => setOpen(false)} className={({ isActive }) => cx('flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition', isActive ? 'bg-acid text-ink-950' : 'text-ink-200 hover:bg-ink-800')}>
+            <NavLink key={n.to} to={n.to} end={n.end} onClick={() => setOpen(false)} className={({ isActive }) => cx('flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition', isActive ? 'bg-black text-white' : 'text-ink-200 hover:bg-ink-800')}>
               <n.icon size={18} /> {n.label}
             </NavLink>
           ))}
