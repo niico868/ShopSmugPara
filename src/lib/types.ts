@@ -49,6 +49,8 @@ export interface Layer {
 export interface Design {
   color: string
   fit?: 'regular' | 'oversized'
+  /** When the customer agreed to the design rules (set as it goes in the bag). */
+  rules_accepted_at?: string
   front: Layer[]
   back: Layer[]
 }

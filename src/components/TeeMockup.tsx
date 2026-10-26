@@ -1,18 +1,28 @@
 import { forwardRef, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import type { Layer, Side } from '../lib/types'
 import { fontCss, type Fit } from '../lib/constants'
-import teePhoto from '../assets/shaka-tee.webp?inline'
+import regularTee from '../assets/regular-tee.webp?inline'
+import oversizedTee from '../assets/oversized-tee.webp?inline'
 
 // The visible window of the 500-wide canvas. Layer positions are offsets from PRINT's centre.
 export const VIEW = { y: 60, w: 500, h: 470 }
+// The usual chest print. Artwork may go anywhere on the shirt; this is only a guide.
 export const PRINT = { x: 170, y: 150, w: 160, h: 220, cx: 250, cy: 260 }
 
-// Shaka Wear tee photo (greyscale shading + cut-out), sized per fit.
+// Tee photos (greyscale shading + cut-out), recoloured at render time.
 const TEE_TOP = 105
-const FIT_SIZE: Record<Fit, { w: number; h: number }> = {
-  regular: { w: 456, h: 393 },
-  oversized: { w: 490, h: 373 },
+const TEES: Record<Fit, { src: string; w: number; h: number }> = {
+  regular: { src: regularTee, w: 420, h: 410 },
+  oversized: { src: oversizedTee, w: 490, h: 373 },
 }
+
+/** The shirt's bounding box, as offsets from the print centre (what layer x/y are measured in). */
+export const teeBounds = (fit: Fit = 'regular') => {
+  const t = TEES[fit] ?? TEES.regular
+  return { left: -t.w / 2, right: t.w / 2, top: TEE_TOP - PRINT.cy, bottom: TEE_TOP + t.h - PRINT.cy }
+}
+
+const WHITE_MATRIX = '0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0'
 
 const hexRgb = (hex: string) => {
   const h = hex.replace('#', '')
@@ -31,7 +41,7 @@ export const luminance = (hex: string) => {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255
 }
 
-export function LayerView({ layer, selected }: { layer: Layer; selected?: boolean }) {
+export function LayerView({ layer, selected, faint }: { layer: Layer; selected?: boolean; faint?: boolean }) {
   const ref = useRef<SVGGraphicsElement>(null)
   const [box, setBox] = useState<DOMRect | null>(null)
   useLayoutEffect(() => {
@@ -55,6 +65,7 @@ export function LayerView({ layer, selected }: { layer: Layer; selected?: boolea
           fontSize={layer.size}
           fontWeight={layer.weight}
           fill={layer.fill}
+          opacity={faint ? 0.3 : undefined}
         >
           {(layer.text ?? '').split('\n').map((line, i, arr) => (
             <tspan key={i} x="0" dy={i === 0 ? `${-(arr.length - 1) * 0.55}em` : '1.1em'}>
@@ -71,6 +82,7 @@ export function LayerView({ layer, selected }: { layer: Layer; selected?: boolea
           width={layer.width}
           height={(layer.width ?? 100) * (layer.aspect ?? 1)}
           preserveAspectRatio="xMidYMid meet"
+          opacity={faint ? 0.3 : undefined}
         />
       )}
       {selected && box && (
@@ -113,7 +125,9 @@ export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
 ) {
   const id = useId().replace(/:/g, '')
   const light = luminance(color) > 0.6
-  const size = FIT_SIZE[fit] ?? FIT_SIZE.regular
+  const tee = TEES[fit] ?? TEES.regular
+  const photo = { href: tee.src, x: 250 - tee.w / 2, y: TEE_TOP, width: tee.w, height: tee.h, preserveAspectRatio: 'none' }
+  const selected = layers.find((l) => l.id === selectedId)
   return (
     <svg
       ref={ref}
@@ -127,18 +141,16 @@ export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
         <filter id={`tint${id}`} colorInterpolationFilters="sRGB">
           <feColorMatrix type="matrix" values={tintMatrix(color)} />
         </filter>
+        <filter id={`white${id}`} colorInterpolationFilters="sRGB">
+          <feColorMatrix type="matrix" values={WHITE_MATRIX} />
+        </filter>
+        {/* Prints only show where there is shirt underneath. */}
+        <mask id={`shirt${id}`} maskUnits="userSpaceOnUse" x="0" y="0" width={VIEW.w} height={VIEW.y + VIEW.h}>
+          <image {...photo} filter={`url(#white${id})`} />
+        </mask>
       </defs>
-      <ellipse cx="250" cy={TEE_TOP + size.h + 6} rx={size.w * 0.36} ry="8" fill="#000" opacity=".1" />
-      <image
-        href={teePhoto}
-        x={250 - size.w / 2}
-        y={TEE_TOP}
-        width={size.w}
-        height={size.h}
-        preserveAspectRatio="none"
-        filter={`url(#tint${id})`}
-        pointerEvents="none"
-      />
+      <ellipse cx="250" cy={TEE_TOP + tee.h + 6} rx={tee.w * 0.36} ry="8" fill="#000" opacity=".1" />
+      <image {...photo} filter={`url(#tint${id})`} pointerEvents="none" />
       {showPrintArea && (
         <rect
           data-ui
@@ -153,12 +165,20 @@ export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
           pointerEvents="none"
         />
       )}
-      {art && (
-        <image href={art} x={PRINT.cx - 75} y={PRINT.y + 5} width="150" height="150" preserveAspectRatio="xMidYMid meet" pointerEvents="none" />
+      <g mask={`url(#shirt${id})`}>
+        {art && (
+          <image href={art} x={PRINT.cx - 75} y={PRINT.y + 5} width="150" height="150" preserveAspectRatio="xMidYMid meet" pointerEvents="none" />
+        )}
+        {layers.map((l) => (
+          <LayerView key={l.id} layer={l} />
+        ))}
+      </g>
+      {/* A faint copy of the selected layer shows what is hidden past the shirt's edge, and can still be dragged. */}
+      {selected && (
+        <g data-ui>
+          <LayerView layer={selected} selected faint />
+        </g>
       )}
-      {layers.map((l) => (
-        <LayerView key={l.id} layer={l} selected={l.id === selectedId} />
-      ))}
       {children}
     </svg>
   )

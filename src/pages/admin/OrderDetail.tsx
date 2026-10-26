@@ -162,6 +162,7 @@ function ItemRow({ item, code }: { item: OrderItem; code: string }) {
           <p className="font-semibold">{money(item.unit_price * item.qty)}</p>
         </div>
         <p className="text-sm text-ink-400">{fitName(d.fit)} · {colorName(d.color)} · Size {item.size} · Qty {item.qty}</p>
+        <p className="text-xs text-ink-400">{d.rules_accepted_at ? `Agreed to design rules ${dateTime(d.rules_accepted_at)}` : 'No design-rules agreement on record'}</p>
         <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-ink-400">Print spec · {side}</p>
         {layers.length === 0 ? <p className="text-sm text-ink-400">Nothing printed on this side.</p> : (
           <ul className="mt-2 space-y-2 text-sm">

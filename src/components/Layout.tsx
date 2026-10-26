@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { Menu, ShoppingBag, X, Sparkles } from 'lucide-react'
+import { Menu, ShoppingBag, X, Sparkles, User } from 'lucide-react'
+import { signOut, useAccount } from '../lib/auth'
 import { useCart, cartCount } from '../store/cart'
 import { useSettings } from '../lib/settings'
 import { DEMO } from '../lib/supabase'
@@ -31,6 +32,7 @@ export default function Layout() {
   const loc = useLocation()
   useEffect(() => { setMenu(false); window.scrollTo(0, 0) }, [loc.pathname])
   const count = cartCount(items)
+  const { account } = useAccount()
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -54,6 +56,13 @@ export default function Layout() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
+            {account ? (
+              <button onClick={() => confirm(`Signed in as ${account.email}. Sign out?`) && signOut()} className="rounded-full p-2.5 hover:bg-ink-800" title={account.email} aria-label="Account">
+                <User size={20} />
+              </button>
+            ) : (
+              <Link to="/signin" className="hidden px-2 text-xs font-semibold uppercase tracking-[.18em] hover:text-acid sm:block">Sign in</Link>
+            )}
             <button onClick={() => setOpen(true)} className="relative rounded-full p-2.5 hover:bg-ink-800" aria-label="Open cart">
               <ShoppingBag size={20} />
               {count > 0 && (

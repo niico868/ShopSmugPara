@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
-  AlignCenter, ArrowDown, ArrowUp, Copy, Image as ImageIcon, Layers, Minus, Plus, Redo2, RotateCcw, Shapes, Trash2, Type, Undo2, Download,
+  AlignCenter, ArrowDown, ArrowUp, Copy, Image as ImageIcon, Layers, Minus, Plus, Redo2, RotateCcw, Shapes, ShieldAlert, Trash2, Type, Undo2, Download, X,
 } from 'lucide-react'
 import type { Design, Layer, Side } from '../lib/types'
-import { TeeMockup, PRINT, svgToPng } from '../components/TeeMockup'
+import { TeeMockup, PRINT, svgToPng, teeBounds } from '../components/TeeMockup'
 import { Button, Field, Select, Swatch, Textarea } from '../components/ui'
 import { FITS, FONTS, SIZES, TEE_COLORS, colorName, fitName } from '../lib/constants'
 import { cx, money, uid } from '../lib/format'
@@ -15,6 +15,7 @@ import { getProduct } from '../lib/api'
 import { SEED_ART } from '../lib/seed'
 
 const DRAFT = 'sp.designer.draft'
+const RULES_KEY = 'sp.designer.rules'
 const INK = ['#111111', '#ffffff', '#5caedb', '#ff5c39', '#ffd23d', '#b48cff', '#5ee6c1', '#e8467c']
 const blank = (): Design => ({ color: '#111111', fit: 'regular', front: [], back: [] })
 
@@ -51,7 +52,15 @@ async function readImage(file: File): Promise<{ src: string; aspect: number }> {
   return { src: c.toDataURL('image/png'), aspect }
 }
 
-const clamp = (v: number, m: number) => Math.max(-m, Math.min(m, v))
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
+
+const RULES = [
+  'No nudity or sexual content.',
+  'No extreme or graphic violence, hate symbols or slurs.',
+  'Only upload artwork you own or have permission to use.',
+]
+
+const storedRules = () => { try { return localStorage.getItem(RULES_KEY) } catch { return null } }
 
 export default function Designer() {
   const { settings } = useSettings()
@@ -69,6 +78,14 @@ export default function Designer() {
   const [qty, setQty] = useState(1)
   const [busy, setBusy] = useState(false)
   const [panel, setPanel] = useState<'add' | 'layers'>('add')
+  const [rulesAt, setRulesAt] = useState<string | null>(storedRules)
+  const [rulesOpen, setRulesOpen] = useState(false)
+  const acceptRules = (ok: boolean) => {
+    const at = ok ? new Date().toISOString() : null
+    setRulesAt(at)
+    try { at ? localStorage.setItem(RULES_KEY, at) : localStorage.removeItem(RULES_KEY) } catch { /* ignore */ }
+  }
+  const pickFile = () => (rulesAt ? fileRef.current?.click() : setRulesOpen(true))
   const drag = useRef<{ id: string; dx: number; dy: number } | null>(null)
 
   const layers = design[side]
@@ -177,7 +194,9 @@ export default function Designer() {
     if (!drag.current) return
     const p = toSvg(e)
     const { id, dx, dy } = drag.current
-    patch(id, { x: Math.round(clamp(p.x - dx - PRINT.cx, PRINT.w / 2)), y: Math.round(clamp(p.y - dy - PRINT.cy, PRINT.h / 2)) }, false)
+    // Artwork can sit anywhere on the shirt; whatever falls past the edge is hidden.
+    const b = teeBounds(design.fit)
+    patch(id, { x: Math.round(clamp(p.x - dx - PRINT.cx, b.left, b.right)), y: Math.round(clamp(p.y - dy - PRINT.cy, b.top, b.bottom)) }, false)
   }
   const onUp = () => { drag.current = null }
 
@@ -222,12 +241,13 @@ export default function Designer() {
 
   const addToBag = async () => {
     if (!hasFront && !hasBack) return toast.error('Add some text or artwork first.')
+    if (!rulesAt) return toast.error('Please agree to the design rules first.')
     setBusy(true)
     try {
       const preview = await renderPreview(hasFront ? 'front' : 'back')
       add({
         id: uid(), kind: 'custom', product_id: null, name: design.fit === 'oversized' ? 'Custom Tee (Oversized)' : 'Custom Tee', color: design.color, size, qty,
-        unit_price: unit, image_url: '', design: structuredClone(design), preview,
+        unit_price: unit, image_url: '', design: { ...structuredClone(design), rules_accepted_at: rulesAt }, preview,
       })
       toast.success('Your custom tee is in the bag')
     } catch {
@@ -268,14 +288,19 @@ export default function Designer() {
                 <Type className="text-acid" /><span><b className="block text-sm">Add text</b><span className="text-xs text-ink-400">7 fonts, any colour</span></span>
               </button>
               <button
-                onClick={() => fileRef.current?.click()}
+                onClick={pickFile}
                 onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => { e.preventDefault(); onFile(e.dataTransfer.files[0]) }}
+                onDrop={(e) => { e.preventDefault(); if (rulesAt) onFile(e.dataTransfer.files[0]); else setRulesOpen(true) }}
                 className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-ink-700 bg-ink-900 p-4 text-left hover:border-acid"
               >
                 <ImageIcon className="text-acid" /><span><b className="block text-sm">Upload artwork</b><span className="text-xs text-ink-400">PNG, JPG or SVG. Drop it here.</span></span>
               </button>
               <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = '' }} />
+              <div className="rounded-2xl border border-ink-800 p-4 text-xs text-ink-400">
+                <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-black"><ShieldAlert size={16} className="text-acid" /> Design rules</p>
+                <ul className="list-disc space-y-1 pl-4">{RULES.map((r) => <li key={r}>{r}</li>)}</ul>
+                <p className="mt-2">Every design is reviewed before printing and must fit the Smug Para brand. We may decline any design and refund the order in full.</p>
+              </div>
               <div className="rounded-2xl border border-ink-800 bg-ink-900 p-4">
                 <p className="mb-3 flex items-center gap-2 text-sm font-semibold"><Shapes size={16} className="text-acid" /> Starter graphics</p>
                 <div className="grid grid-cols-4 gap-2">
@@ -366,11 +391,11 @@ export default function Designer() {
                       <input type="color" value={selected.fill} onChange={(e) => patch(selected.id, { fill: e.target.value }, false)} className="h-7 w-9 cursor-pointer rounded bg-transparent" />
                     </div>
                   </Field>
-                  <Range label="Size" min={12} max={160} value={selected.size!} onChange={(v) => patch(selected.id, { size: v }, false)} />
+                  <Range label="Size" min={12} max={300} value={selected.size!} onChange={(v) => patch(selected.id, { size: v }, false)} />
                   <Range label="Weight" min={300} max={900} step={100} value={selected.weight ?? 400} onChange={(v) => patch(selected.id, { weight: v }, false)} />
                 </>
               )}
-              {selected.type === 'image' && <Range label="Width" min={30} max={260} value={selected.width!} onChange={(v) => patch(selected.id, { width: v }, false)} />}
+              {selected.type === 'image' && <Range label="Width" min={30} max={520} value={selected.width!} onChange={(v) => patch(selected.id, { width: v }, false)} />}
               <Range label="Rotation" min={-180} max={180} value={selected.rotation} onChange={(v) => patch(selected.id, { rotation: v }, false)} suffix="°" />
             </div>
           ) : (
@@ -395,10 +420,28 @@ export default function Designer() {
               </div>
               <p className="flex-1 text-right text-xl font-bold">{money(unit * qty)}</p>
             </div>
-            <Button size="lg" className="w-full" onClick={addToBag} disabled={busy}>{busy ? 'Preparing…' : 'Add to bag'}</Button>
+            <label className="flex items-start gap-2 text-xs text-ink-400">
+              <input type="checkbox" checked={!!rulesAt} onChange={(e) => acceptRules(e.target.checked)} className="mt-0.5 accent-[#5caedb]" />
+              <span>I agree to the design rules. I understand Smug Para reviews every design and may decline it.</span>
+            </label>
+            <Button size="lg" className="w-full" onClick={addToBag} disabled={busy || !rulesAt}>{busy ? 'Preparing…' : 'Add to bag'}</Button>
           </div>
         </aside>
       </div>
+
+      {rulesOpen && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={() => setRulesOpen(false)}>
+          <div className="w-full max-w-md rounded-2xl bg-white p-6" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="rules-title">
+            <div className="flex items-start justify-between">
+              <h2 id="rules-title" className="flex items-center gap-2 font-poster text-xl uppercase"><ShieldAlert className="text-acid" /> Before you upload</h2>
+              <button onClick={() => setRulesOpen(false)} className="rounded-full p-1 hover:bg-ink-800" aria-label="Close"><X size={18} /></button>
+            </div>
+            <ul className="mt-4 list-disc space-y-1.5 pl-5 text-sm">{RULES.map((r) => <li key={r}>{r}</li>)}</ul>
+            <p className="mt-4 text-sm text-ink-400">Every design is reviewed by our team before printing and must fit the Smug Para brand. Management may decline any design, and declined orders are refunded in full.</p>
+            <Button size="lg" className="mt-6 w-full" onClick={() => { acceptRules(true); setRulesOpen(false); fileRef.current?.click() }}>I agree, choose a file</Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
