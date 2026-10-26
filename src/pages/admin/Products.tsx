@@ -8,7 +8,7 @@ import { cx, money, slugify, uid } from '../../lib/format'
 import { toast } from '../../components/Toast'
 
 const blank = (): Product => ({
-  id: uid(), slug: '', name: '', description: '', price: 0, category: 'Oversized', colors: ['#111111'], sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
+  id: uid(), slug: '', name: '', description: '', price: 300, category: 'Oversized', colors: ['#111111'], sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
   image_url: '', images: [], featured: false, active: true, created_at: new Date().toISOString(),
 })
 

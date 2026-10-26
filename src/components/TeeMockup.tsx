@@ -1,25 +1,28 @@
 import { forwardRef, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import type { Layer, Side } from '../lib/types'
 import { fontCss, type Fit } from '../lib/constants'
+import teePhoto from '../assets/shaka-tee.webp?inline'
 
-export const VIEW = { w: 500, h: 560 }
-export const PRINT = { x: 150, y: 130, w: 200, h: 260, cx: 250, cy: 260 }
+// The visible window of the 500-wide canvas. Layer positions are offsets from PRINT's centre.
+export const VIEW = { y: 60, w: 500, h: 470 }
+export const PRINT = { x: 170, y: 150, w: 160, h: 220, cx: 250, cy: 260 }
 
-const SHAPES: Record<Fit, { front: string; back: string; seams: string; body: { x: number; w: number } }> = {
-  regular: {
-    front: 'M175 40 Q250 100 325 40 L420 75 L495 170 L430 215 L400 190 L400 540 Q250 556 100 540 L100 190 L70 215 L5 170 L80 75 Z',
-    back: 'M175 40 Q250 62 325 40 L420 75 L495 170 L430 215 L400 190 L400 540 Q250 556 100 540 L100 190 L70 215 L5 170 L80 75 Z',
-    seams: 'M100 190 L70 215 M400 190 L430 215',
-    body: { x: 100, w: 300 },
-  },
-  // Boxy cut: wider body, dropped shoulders, longer sleeves, slightly shorter hem.
-  oversized: {
-    front: 'M172 38 Q250 104 328 38 L438 66 Q470 140 497 236 L420 256 L414 222 L416 520 Q250 534 84 520 L86 222 L80 256 L3 236 Q30 140 62 66 Z',
-    back: 'M172 38 Q250 64 328 38 L438 66 Q470 140 497 236 L420 256 L414 222 L416 520 Q250 534 84 520 L86 222 L80 256 L3 236 Q30 140 62 66 Z',
-    seams: 'M108 70 Q96 150 86 222 M392 70 Q404 150 414 222',
-    body: { x: 84, w: 332 },
-  },
+// Shaka Wear tee photo (greyscale shading + cut-out), sized per fit.
+const TEE_TOP = 105
+const FIT_SIZE: Record<Fit, { w: number; h: number }> = {
+  regular: { w: 456, h: 393 },
+  oversized: { w: 490, h: 373 },
 }
+
+const hexRgb = (hex: string) => {
+  const h = hex.replace('#', '')
+  const n = parseInt(h.length === 3 ? h.split('').map((c) => c + c).join('') : h, 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => v / 255)
+}
+
+/** Recolours the white photo: out = colour + k * (shade - 0.9), so folds and highlights show on any colour. */
+const tintMatrix = (hex: string, k = 1.5) =>
+  hexRgb(hex).map((c, i) => [0, 1, 2].map((j) => (j === i ? k : 0)).join(' ') + ` 0 ${(c - k * 0.9).toFixed(3)}`).join(' ') + ' 0 0 0 1 0'
 
 export const luminance = (hex: string) => {
   const h = hex.replace('#', '')
@@ -110,43 +113,30 @@ export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
 ) {
   const id = useId().replace(/:/g, '')
   const light = luminance(color) > 0.6
-  const shape = SHAPES[fit] ?? SHAPES.regular
-  const path = side === 'front' ? shape.front : shape.back
+  const size = FIT_SIZE[fit] ?? FIT_SIZE.regular
   return (
     <svg
       ref={ref}
-      viewBox={`0 0 ${VIEW.w} ${VIEW.h}`}
+      viewBox={`0 ${VIEW.y} ${VIEW.w} ${VIEW.h}`}
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       style={{ touchAction: 'none' }}
       {...handlers}
     >
       <defs>
-        <linearGradient id={`shade${id}`} x1="0" x2="1">
-          <stop offset="0" stopColor="#000" stopOpacity=".28" />
-          <stop offset=".2" stopColor="#000" stopOpacity="0" />
-          <stop offset=".5" stopColor="#fff" stopOpacity=".06" />
-          <stop offset=".8" stopColor="#000" stopOpacity="0" />
-          <stop offset="1" stopColor="#000" stopOpacity=".28" />
-        </linearGradient>
-        <linearGradient id={`fold${id}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#fff" stopOpacity=".08" />
-          <stop offset="1" stopColor="#000" stopOpacity=".18" />
-        </linearGradient>
-        <clipPath id={`clip${id}`}><path d={path} /></clipPath>
+        <filter id={`tint${id}`} colorInterpolationFilters="sRGB">
+          <feColorMatrix type="matrix" values={tintMatrix(color)} />
+        </filter>
       </defs>
-      <ellipse cx="250" cy="548" rx="170" ry="10" fill="#000" opacity=".12" />
-      <path d={path} fill={color} stroke={light ? '#00000033' : '#ffffff1f'} strokeWidth="2" />
-      <g clipPath={`url(#clip${id})`} pointerEvents="none">
-        <rect width={VIEW.w} height={VIEW.h} fill={`url(#fold${id})`} />
-        <rect x={shape.body.x} width={shape.body.w} height={VIEW.h} fill={`url(#shade${id})`} />
-        <path d={shape.seams} fill="none" stroke="#000" strokeOpacity=".15" strokeWidth="3" />
-      </g>
-      <path
-        d={path.split(' L')[0]}
-        fill="none"
-        stroke={light ? '#00000026' : '#ffffff22'}
-        strokeWidth="9"
+      <ellipse cx="250" cy={TEE_TOP + size.h + 6} rx={size.w * 0.36} ry="8" fill="#000" opacity=".1" />
+      <image
+        href={teePhoto}
+        x={250 - size.w / 2}
+        y={TEE_TOP}
+        width={size.w}
+        height={size.h}
+        preserveAspectRatio="none"
+        filter={`url(#tint${id})`}
         pointerEvents="none"
       />
       {showPrintArea && (
@@ -164,7 +154,7 @@ export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
         />
       )}
       {art && (
-        <image href={art} x={PRINT.cx - 90} y={PRINT.y + 5} width="180" height="180" preserveAspectRatio="xMidYMid meet" pointerEvents="none" />
+        <image href={art} x={PRINT.cx - 75} y={PRINT.y + 5} width="150" height="150" preserveAspectRatio="xMidYMid meet" pointerEvents="none" />
       )}
       {layers.map((l) => (
         <LayerView key={l.id} layer={l} selected={l.id === selectedId} />

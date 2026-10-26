@@ -59,10 +59,9 @@ const p = (
   sizes: ['S', 'M', 'L', 'XL', '2XL'], active: true, created_at: daysAgo(40),
 })
 
-// Placeholder price until the real one is set in admin.
 export const seedProducts = (): Product[] => [
   {
-    ...p('sovereignty', 'Sovereignty', 350, 'Oversized', ['#111111'], '/products/sovereignty-front.jpg',
+    ...p('sovereignty', 'Sovereignty', 300, 'Oversized', ['#111111'], '/products/sovereignty-front.jpg',
       'Things money can\'t buy back. Black oversized, cropped tee with a gold print front and back. Ultra heavyweight 400gsm cotton.', true),
     images: ['/products/sovereignty-back.jpg'],
     sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
@@ -72,7 +71,7 @@ export const seedProducts = (): Product[] => [
 export const defaultSettings = (): Settings => ({
   store_name: 'Smug Para',
   currency: 'TTD',
-  custom_base_price: 35,
+  custom_base_price: 350,
   custom_back_price: 8,
   shipping_fee: 6,
   free_shipping_over: 80,
@@ -92,7 +91,7 @@ export const seedOrders = (products: Product[]): Order[] => {
     const prod = products[i % products.length]
     const qty = 1 + (i % 3)
     const custom = i % 4 === 0
-    const unit = custom ? 35 : prod.price
+    const unit = custom ? 350 : prod.price
     const status = age > 25 ? statuses[7 + (i % 2)] : statuses[i % statuses.length]
     const subtotal = unit * qty
     const shipping = subtotal >= 80 ? 0 : 6
