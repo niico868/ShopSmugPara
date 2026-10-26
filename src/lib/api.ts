@@ -176,8 +176,10 @@ export function subscribeOrders(cb: (newOrder?: { code: string; customer_name: s
       window.removeEventListener('storage', s)
     }
   }
+  // Each subscriber needs its own channel: supabase-js reuses a channel with the same name,
+  // and adding listeners to an already-subscribed channel throws.
   const ch = supabase!
-    .channel('orders-feed')
+    .channel(`orders-feed-${uid()}`)
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (p) =>
       cb(p.new as { code: string; customer_name: string }),
     )
