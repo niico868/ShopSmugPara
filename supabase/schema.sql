@@ -21,7 +21,7 @@ $$;
 create table if not exists public.settings (
   id int primary key default 1 check (id = 1),
   store_name text not null default 'Smug Para',
-  currency text not null default 'USD',
+  currency text not null default 'TTD',
   custom_base_price numeric(10,2) not null default 35,
   custom_back_price numeric(10,2) not null default 8,
   shipping_fee numeric(10,2) not null default 6,
@@ -43,6 +43,7 @@ create table if not exists public.products (
   colors text[] not null default '{#111111}',
   sizes text[] not null default '{S,M,L,XL,2XL}',
   image_url text not null default '',
+  images text[] not null default '{}',
   featured boolean not null default false,
   active boolean not null default true,
   created_at timestamptz not null default now()
@@ -67,6 +68,8 @@ create table if not exists public.orders (
   shipping numeric(10,2) not null default 0,
   total numeric(10,2) not null default 0
 );
+alter table public.products add column if not exists images text[] not null default '{}';
+
 create index if not exists orders_created_idx on public.orders (created_at desc);
 
 create table if not exists public.order_items (
@@ -173,7 +176,7 @@ begin
                 and jsonb_array_length(coalesce(item->'design'->'back', '[]'::jsonb)) > 0
                then s.custom_back_price else 0 end;
       insert into public.order_items (order_id, kind, name, color, size, qty, unit_price, design, preview)
-      values (v_order, 'custom', 'Custom Tee', coalesce(item->'design'->>'color', item->>'color'), item->>'size', v_qty, v_price, item->'design', item->>'preview');
+      values (v_order, 'custom', case when item->'design'->>'fit' = 'oversized' then 'Custom Tee (Oversized)' else 'Custom Tee' end, coalesce(item->'design'->>'color', item->>'color'), item->>'size', v_qty, v_price, item->'design', item->>'preview');
     else
       select * into p from public.products where id = (item->>'product_id')::uuid and active;
       if not found then raise exception 'A product in your bag is no longer available'; end if;

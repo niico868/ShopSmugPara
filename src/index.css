@@ -2,11 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: dark; }
-html, body { background: #0b0b0c; color: #f4f4f5; }
+:root { color-scheme: light; }
+html, body { background: #ffffff; color: #111111; }
 body { @apply font-sans antialiased; }
-::selection { background: #c6ff3d; color: #0b0b0c; }
+::selection { background: #5caedb; color: #ffffff; }
 input[type='number']::-webkit-inner-spin-button { opacity: .4; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fly, .animate-flap, .animate-marquee { animation: none !important; }
+}
 
 @media print {
   html, body { background: #fff !important; color: #000 !important; }

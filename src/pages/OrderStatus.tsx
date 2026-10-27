@@ -38,7 +38,7 @@ export default function OrderStatus() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
       {isNew && (
-        <div className="mb-8 animate-rise rounded-3xl bg-acid p-6 text-ink-950 sm:p-8">
+        <div className="mb-8 animate-rise rounded-3xl bg-black p-6 text-white sm:p-8">
           <PartyPopper size={32} />
           <h1 className="mt-3 font-poster text-5xl leading-none">Order placed!</h1>
           <p className="mt-2 font-medium">Save your order code. You'll need it with your email to track this order.</p>

@@ -60,33 +60,23 @@ const p = (
 })
 
 export const seedProducts = (): Product[] => [
-  p('smug-mode', 'Smug Mode', 28, 'Statement', ['#111111', '#1d2a4d', '#22412f'], SEED_ART.smugMode,
-    'The flagship. Heavyweight cotton, acid-lime print, zero apologies.', true),
-  p('para-sun', 'Para Sun', 30, 'Graphic', ['#111111', '#f4f1ea', '#5c1a2b'], SEED_ART.paraSun,
-    'Retro sunset stripes for long golden-hour days.', true),
-  p('no-stress', 'No Stress', 26, 'Graphic', ['#111111', '#1d2a4d', '#ff5c39'], SEED_ART.noStress,
-    'A friendly reminder printed right on your chest.'),
-  p('certified-smug', 'Certified Smug', 32, 'Statement', ['#111111', '#22412f', '#5c1a2b'], SEED_ART.certified,
-    'Badge-style emblem. Officially smug since 2026.', true),
-  p('para-grid', 'Para Grid', 28, 'Minimal', ['#f4f1ea', '#d6c3a1', '#c6ff3d', '#8fc6f0'], SEED_ART.grid,
-    'Checkerboard energy on light-tone tees.'),
-  p('midnight-club', 'Midnight Club', 30, 'Graphic', ['#1d2a4d', '#111111'], SEED_ART.midnight,
-    'For the night owls. Moon, stars, and a members-only feel.', true),
-  p('built-different', 'Built Different', 29, 'Statement', ['#111111', '#1d2a4d', '#26262b'], SEED_ART.built,
-    'Triple-stacked outline type in flame orange.'),
-  p('mood-ring', 'Mood Ring', 31, 'Minimal', ['#f4f1ea', '#d6c3a1', '#9b9ca1'], SEED_ART.moodRing,
-    'Concentric colour rings that go with every mood.'),
+  {
+    ...p('sovereignty', 'Sovereignty', 300, 'Oversized', ['#111111'], '/products/sovereignty-front.jpg',
+      'Things money can\'t buy back. Black oversized, cropped tee with a gold print front and back. Ultra heavyweight 400gsm cotton.', true),
+    images: ['/products/sovereignty-back.jpg'],
+    sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
+  },
 ]
 
 export const defaultSettings = (): Settings => ({
   store_name: 'Smug Para',
-  currency: 'USD',
-  custom_base_price: 35,
+  currency: 'TTD',
+  custom_base_price: 350,
   custom_back_price: 8,
-  shipping_fee: 6,
-  free_shipping_over: 80,
+  shipping_fee: 40,
+  free_shipping_over: 0,
   whatsapp: '',
-  announcement: 'Custom tees printed to order. Design yours in minutes.',
+  announcement: 'New drop: Sovereignty. Ultra heavyweight 400gsm.',
   payment_instructions: 'Pay by bank transfer using your order code as the reference. We start printing once payment reflects.',
 })
 
@@ -101,10 +91,10 @@ export const seedOrders = (products: Product[]): Order[] => {
     const prod = products[i % products.length]
     const qty = 1 + (i % 3)
     const custom = i % 4 === 0
-    const unit = custom ? 35 : prod.price
+    const unit = custom ? 350 : prod.price
     const status = age > 25 ? statuses[7 + (i % 2)] : statuses[i % statuses.length]
     const subtotal = unit * qty
-    const shipping = subtotal >= 80 ? 0 : 6
+    const shipping = 40
     const name = NAMES[i % NAMES.length]
     orders.push({
       id: uid(), code: orderCode(), created_at: created, customer_name: name,

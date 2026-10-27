@@ -19,6 +19,8 @@ export interface Product {
   colors: string[]
   sizes: string[]
   image_url: string
+  /** Extra photos, e.g. the back of the tee. */
+  images?: string[]
   featured: boolean
   active: boolean
   created_at: string
@@ -46,6 +48,9 @@ export interface Layer {
 
 export interface Design {
   color: string
+  fit?: 'regular' | 'oversized'
+  /** When the customer agreed to the design rules (set as it goes in the bag). */
+  rules_accepted_at?: string
   front: Layer[]
   back: Layer[]
 }

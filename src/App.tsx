@@ -2,11 +2,13 @@ import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import { PageLoader } from './components/ui'
+import { RequireAccount } from './components/RequireAccount'
 import Home from './pages/Home'
 
 const Shop = lazy(() => import('./pages/Shop'))
 const Product = lazy(() => import('./pages/Product'))
 const Designer = lazy(() => import('./pages/Designer'))
+const SignIn = lazy(() => import('./pages/SignIn'))
 const Checkout = lazy(() => import('./pages/Checkout'))
 const Track = lazy(() => import('./pages/Track'))
 const OrderStatus = lazy(() => import('./pages/OrderStatus'))
@@ -34,7 +36,8 @@ export default function App() {
           <Route index element={<Home />} />
           <Route path="shop" element={<Shop />} />
           <Route path="shop/:slug" element={<Product />} />
-          <Route path="design" element={<Designer />} />
+          <Route path="design" element={<RequireAccount><Designer /></RequireAccount>} />
+          <Route path="signin" element={<SignIn />} />
           <Route path="checkout" element={<Checkout />} />
           <Route path="track" element={<Track />} />
           <Route path="order/:code" element={<OrderStatus />} />

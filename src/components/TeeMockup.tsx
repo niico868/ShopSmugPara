@@ -1,12 +1,38 @@
 import { forwardRef, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import type { Layer, Side } from '../lib/types'
-import { fontCss } from '../lib/constants'
+import { fontCss, type Fit } from '../lib/constants'
+import regularTee from '../assets/regular-tee.webp?inline'
+import oversizedTee from '../assets/oversized-tee.webp?inline'
 
-export const VIEW = { w: 500, h: 560 }
-export const PRINT = { x: 150, y: 130, w: 200, h: 260, cx: 250, cy: 260 }
+// The visible window of the 500-wide canvas. Layer positions are offsets from PRINT's centre.
+export const VIEW = { y: 60, w: 500, h: 470 }
+// The usual chest print. Artwork may go anywhere on the shirt; this is only a guide.
+export const PRINT = { x: 170, y: 150, w: 160, h: 220, cx: 250, cy: 260 }
 
-const FRONT = 'M175 40 Q250 100 325 40 L420 75 L495 170 L430 215 L400 190 L400 540 Q250 556 100 540 L100 190 L70 215 L5 170 L80 75 Z'
-const BACK = 'M175 40 Q250 62 325 40 L420 75 L495 170 L430 215 L400 190 L400 540 Q250 556 100 540 L100 190 L70 215 L5 170 L80 75 Z'
+// Tee photos (greyscale shading + cut-out), recoloured at render time.
+const TEE_TOP = 105
+const TEES: Record<Fit, { src: string; w: number; h: number }> = {
+  regular: { src: regularTee, w: 420, h: 410 },
+  oversized: { src: oversizedTee, w: 490, h: 373 },
+}
+
+/** The shirt's bounding box, as offsets from the print centre (what layer x/y are measured in). */
+export const teeBounds = (fit: Fit = 'regular') => {
+  const t = TEES[fit] ?? TEES.regular
+  return { left: -t.w / 2, right: t.w / 2, top: TEE_TOP - PRINT.cy, bottom: TEE_TOP + t.h - PRINT.cy }
+}
+
+const WHITE_MATRIX = '0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0'
+
+const hexRgb = (hex: string) => {
+  const h = hex.replace('#', '')
+  const n = parseInt(h.length === 3 ? h.split('').map((c) => c + c).join('') : h, 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => v / 255)
+}
+
+/** Recolours the white photo: out = colour + k * (shade - 0.9), so folds and highlights show on any colour. */
+const tintMatrix = (hex: string, k = 1.5) =>
+  hexRgb(hex).map((c, i) => [0, 1, 2].map((j) => (j === i ? k : 0)).join(' ') + ` 0 ${(c - k * 0.9).toFixed(3)}`).join(' ') + ' 0 0 0 1 0'
 
 export const luminance = (hex: string) => {
   const h = hex.replace('#', '')
@@ -15,7 +41,7 @@ export const luminance = (hex: string) => {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255
 }
 
-export function LayerView({ layer, selected }: { layer: Layer; selected?: boolean }) {
+export function LayerView({ layer, selected, faint }: { layer: Layer; selected?: boolean; faint?: boolean }) {
   const ref = useRef<SVGGraphicsElement>(null)
   const [box, setBox] = useState<DOMRect | null>(null)
   useLayoutEffect(() => {
@@ -39,6 +65,7 @@ export function LayerView({ layer, selected }: { layer: Layer; selected?: boolea
           fontSize={layer.size}
           fontWeight={layer.weight}
           fill={layer.fill}
+          opacity={faint ? 0.3 : undefined}
         >
           {(layer.text ?? '').split('\n').map((line, i, arr) => (
             <tspan key={i} x="0" dy={i === 0 ? `${-(arr.length - 1) * 0.55}em` : '1.1em'}>
@@ -55,6 +82,7 @@ export function LayerView({ layer, selected }: { layer: Layer; selected?: boolea
           width={layer.width}
           height={(layer.width ?? 100) * (layer.aspect ?? 1)}
           preserveAspectRatio="xMidYMid meet"
+          opacity={faint ? 0.3 : undefined}
         />
       )}
       {selected && box && (
@@ -65,7 +93,7 @@ export function LayerView({ layer, selected }: { layer: Layer; selected?: boolea
           width={box.width + 12}
           height={box.height + 12}
           fill="none"
-          stroke="#c6ff3d"
+          stroke="#5caedb"
           strokeWidth={2}
           strokeDasharray="6 4"
           rx={4}
@@ -78,6 +106,7 @@ export function LayerView({ layer, selected }: { layer: Layer; selected?: boolea
 
 interface Props {
   color: string
+  fit?: Fit
   side?: Side
   layers?: Layer[]
   art?: string
@@ -91,49 +120,37 @@ interface Props {
 }
 
 export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
-  { color, side = 'front', layers = [], art, showPrintArea, selectedId, className, children, ...handlers },
+  { color, fit = 'regular', side = 'front', layers = [], art, showPrintArea, selectedId, className, children, ...handlers },
   ref,
 ) {
   const id = useId().replace(/:/g, '')
   const light = luminance(color) > 0.6
-  const path = side === 'front' ? FRONT : BACK
+  const tee = TEES[fit] ?? TEES.regular
+  const photo = { href: tee.src, x: 250 - tee.w / 2, y: TEE_TOP, width: tee.w, height: tee.h, preserveAspectRatio: 'none' }
+  const selected = layers.find((l) => l.id === selectedId)
   return (
     <svg
       ref={ref}
-      viewBox={`0 0 ${VIEW.w} ${VIEW.h}`}
+      viewBox={`0 ${VIEW.y} ${VIEW.w} ${VIEW.h}`}
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       style={{ touchAction: 'none' }}
       {...handlers}
     >
       <defs>
-        <linearGradient id={`shade${id}`} x1="0" x2="1">
-          <stop offset="0" stopColor="#000" stopOpacity=".28" />
-          <stop offset=".2" stopColor="#000" stopOpacity="0" />
-          <stop offset=".5" stopColor="#fff" stopOpacity=".06" />
-          <stop offset=".8" stopColor="#000" stopOpacity="0" />
-          <stop offset="1" stopColor="#000" stopOpacity=".28" />
-        </linearGradient>
-        <linearGradient id={`fold${id}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#fff" stopOpacity=".08" />
-          <stop offset="1" stopColor="#000" stopOpacity=".18" />
-        </linearGradient>
-        <clipPath id={`clip${id}`}><path d={path} /></clipPath>
+        <filter id={`tint${id}`} colorInterpolationFilters="sRGB">
+          <feColorMatrix type="matrix" values={tintMatrix(color)} />
+        </filter>
+        <filter id={`white${id}`} colorInterpolationFilters="sRGB">
+          <feColorMatrix type="matrix" values={WHITE_MATRIX} />
+        </filter>
+        {/* Prints only show where there is shirt underneath. */}
+        <mask id={`shirt${id}`} maskUnits="userSpaceOnUse" x="0" y="0" width={VIEW.w} height={VIEW.y + VIEW.h}>
+          <image {...photo} filter={`url(#white${id})`} />
+        </mask>
       </defs>
-      <ellipse cx="250" cy="548" rx="170" ry="10" fill="#000" opacity=".35" />
-      <path d={path} fill={color} stroke={light ? '#00000033' : '#ffffff1f'} strokeWidth="2" />
-      <g clipPath={`url(#clip${id})`} pointerEvents="none">
-        <rect width={VIEW.w} height={VIEW.h} fill={`url(#fold${id})`} />
-        <rect x="100" width="300" height={VIEW.h} fill={`url(#shade${id})`} />
-        <path d="M100 190 L70 215 M400 190 L430 215" stroke="#000" strokeOpacity=".15" strokeWidth="3" />
-      </g>
-      <path
-        d={side === 'front' ? 'M175 40 Q250 100 325 40' : 'M175 40 Q250 62 325 40'}
-        fill="none"
-        stroke={light ? '#00000026' : '#ffffff22'}
-        strokeWidth="9"
-        pointerEvents="none"
-      />
+      <ellipse cx="250" cy={TEE_TOP + tee.h + 6} rx={tee.w * 0.36} ry="8" fill="#000" opacity=".1" />
+      <image {...photo} filter={`url(#tint${id})`} pointerEvents="none" />
       {showPrintArea && (
         <rect
           data-ui
@@ -148,12 +165,20 @@ export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
           pointerEvents="none"
         />
       )}
-      {art && (
-        <image href={art} x={PRINT.cx - 90} y={PRINT.y + 5} width="180" height="180" preserveAspectRatio="xMidYMid meet" pointerEvents="none" />
+      <g mask={`url(#shirt${id})`}>
+        {art && (
+          <image href={art} x={PRINT.cx - 75} y={PRINT.y + 5} width="150" height="150" preserveAspectRatio="xMidYMid meet" pointerEvents="none" />
+        )}
+        {layers.map((l) => (
+          <LayerView key={l.id} layer={l} />
+        ))}
+      </g>
+      {/* A faint copy of the selected layer shows what is hidden past the shirt's edge, and can still be dragged. */}
+      {selected && (
+        <g data-ui>
+          <LayerView layer={selected} selected faint />
+        </g>
       )}
-      {layers.map((l) => (
-        <LayerView key={l.id} layer={l} selected={l.id === selectedId} />
-      ))}
       {children}
     </svg>
   )
