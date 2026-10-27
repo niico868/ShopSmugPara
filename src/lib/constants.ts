@@ -67,4 +67,7 @@ export const STATUS_META: Record<OrderStatus, { label: string; color: string; bl
   cancelled: { label: 'Cancelled', color: '#d93a3a', blurb: 'This order was cancelled.' },
 }
 
-export const PAYMENT_METHODS = ['Bank transfer (EFT)', 'Cash on collection', 'Card on collection', 'Mobile money']
+export const PAYMENT_METHODS = ['Bank transfer (preferred)', 'Cash on collection (50% down payment required)']
+/** Turnaround promise, used across the site. */
+export const READY_NOTE = 'Ready within 48 hours of payment.'
+export const DEPOSIT_NOTE = 'Design work and printing only start once a 50% down payment is made. Down payments can be made at Paywise outlets nationwide.'

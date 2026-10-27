@@ -29,7 +29,6 @@ export function Toggle({ label, checked, onChange, children }: { label: string; 
 export const RULES = [
   'No nudity or sexual content.',
   'No extreme or graphic violence, hate symbols or slurs.',
-  'Only upload artwork you own or have permission to use.',
 ]
 
 export const RULES_FOOTNOTE =
@@ -45,10 +44,10 @@ export function RulesDialog({ onClose, onAgree }: { onClose: () => void; onAgree
   )
 }
 
-export function Dialog({ title, onClose, children }: { title: ReactNode; onClose: () => void; children: ReactNode }) {
+export function Dialog({ title, onClose, children, wide }: { title: ReactNode; onClose: () => void; children: ReactNode; wide?: boolean }) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl bg-white p-6" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+      <div className={cx('max-h-[92vh] w-full overflow-y-auto rounded-2xl bg-white p-6', wide ? 'max-w-3xl' : 'max-w-md')} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div className="flex items-start justify-between gap-4">
           <h2 className="flex items-center gap-2 font-poster text-xl uppercase">{title}</h2>
           <button onClick={onClose} className="rounded-full p-1 hover:bg-ink-800" aria-label="Close dialog"><X size={18} /></button>

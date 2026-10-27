@@ -1,6 +1,6 @@
 import { AlertTriangle, AlignCenter, Copy, Layers, Trash2 } from 'lucide-react'
 import type { Layer } from '../../lib/types'
-import { FONTS } from '../../lib/constants'
+import { FONTS, type Fit } from '../../lib/constants'
 import { cx } from '../../lib/format'
 import { imageDpi } from '../TeeMockup'
 import { Field, Select, Textarea } from '../ui'
@@ -9,16 +9,16 @@ import { Range, Toggle } from './Controls'
 const INK = ['#111111', '#ffffff', '#5caedb', '#d4a537', '#ff5c39', '#ffd23d', '#b48cff', '#5ee6c1', '#e8467c']
 
 /** Print-quality verdict for an uploaded image at its current size. */
-export function dpiNote(l: Layer): { level: 'bad' | 'soft'; text: string } | null {
-  const dpi = imageDpi(l)
+export function dpiNote(l: Layer, fit?: Fit): { level: 'bad' | 'soft'; text: string } | null {
+  const dpi = imageDpi(l, fit)
   if (dpi === null) return null
   if (dpi < 100) return { level: 'bad', text: `This image is low resolution for its size (${dpi} DPI) and will print blurry. Make it smaller or upload a bigger file.` }
   if (dpi < 150) return { level: 'soft', text: `At this size the image may print slightly soft (${dpi} DPI). 150 DPI or more looks crisp.` }
   return null
 }
 
-export function DpiWarning({ layer }: { layer: Layer }) {
-  const n = dpiNote(layer)
+export function DpiWarning({ layer, fit }: { layer: Layer; fit?: Fit }) {
+  const n = dpiNote(layer, fit)
   if (!n) return null
   return (
     <p className={cx('flex gap-2 rounded-lg p-2.5 text-xs', n.level === 'bad' ? 'bg-flame/10 text-flame' : 'bg-[#c98a00]/10 text-[#9a6a00]')}>
@@ -27,8 +27,9 @@ export function DpiWarning({ layer }: { layer: Layer }) {
   )
 }
 
-export function LayerPanel({ layer, onPatch, onCommit, onCentre, onDuplicate, onRemove }: {
+export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicate, onRemove }: {
   layer: Layer
+  fit?: Fit
   onPatch: (p: Partial<Layer>, record?: boolean) => void
   onCommit: () => void
   onCentre: () => void
@@ -92,7 +93,7 @@ export function LayerPanel({ layer, onPatch, onCommit, onCentre, onDuplicate, on
       {layer.type === 'image' && (
         <>
           <Range label="Width" min={10} max={520} value={layer.width!} onChange={(v) => onPatch({ width: v }, false)} />
-          <DpiWarning layer={layer} />
+          <DpiWarning layer={layer} fit={fit} />
           {layer.flagged && <p className="rounded-lg bg-ink-800 p-2.5 text-xs text-ink-400">Our team will take a closer look at this image before printing.</p>}
           <Toggle label="Drop shadow" checked={!!layer.shadow} onChange={(on) => onPatch({ shadow: on || undefined })} />
         </>

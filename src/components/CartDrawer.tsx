@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Minus, Plus, Trash2, X } from 'lucide-react'
 import { useCart, cartSubtotal } from '../store/cart'
 import { money, cx } from '../lib/format'
-import { colorName } from '../lib/constants'
+import { colorName, READY_NOTE } from '../lib/constants'
 import { useSettings } from '../lib/settings'
 import { Button } from './ui'
 import { ItemThumb } from './ItemThumb'
@@ -62,6 +62,7 @@ export function CartDrawer() {
             <div className="border-t border-ink-800 p-5">
               <div className="mb-4 flex justify-between text-lg font-bold"><span>Subtotal</span><span>{money(sub)}</span></div>
               <Button size="lg" className="w-full" onClick={() => { setOpen(false); nav('/checkout') }}>Checkout</Button>
+              <p className="mt-3 text-center text-xs text-ink-400">{READY_NOTE}</p>
             </div>
           </>
         )}

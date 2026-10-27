@@ -89,7 +89,7 @@ export default function Layout() {
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-3">
           <div>
             <Logo />
-            <p className="mt-3 max-w-xs text-sm text-white/60">Heavyweight tees and bold prints from Trinidad. Custom designs made to order.</p>
+            <p className="mt-3 max-w-xs text-sm text-white/60">Heavyweight tees and bold prints from Trinidad. Custom designs made to order, ready within 48 hours of payment.</p>
           </div>
           <div className="text-sm">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid">Shop</p>

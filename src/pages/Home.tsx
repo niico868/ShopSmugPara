@@ -11,7 +11,7 @@ import { useSettings } from '../lib/settings'
 const STEPS = [
   { t: 'Pick a tee', d: 'Shop a drop, or choose a regular or oversized blank.' },
   { t: 'Make it yours', d: 'Add text and artwork, front and back.' },
-  { t: 'We print it', d: 'Every tee is printed to order.' },
+  { t: 'We print it', d: 'Printed to order and ready within 48 hours of payment.' },
   { t: 'Track it live', d: 'Follow each step with your order code.' },
 ]
 

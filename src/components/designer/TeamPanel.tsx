@@ -1,6 +1,6 @@
 import { Plus, Trash2, Users } from 'lucide-react'
 import type { RosterRow } from '../../lib/types'
-import { SIZES } from '../../lib/constants'
+import { CUSTOM_SIZES } from '../TeeMockup'
 import { Input, Select } from '../ui'
 
 /** Team and bulk orders: one tee per row, each with its own name, number and size. */
@@ -27,7 +27,7 @@ export function TeamPanel({ rows, onChange, onAddField, hasName, hasNumber }: {
               <Input value={r.name} onChange={(e) => set(i, { name: e.target.value.slice(0, 20) })} placeholder="Name" aria-label={`Player ${i + 1} name`} className="px-2 py-1.5 text-sm" />
               <Input value={r.number} onChange={(e) => set(i, { number: e.target.value.replace(/[^0-9]/g, '').slice(0, 3) })} placeholder="#" inputMode="numeric" aria-label={`Player ${i + 1} number`} className="px-2 py-1.5 text-sm" />
               <Select value={r.size} onChange={(e) => set(i, { size: e.target.value })} aria-label={`Player ${i + 1} size`} className="px-1 py-1.5 text-sm">
-                {SIZES.map((s) => <option key={s}>{s}</option>)}
+                {CUSTOM_SIZES.map((s) => <option key={s}>{s}</option>)}
               </Select>
               <button onClick={() => onChange(rows.filter((_, j) => j !== i))} className="text-ink-400 hover:text-flame" aria-label={`Remove player ${i + 1}`}><Trash2 size={14} /></button>
             </li>

@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { Check, Copy, PartyPopper, PenLine } from 'lucide-react'
 import { respondProof, trackOrder } from '../lib/api'
-import type { Order } from '../lib/types'
+import type { Area, Order, OrderItem } from '../lib/types'
 import { Button, Card, Empty, PageLoader, StatusBadge, Textarea } from '../components/ui'
 import { EventList, OrderProgress } from '../components/OrderTimeline'
 import { ItemThumb } from '../components/ItemThumb'
-import { colorName } from '../lib/constants'
+import { AREAS, TeeMockup } from '../components/TeeMockup'
+import { Dialog } from '../components/designer/Controls'
+import { AREA_ORDER } from '../lib/pricing'
+import { DEPOSIT_NOTE, READY_NOTE, colorName } from '../lib/constants'
 import { dateTime, money } from '../lib/format'
 import { useSettings } from '../lib/settings'
 import { toast } from '../components/Toast'
@@ -18,6 +21,7 @@ export default function OrderStatus() {
   const isNew = q.get('new') === '1'
   const { settings } = useSettings()
   const [order, setOrder] = useState<Order | null | undefined>()
+  const [zoomed, setZoomed] = useState<OrderItem | null>(null)
 
   useEffect(() => {
     const load = () => trackOrder(code, email).then(setOrder).catch(() => setOrder(null))
@@ -42,6 +46,7 @@ export default function OrderStatus() {
           <PartyPopper size={32} />
           <h1 className="mt-3 font-poster text-5xl leading-none">Order placed!</h1>
           <p className="mt-2 font-medium">Save your order code. You'll need it with your email to track this order.</p>
+          <p className="mt-2 text-sm text-white/80">{READY_NOTE} {DEPOSIT_NOTE}</p>
           <button onClick={() => { navigator.clipboard?.writeText(order.code); toast.success('Code copied') }} className="mt-4 inline-flex items-center gap-2 rounded-full bg-ink-950 px-4 py-2 font-mono text-lg font-bold text-acid">
             {order.code} <Copy size={16} />
           </button>
@@ -65,7 +70,8 @@ export default function OrderStatus() {
         <Card className="mt-4 border-acid/40">
           <p className="text-sm font-semibold text-acid">Payment: {order.payment_method}</p>
           <p className="mt-1 text-sm text-ink-200">{settings.payment_instructions}</p>
-          <p className="mt-2 text-sm">Amount due: <b>{money(order.total)}</b> · Reference: <b className="font-mono">{order.code}</b></p>
+          <p className="mt-2 text-sm">Amount due: <b>{money(order.total)}</b> · 50% down payment: <b>{money(Math.ceil(order.total / 2))}</b> · Reference: <b className="font-mono">{order.code}</b></p>
+          <p className="mt-2 text-sm text-ink-400">{DEPOSIT_NOTE} {READY_NOTE}</p>
         </Card>
       )}
 
@@ -79,7 +85,9 @@ export default function OrderStatus() {
           <ul className="space-y-4">
             {order.items.map((it) => (
               <li key={it.id} className="flex gap-4">
-                <ItemThumb item={it} className="h-24 w-20 shrink-0" />
+                <button onClick={() => setZoomed(it)} className="shrink-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-acid" aria-label={`View ${it.name} larger`}>
+                  <ItemThumb item={it} className="h-24 w-20 cursor-zoom-in" />
+                </button>
                 <div className="flex-1 text-sm">
                   <p className="font-semibold">{it.name}</p>
                   <p className="text-ink-400">{colorName(it.color)} · {it.size} · Qty {it.qty}</p>
@@ -100,6 +108,7 @@ export default function OrderStatus() {
           {wa && <a href={wa} target="_blank" rel="noreferrer"><Button variant="outline" className="mt-6 w-full">Message us on WhatsApp</Button></a>}
         </Card>
       </div>
+      {zoomed && <ItemViewer item={zoomed} onClose={() => setZoomed(null)} />}
     </div>
   )
 }
@@ -146,5 +155,28 @@ function ProofReview({ order, email, onDone }: { order: Order; email: string; on
         </div>
       </div>
     </Card>
+  )
+}
+
+/** Full view of an ordered tee: every printed side for custom tees, the product photo otherwise. */
+function ItemViewer({ item, onClose }: { item: OrderItem; onClose: () => void }) {
+  const d = item.design
+  const areas = d ? AREA_ORDER.filter((a) => (d[a] ?? []).length) : []
+  return (
+    <Dialog title={item.name} onClose={onClose} wide>
+      {d && item.kind === 'custom' ? (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {(areas.length ? areas : (['front'] as Area[])).map((a) => (
+            <figure key={a} className="rounded-2xl bg-[radial-gradient(circle_at_50%_30%,#ffffff,#ececea_75%)] p-3">
+              <TeeMockup color={d.color} fit={d.fit} area={a} size={d.size ?? item.size} layers={d[a] ?? []} className="w-full" />
+              <figcaption className="text-center text-xs font-semibold uppercase tracking-wider text-ink-400">{AREAS[a].name}</figcaption>
+            </figure>
+          ))}
+        </div>
+      ) : (
+        <img src={item.image_url} alt={item.name} className="mt-4 max-h-[70vh] w-full rounded-2xl object-contain" />
+      )}
+      <p className="mt-3 text-sm text-ink-400">{colorName(item.color)} · Size {item.size} · Qty {item.qty}</p>
+    </Dialog>
   )
 }
