@@ -6,40 +6,87 @@ import oversizedTee from '../assets/oversized-tee.webp?inline'
 
 // The visible window of the 500-wide canvas. Layer positions are offsets from PRINT's centre.
 export const VIEW = { y: 60, w: 500, h: 470 }
-// The usual chest print. Artwork may go anywhere on the shirt; this is only a guide.
-export const PRINT = { x: 170, y: 150, w: 160, h: 220, cx: 250, cy: 260 }
-/** Canvas units per printed inch (a large tee's chest is about 21 in across). */
-export const UNITS_PER_INCH = 12
+// Origin that layer x/y offsets are measured from (centre of the chest).
+export const PRINT = { cx: 250, cy: 260 }
 
-// Tee photos (greyscale shading + cut-out), recoloured at render time.
+/** Chest width (inches, laid flat 1 in below the armhole) for each size, from the Shaka Wear size chart. */
+export const SIZE_CHEST: Record<string, number> = { S: 18, M: 20, L: 22, XL: 24, '2XL': 26, '3XL': 28 }
+export const CUSTOM_SIZES = Object.keys(SIZE_CHEST)
+/** The main print area in inches. Everything inside it is covered by the base price. */
+export const MAIN_PRINT_IN = { w: 14, h: 20 }
+
+// Tee photos (greyscale shading + cut-out), recoloured at render time. Coordinates are canvas units,
+// measured from the photos: body = chest panel edges, sh = shoulder seam top, arm = armpit, neck = front neckline dip.
 const TEE_TOP = 105
-const TEES: Record<Fit, { src: string; w: number; h: number; sleeveX: number; sleeveY: number }> = {
-  regular: { src: regularTee, w: 420, h: 410, sleeveX: 156, sleeveY: 205 },
-  oversized: { src: oversizedTee, w: 490, h: 373, sleeveX: 180, sleeveY: 205 },
+interface Tee { src: string; w: number; h: number; sleeveX: number; sleeveY: number; body: [number, number]; sh: [number, number, number]; armY: number; neck: [number, number, number] }
+const TEES: Record<Fit, Tee> = {
+  regular: { src: regularTee, w: 420, h: 410, sleeveX: 156, sleeveY: 212, body: [126, 373], sh: [116, 384, 148], armY: 276, neck: [210, 291, 140] },
+  oversized: { src: oversizedTee, w: 490, h: 373, sleeveX: 180, sleeveY: 212, body: [112, 386], sh: [100, 400, 152], armY: 272, neck: [214, 288, 152] },
 }
+const tee = (fit: Fit = 'regular') => TEES[fit] ?? TEES.regular
+
+/** Canvas units per printed inch, so the mockup is true to the chosen size: bigger shirts make the same print look smaller. */
+export const unitsPerInch = (fit: Fit = 'regular', size = 'L') => {
+  const t = tee(fit)
+  return (t.body[1] - t.body[0]) / (SIZE_CHEST[size] ?? SIZE_CHEST.L)
+}
+
+/**
+ * Layers are stored at size L scale, so a print keeps its real size when the customer changes size:
+ * the shirt grows around it. This is how much bigger the shirt photo is than the print at the chosen size.
+ */
+export const sizeScale = (fit: Fit = 'regular', size = 'L') => unitsPerInch(fit, size) / unitsPerInch(fit, 'L')
+const scaleAboutPrint = (k: number) => (k === 1 ? undefined : `translate(${PRINT.cx} ${PRINT.cy}) scale(${k}) translate(${-PRINT.cx} ${-PRINT.cy})`)
 
 type Box = { x: number; y: number; w: number; h: number }
 const around = (cx: number, cy: number, w: number, h = w): Box => ({ x: cx - w / 2, y: cy - h / 2, w, h })
 
+const mainGuide = (f: Fit, size: string) => {
+  const u = unitsPerInch(f, size)
+  const top = tee(f).neck[2] + 3 * u
+  return around(250, top + (MAIN_PRINT_IN.h * u) / 2, MAIN_PRINT_IN.w * u, MAIN_PRINT_IN.h * u)
+}
+const sleeveAt = (f: Fit, side: 1 | -1) => ({ x: 250 + side * tee(f).sleeveX, y: tee(f).sleeveY })
+
 /** Each print area: the part of the canvas its view shows, and the dashed guide inside it. */
-export const AREAS: Record<Area, { name: string; view: (fit: Fit) => Box; guide: (fit: Fit) => Box }> = {
-  front: { name: 'Front', view: () => ({ x: 0, y: VIEW.y, w: VIEW.w, h: VIEW.h }), guide: () => around(PRINT.cx, PRINT.cy, PRINT.w, PRINT.h) },
-  back: { name: 'Back', view: () => ({ x: 0, y: VIEW.y, w: VIEW.w, h: VIEW.h }), guide: () => around(PRINT.cx, PRINT.cy, PRINT.w, PRINT.h) },
+export const AREAS: Record<Area, { name: string; view: (fit: Fit) => Box; guide: (fit: Fit, size: string) => Box }> = {
+  front: { name: 'Front', view: () => ({ x: 0, y: VIEW.y, w: VIEW.w, h: VIEW.h }), guide: mainGuide },
+  back: { name: 'Back', view: () => ({ x: 0, y: VIEW.y, w: VIEW.w, h: VIEW.h }), guide: mainGuide },
   // Wearer's left sleeve sits on the viewer's right of the front photo.
-  sleeve_left: { name: 'Left sleeve', view: (f) => around(250 + TEES[f].sleeveX, TEES[f].sleeveY, 210), guide: (f) => around(250 + TEES[f].sleeveX, TEES[f].sleeveY, 48) },
-  sleeve_right: { name: 'Right sleeve', view: (f) => around(250 - TEES[f].sleeveX, TEES[f].sleeveY, 210), guide: (f) => around(250 - TEES[f].sleeveX, TEES[f].sleeveY, 48) },
-  label: { name: 'Neck label', view: () => around(250, 165, 200), guide: () => around(250, 142, 40, 32) },
+  sleeve_left: { name: 'Left sleeve', view: (f) => around(sleeveAt(f, 1).x, sleeveAt(f, 1).y, 210), guide: (f, s) => around(sleeveAt(f, 1).x, sleeveAt(f, 1).y, 4 * unitsPerInch(f, s)) },
+  sleeve_right: { name: 'Right sleeve', view: (f) => around(sleeveAt(f, -1).x, sleeveAt(f, -1).y, 210), guide: (f, s) => around(sleeveAt(f, -1).x, sleeveAt(f, -1).y, 4 * unitsPerInch(f, s)) },
+  label: {
+    name: 'Neck label',
+    view: (f) => around(250, tee(f).neck[2] - 10, 200),
+    guide: (f, s) => around(250, (TEE_TOP + tee(f).neck[2]) / 2 + 2, 3 * unitsPerInch(f, s), 2 * unitsPerInch(f, s)),
+  },
+}
+
+/** Where each area's prints may show: front and back on the body panel, sleeves on their sleeve, the label inside the collar. */
+function panelPath(area: Area, fit: Fit) {
+  const t = tee(fit)
+  const [l, r] = t.body
+  const [shL, shR, shY] = t.sh
+  const [nl, nr, ny] = t.neck
+  const collar = `M ${nl} 90 L ${nr} 90 L ${nr} ${TEE_TOP} Q 250 ${2 * ny - TEE_TOP} ${nl} ${TEE_TOP} Z`
+  const bottom = VIEW.y + VIEW.h
+  switch (area) {
+    case 'label': return collar
+    case 'sleeve_right': return `M 0 0 L ${shL} 0 L ${shL} ${shY} L ${l} ${t.armY} L ${l} ${bottom} L 0 ${bottom} Z`
+    case 'sleeve_left': return `M ${VIEW.w} 0 L ${shR} 0 L ${shR} ${shY} L ${r} ${t.armY} L ${r} ${bottom} L ${VIEW.w} ${bottom} Z`
+    default: return `M ${shL} 0 L ${shR} 0 L ${shR} ${shY} L ${r} ${t.armY} L ${r} ${bottom} L ${l} ${bottom} L ${l} ${t.armY} L ${shL} ${shY} Z ${collar}`
+  }
 }
 
 /** The shirt's bounding box, as offsets from the print centre (what layer x/y are measured in). */
 export const teeBounds = (fit: Fit = 'regular') => {
-  const t = TEES[fit] ?? TEES.regular
+  const t = tee(fit)
   return { left: -t.w / 2, right: t.w / 2, top: TEE_TOP - PRINT.cy, bottom: TEE_TOP + t.h - PRINT.cy }
 }
 
 /** Centre of an area's guide, as a layer offset. */
-export const areaCentre = (area: Area, fit: Fit = 'regular') => {
-  const g = AREAS[area].guide(fit)
+export const areaCentre = (area: Area, fit: Fit = 'regular', size = 'L') => {
+  const g = AREAS[area].guide(fit, size)
   return { x: g.x + g.w / 2 - PRINT.cx, y: g.y + g.h / 2 - PRINT.cy }
 }
 
@@ -74,23 +121,43 @@ export function layerBox(l: Layer): Box {
   return around(PRINT.cx + l.x, PRINT.cy + l.y, bw, bh)
 }
 
-/** Longest side, in inches, of everything printed in one area (only the part on the shirt counts). */
-export function printInches(layers: Layer[], fit: Fit = 'regular'): number {
+/** Square inches of shirt covered by an area's prints (overlaps counted once, only the part on the shirt). */
+export function printArea(layers: Layer[], fit: Fit = 'regular', size = 'L'): number {
   if (!layers.length) return 0
   const b = teeBounds(fit)
-  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity
-  for (const l of layers) {
-    const k = layerBox(l)
-    x0 = Math.min(x0, k.x); y0 = Math.min(y0, k.y); x1 = Math.max(x1, k.x + k.w); y1 = Math.max(y1, k.y + k.h)
+  const s = sizeScale(fit, size)
+  // Layer boxes are at size L scale; place them on this size's shirt first.
+  const onShirt = (k: Box): Box => ({ x: PRINT.cx + (k.x - PRINT.cx) * s, y: PRINT.cy + (k.y - PRINT.cy) * s, w: k.w * s, h: k.h * s })
+  const boxes = layers.map(layerBox).map(onShirt).map((k) => ({
+    x0: Math.max(k.x, PRINT.cx + b.left), x1: Math.min(k.x + k.w, PRINT.cx + b.right),
+    y0: Math.max(k.y, PRINT.cy + b.top), y1: Math.min(k.y + k.h, PRINT.cy + b.bottom),
+  })).filter((k) => k.x1 > k.x0 && k.y1 > k.y0)
+  if (!boxes.length) return 0
+  // Union of rectangles by sweeping x slabs: exact, and cheap for a handful of layers.
+  const xs = [...new Set(boxes.flatMap((k) => [k.x0, k.x1]))].sort((p, q) => p - q)
+  let units = 0
+  for (let i = 0; i < xs.length - 1; i++) {
+    const mid = (xs[i] + xs[i + 1]) / 2
+    const spans = boxes.filter((k) => k.x0 <= mid && mid < k.x1).map((k) => [k.y0, k.y1]).sort((p, q) => p[0] - q[0])
+    let covered = 0, end = -Infinity
+    for (const [y0, y1] of spans) {
+      if (y1 <= end) continue
+      covered += y1 - Math.max(y0, end)
+      end = y1
+    }
+    units += covered * (xs[i + 1] - xs[i])
   }
-  x0 = Math.max(x0, PRINT.cx + b.left); x1 = Math.min(x1, PRINT.cx + b.right)
-  y0 = Math.max(y0, PRINT.cy + b.top); y1 = Math.min(y1, PRINT.cy + b.bottom)
-  const longest = Math.max(0, x1 - x0, y1 - y0)
-  return Math.round((longest / UNITS_PER_INCH) * 10) / 10
+  const u = unitsPerInch(fit, size)
+  return Math.round(units / (u * u))
 }
 
+/** Prints are priced as a strip this many inches tall: the "length" is total printed area ÷ this height. */
+export const PRICE_STRIP_IN = 22
+export const printLength = (sqIn: number) => Math.round((sqIn / PRICE_STRIP_IN) * 10) / 10
+
 /** Effective print resolution of an uploaded image at its current size. */
-export const imageDpi = (l: Layer) => (l.type === 'image' && l.px ? Math.round(l.px / ((l.width ?? 100) / UNITS_PER_INCH)) : null)
+export const imageDpi = (l: Layer, fit: Fit = 'regular') =>
+  l.type === 'image' && l.px ? Math.round(l.px / ((l.width ?? 100) / unitsPerInch(fit, 'L'))) : null
 
 // ---- Colour --------------------------------------------------------------------
 const hexRgb = (hex: string) => {
@@ -213,6 +280,14 @@ export function LayerView({ layer, selected, faint, shadowId, ui = 1 }: { layer:
           pointerEvents="none"
         />
       )}
+      {selected && box && (
+        // Quick delete: the designer removes the layer when this is pressed.
+        <g data-ui data-delete={layer.id} transform={`translate(${box.x + box.width + 6 * ui} ${box.y - 6 * ui}) scale(${ui})`} style={{ cursor: 'pointer' }}>
+          <title>Delete</title>
+          <circle r="11" fill="#111111" fillOpacity=".45" stroke="#ffffff" strokeOpacity=".8" strokeWidth="1.5" />
+          <path d="M -4 -4 L 4 4 M 4 -4 L -4 4" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+        </g>
+      )}
     </g>
   )
 }
@@ -223,6 +298,8 @@ interface Props {
   fit?: Fit
   /** Which print area to frame; the whole shirt for front and back. */
   area?: Area
+  /** Garment size, so prints show true to scale. */
+  size?: string
   layers?: Layer[]
   art?: string
   showPrintArea?: boolean
@@ -235,17 +312,18 @@ interface Props {
 }
 
 export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
-  { color, fit = 'regular', area = 'front', layers = [], art, showPrintArea, selectedId, className, children, ...handlers },
+  { color, fit = 'regular', area = 'front', size = 'L', layers = [], art, showPrintArea, selectedId, className, children, ...handlers },
   ref,
 ) {
   const id = useId().replace(/:/g, '')
   const light = luminance(color) > 0.6
-  const tee = TEES[fit] ?? TEES.regular
-  const photo = { href: tee.src, x: 250 - tee.w / 2, y: TEE_TOP, width: tee.w, height: tee.h, preserveAspectRatio: 'none' }
+  const t = tee(fit)
+  const photo = { href: t.src, x: 250 - t.w / 2, y: TEE_TOP, width: t.w, height: t.h, preserveAspectRatio: 'none' }
   const selected = layers.find((l) => l.id === selectedId)
   const view = (AREAS[area] ?? AREAS.front).view(fit)
-  const guide = (AREAS[area] ?? AREAS.front).guide(fit)
+  const guide = (AREAS[area] ?? AREAS.front).guide(fit, size)
   const zoom = VIEW.w / view.w
+  const k = sizeScale(fit, size)
   return (
     <svg
       ref={ref}
@@ -269,8 +347,9 @@ export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
         <mask id={`shirt${id}`} maskUnits="userSpaceOnUse" x="0" y="0" width={VIEW.w} height={VIEW.y + VIEW.h}>
           <image {...photo} filter={`url(#white${id})`} />
         </mask>
+        <clipPath id={`panel${id}`}><path d={panelPath(area, fit)} clipRule="evenodd" /></clipPath>
       </defs>
-      <ellipse cx="250" cy={TEE_TOP + tee.h + 6} rx={tee.w * 0.36} ry="8" fill="#000" opacity=".1" />
+      <ellipse cx="250" cy={TEE_TOP + t.h + 6} rx={t.w * 0.36} ry="8" fill="#000" opacity=".1" />
       <image {...photo} filter={`url(#tint${id})`} pointerEvents="none" />
       {showPrintArea && (
         <rect
@@ -289,16 +368,21 @@ export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
       )}
       <g mask={`url(#shirt${id})`}>
         {art && (
-          <image href={art} x={PRINT.cx - 75} y={PRINT.y + 5} width="150" height="150" preserveAspectRatio="xMidYMid meet" pointerEvents="none" />
+          <image href={art} x={PRINT.cx - 75} y={155} width="150" height="150" preserveAspectRatio="xMidYMid meet" pointerEvents="none" />
         )}
-        {layers.map((l) => (
-          <LayerView key={l.id} layer={l} shadowId={`shadow${id}`} />
-        ))}
+        {/* Each area only prints on its own panel: front art never spills onto the sleeves or inside the collar. */}
+        <g clipPath={`url(#panel${id})`}>
+          <g transform={scaleAboutPrint(k)}>
+            {layers.map((l) => (
+              <LayerView key={l.id} layer={l} shadowId={`shadow${id}`} />
+            ))}
+          </g>
+        </g>
       </g>
       {/* A faint copy of the selected layer shows what is hidden past the shirt's edge, and can still be dragged. */}
       {selected && (
-        <g data-ui>
-          <LayerView layer={selected} selected faint ui={1 / zoom} />
+        <g data-ui transform={scaleAboutPrint(k)}>
+          <LayerView layer={selected} selected faint ui={1 / (zoom * k)} />
         </g>
       )}
       {children}

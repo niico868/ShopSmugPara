@@ -28,7 +28,7 @@ export default function SharedDesign() {
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {(areas.length ? areas : (['front'] as const)).map((a) => (
           <figure key={a} className="rounded-3xl border border-ink-800 bg-[radial-gradient(circle_at_50%_30%,#ffffff,#ececea_75%)] p-4">
-            <TeeMockup color={d.design.color} fit={d.design.fit} area={a} layers={fillRoster(areaLayers(d.design, a), d.design.roster?.[0])} className="w-full" />
+            <TeeMockup color={d.design.color} fit={d.design.fit} area={a} size={d.design.size} layers={fillRoster(areaLayers(d.design, a), d.design.roster?.[0])} className="w-full" />
             <figcaption className="text-center text-xs font-semibold uppercase tracking-wider text-ink-400">{AREAS[a].name}</figcaption>
           </figure>
         ))}

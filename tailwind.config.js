@@ -27,8 +27,14 @@ export default {
         },
         flap: { '0%,100%': { transform: 'scaleY(1)' }, '50%': { transform: 'scaleY(-.55)' } },
         rise: { from: { opacity: '0', transform: 'translateY(12px)' }, to: { opacity: '1', transform: 'none' } },
+        // Toasts appear in place, pause, then drift to the top of the screen and fade, clearing the buttons under them.
+        'float-away': {
+          '0%': { opacity: '0', transform: 'translateY(12px)' },
+          '8%, 22%': { opacity: '1', transform: 'translateY(0)' },
+          '100%': { opacity: '0', transform: 'translateY(calc(-100vh + 10rem))' },
+        },
       },
-      animation: { marquee: 'marquee 30s linear infinite', fly: 'fly 14s linear infinite', flap: 'flap .32s ease-in-out infinite', rise: 'rise .5s ease both' },
+      animation: { marquee: 'marquee 30s linear infinite', fly: 'fly 14s linear infinite', flap: 'flap .32s ease-in-out infinite', rise: 'rise .5s ease both', 'float-away': 'float-away 3.5s cubic-bezier(.4,0,.2,1) both' },
     },
   },
   plugins: [],

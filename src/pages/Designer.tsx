@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ArrowDown, ArrowUp, Download, Info, Link2, Minus, Plus, Redo2, RotateCcw, Save, Type, Undo2 } from 'lucide-react'
 import type { Area, Design, Layer, RosterRow } from '../lib/types'
-import { AREAS, PRINT, TeeMockup, areaCentre, svgToPng, teeBounds, VIEW } from '../components/TeeMockup'
+import { AREAS, CUSTOM_SIZES, sizeScale, MAIN_PRINT_IN, PRICE_STRIP_IN, PRINT, TeeMockup, areaCentre, svgToPng, teeBounds, VIEW } from '../components/TeeMockup'
 import { Button, Field, Input, Swatch } from '../components/ui'
-import { FITS, SIZES, TEE_COLORS, colorName, fitName } from '../lib/constants'
+import { FITS, TEE_COLORS, colorName, fitName } from '../lib/constants'
 import { cx, money, uid } from '../lib/format'
 import { useSettings } from '../lib/settings'
 import { useCart } from '../store/cart'
@@ -99,7 +99,10 @@ export default function Designer() {
   const layers = areaLayers(design, area)
   const selected = layers.find((l) => l.id === sel) ?? null
   const roster = design.roster ?? []
-  const centre = areaCentre(area, fit)
+  // Layers are stored at size L scale; k converts them to this size's canvas (see sizeScale).
+  const k = sizeScale(fit, size)
+  const canvasCentre = areaCentre(area, fit, size)
+  const centre = { x: canvasCentre.x / k, y: canvasCentre.y / k }
   const zoom = VIEW.w / AREAS[area].view(fit).w
   const small = SMALL.includes(area)
 
@@ -125,6 +128,7 @@ export default function Designer() {
       getDesign((own || copy)!).then((d) => {
         if (!d) return toast.error('That design could not be found.')
         setDesign({ ...blank(), ...d.design })
+        if (d.design.size && CUSTOM_SIZES.includes(d.design.size)) setSize(d.design.size)
         setArea(mainArea(d.design))
         setSel(null)
         if (own) { setSaved({ id: d.id, name: d.name, shared: d.shared }); setName(d.name) }
@@ -182,7 +186,8 @@ export default function Designer() {
 
   const ink = design.color === '#111111' ? '#ffffff' : '#111111'
   const place = (l: Omit<Layer, 'id' | 'x' | 'y' | 'rotation'>, a: Area = area, dy = 0) => {
-    const c = areaCentre(a, fit)
+    const ac = areaCentre(a, fit, size)
+    const c = { x: ac.x / k, y: ac.y / k }
     const layer: Layer = { id: uid(), x: c.x, y: c.y + dy, rotation: 0, ...l }
     setLayers((ls) => [...ls, layer], true, a)
     setSel(layer.id)
@@ -190,8 +195,6 @@ export default function Designer() {
   const addText = () => place({ type: 'text', text: small ? 'SP' : 'YOUR TEXT', font: 'Bebas Neue', fill: ink, size: small ? 18 : 48, weight: 400 })
   const addImage = (src: string, aspect: number, extra: Partial<Layer> = {}) =>
     place({ type: 'image', src, width: small ? 40 : 160, aspect, ...extra })
-  const addPreset = (p: Partial<Layer>) =>
-    place({ type: 'text', font: 'Bebas Neue', weight: 400, ...p, fill: p.fill ?? ink, size: Math.round((p.size ?? 40) * (small ? 0.3 : 1)) })
   const addRosterField = (field: 'name' | 'number') => {
     // Names and numbers go on the back, like a jersey; they can be moved anywhere after.
     const a: Area = 'back'
@@ -234,6 +237,8 @@ export default function Designer() {
     return pt.matrixTransform(svg.getScreenCTM()!.inverse())
   }
   const onDown = (e: React.PointerEvent<SVGSVGElement>) => {
+    const del = (e.target as Element).closest('[data-delete]')
+    if (del) return remove(del.getAttribute('data-delete')!)
     const g = (e.target as Element).closest('[data-layer]')
     if (!g) return setSel(null)
     const id = g.getAttribute('data-layer')!
@@ -243,7 +248,7 @@ export default function Designer() {
     setSel(id)
     setPast((ps) => [...ps.slice(-40), design])
     setFuture([])
-    drag.current = { id, dx: p.x - (PRINT.cx + l.x), dy: p.y - (PRINT.cy + l.y) }
+    drag.current = { id, dx: p.x - (PRINT.cx + l.x * k), dy: p.y - (PRINT.cy + l.y * k) }
     ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
   }
   const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -252,9 +257,9 @@ export default function Designer() {
     const { id, dx, dy } = drag.current
     // Artwork can sit anywhere on the shirt; whatever falls past the edge is hidden.
     const b = teeBounds(fit)
-    let x = clamp(p.x - dx - PRINT.cx, b.left, b.right)
-    let y = clamp(p.y - dy - PRINT.cy, b.top, b.bottom)
-    const tol = 6 / zoom
+    let x = clamp((p.x - dx - PRINT.cx) / k, b.left / k, b.right / k)
+    let y = clamp((p.y - dy - PRINT.cy) / k, b.top / k, b.bottom / k)
+    const tol = 6 / (zoom * k)
     const sx = Math.abs(x - centre.x) < tol
     const sy = Math.abs(y - centre.y) < tol
     if (sx) x = centre.x
@@ -284,7 +289,8 @@ export default function Designer() {
   })
 
   // ---- Price, measured from the artwork ---------------------------------
-  const measured: Design = { ...design, print: measurePrints({ ...design, ...Object.fromEntries(AREA_ORDER.map((a) => [a, fillRoster(areaLayers(design, a), roster[0])])) }) }
+  const sized: Design = { ...design, size }
+  const measured: Design = { ...sized, ...measurePrints({ ...sized, ...Object.fromEntries(AREA_ORDER.map((a) => [a, fillRoster(areaLayers(design, a), roster[0])])) }) }
   const lines = printLines(measured, settings)
   const unit = customPrice(measured, settings)
   const team = roster.length > 0
@@ -311,7 +317,7 @@ export default function Designer() {
   const addToBag = async () => {
     if (!hasArt(design)) return toast.error('Add some text or artwork first.')
     if (!rulesAt) return toast.error('Please agree to the design rules first.')
-    const blurry = AREA_ORDER.flatMap((a) => areaLayers(design, a)).filter((l) => dpiNote(l)?.level === 'bad')
+    const blurry = AREA_ORDER.flatMap((a) => areaLayers(design, a)).filter((l) => dpiNote(l, fit)?.level === 'bad')
     if (blurry.length && !confirm(`${blurry.length === 1 ? 'One image is' : `${blurry.length} images are`} low resolution for the size you’ve set and will likely print blurry. Add to bag anyway?`)) return
     const players = roster.filter((r) => r.name.trim() || r.number.trim())
     if (team && !players.length) return toast.error('Add at least one player to the team list.')
@@ -395,7 +401,6 @@ export default function Designer() {
               onUpload={pickFile}
               onDropFile={(f) => (rulesAt ? onFile(f) : setDialog('rules'))}
               onAddImage={(src, aspect) => addImage(src, aspect)}
-              onPreset={addPreset}
             />
           )}
           {panel === 'layers' && (
@@ -444,6 +449,7 @@ export default function Designer() {
               color={design.color}
               fit={fit}
               area={area}
+              size={size}
               layers={fillRoster(layers, roster[0], true)}
               selectedId={sel}
               showPrintArea
@@ -452,8 +458,8 @@ export default function Designer() {
               onPointerMove={onMove}
               onPointerUp={onUp}
             >
-              {snap.x && <line data-ui x1={PRINT.cx + centre.x} x2={PRINT.cx + centre.x} y1={0} y2={VIEW.y + VIEW.h} stroke="#e8467c" strokeWidth={1 / zoom} pointerEvents="none" />}
-              {snap.y && <line data-ui y1={PRINT.cy + centre.y} y2={PRINT.cy + centre.y} x1={0} x2={VIEW.w} stroke="#e8467c" strokeWidth={1 / zoom} pointerEvents="none" />}
+              {snap.x && <line data-ui x1={PRINT.cx + canvasCentre.x} x2={PRINT.cx + canvasCentre.x} y1={0} y2={VIEW.y + VIEW.h} stroke="#e8467c" strokeWidth={1 / zoom} pointerEvents="none" />}
+              {snap.y && <line data-ui y1={PRINT.cy + canvasCentre.y} y2={PRINT.cy + canvasCentre.y} x1={0} x2={VIEW.w} stroke="#e8467c" strokeWidth={1 / zoom} pointerEvents="none" />}
             </TeeMockup>
           </div>
           <div className="mx-auto mt-4 grid max-w-sm grid-cols-2 gap-2">
@@ -475,6 +481,7 @@ export default function Designer() {
           {selected ? (
             <LayerPanel
               layer={selected}
+              fit={fit}
               onPatch={(p, record) => patch(selected.id, p, record)}
               onCommit={() => commit((d) => d)}
               onCentre={() => centreLayer(selected)}
@@ -486,18 +493,18 @@ export default function Designer() {
           )}
 
           <div className="space-y-4 rounded-2xl border border-ink-800 bg-ink-900 p-4">
-            {!team && (
-              <Field label="Size">
-                <div className="flex flex-wrap gap-1.5">
-                  {SIZES.map((s) => <button key={s} onClick={() => setSize(s)} className={cx('h-9 min-w-10 rounded-lg border px-2 text-xs font-bold', s === size ? 'border-black bg-black text-white' : 'border-ink-700')}>{s}</button>)}
-                </div>
-              </Field>
-            )}
+            <div role="group" aria-labelledby="size-label">
+              <p id="size-label" className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-400">{team ? 'Preview size' : 'Size'}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {CUSTOM_SIZES.map((s) => <button key={s} onClick={() => setSize(s)} className={cx('h-9 min-w-10 rounded-lg border px-2 text-xs font-bold', s === size ? 'border-black bg-black text-white' : 'border-ink-700')}>{s}</button>)}
+              </div>
+              <p className="mt-1 text-xs text-ink-400">True to the size chart: the same print looks smaller on a bigger tee.</p>
+            </div>
             <div className="space-y-1 text-sm">
               {lines.length === 0 && <div className="flex justify-between text-ink-400"><span>Custom tee, {fitName(fit).toLowerCase()}</span><span>{money(settings.custom_base_price)}</span></div>}
               {lines.map((l) => (
                 <div key={l.area} className="flex justify-between gap-2 text-ink-400">
-                  <span>{AREAS[l.area].name} print, {l.inches} in{l.inches > l.included && <span className="text-[#9a6a00]"> (+{Math.ceil(l.inches - l.included)} in)</span>}</span>
+                  <span>{AREAS[l.area].name} print, {measured.print_sq_in?.[l.area] ?? 0} sq in{l.inches > l.included && <span className="text-[#9a6a00]"> (+{Math.ceil(l.inches - l.included)} inches)</span>}</span>
                   <span className="shrink-0">{l.main ? '' : '+'}{money(l.price)}</span>
                 </div>
               ))}
@@ -506,8 +513,9 @@ export default function Designer() {
             <p className="flex gap-2 rounded-lg bg-acid/10 p-2.5 text-xs text-ink-300">
               <Info size={14} className="mt-0.5 shrink-0 text-acid" />
               <span>
-                Anything inside the dashed area is within the {money(settings.custom_base_price)} price (up to {settings.print_included_in} in).
-                Going bigger adds a small charge of {money(settings.price_per_inch)} per running inch. Extra prints (back, sleeves, label) start at {money(settings.custom_back_price)} up to {settings.extra_included_in} in.
+                The dashed area ({MAIN_PRINT_IN.w} × {MAIN_PRINT_IN.h} inches) is within the {money(settings.custom_base_price)} price. Going over adds small charges of {money(settings.price_per_inch)} per running inch.
+                Extra prints (back, sleeves) start at {money(settings.custom_back_price)} up to {settings.extra_included_in} inches.
+                We price by total printed area, counted as a {PRICE_STRIP_IN}-inch-tall strip: the main print includes {settings.print_included_in} inches of it ({settings.print_included_in * PRICE_STRIP_IN} sq in).
               </span>
             </p>
             <div className="flex items-center gap-3">

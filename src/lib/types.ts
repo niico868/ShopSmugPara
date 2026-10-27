@@ -71,7 +71,11 @@ export interface Design {
   sleeve_left?: Layer[]
   sleeve_right?: Layer[]
   label?: Layer[]
-  /** Longest side of each printed area in inches, used for pricing (checked by staff). */
+  /** Size the design was laid out on, so the mockup shows prints true to scale. */
+  size?: string
+  /** Printed area of each print in square inches (checked by staff). */
+  print_sq_in?: Partial<Record<Area, number>>
+  /** Price length of each print in inches: square inches ÷ 22 (see PRICE_STRIP_IN). Used for pricing. */
   print?: Partial<Record<Area, number>>
   /** Team order: one tee per row. */
   roster?: RosterRow[]

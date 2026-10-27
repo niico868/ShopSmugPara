@@ -61,7 +61,7 @@ const p = (
 
 export const seedProducts = (): Product[] => [
   {
-    ...p('sovereignty', 'Sovereignty', 300, 'Oversized', ['#111111'], '/products/sovereignty-front.jpg',
+    ...p('sovereignty', 'Sovereignty', 525, 'Oversized', ['#111111'], '/products/sovereignty-front.jpg',
       'Things money can\'t buy back. Black oversized, cropped tee with a gold print front and back. Ultra heavyweight 400gsm cotton.', true),
     images: ['/products/sovereignty-back.jpg'],
     sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
@@ -80,7 +80,7 @@ export const defaultSettings = (): Settings => ({
   free_shipping_over: 0,
   whatsapp: '',
   announcement: 'New drop: Sovereignty. Ultra heavyweight 400gsm.',
-  payment_instructions: 'Pay by bank transfer using your order code as the reference. We start printing once payment reflects.',
+  payment_instructions: 'Bank transfer is preferred: use your order code as the reference. Paying cash on collection? Make the 50% down payment first, at any Paywise outlet nationwide.',
 })
 
 const NAMES = ['Thabo M.', 'Aisha K.', 'Jordan P.', 'Lerato S.', 'Mike D.', 'Zanele N.', 'Chris O.', 'Naledi B.', 'Sam W.', 'Kea T.', 'Priya R.', 'Liam F.']

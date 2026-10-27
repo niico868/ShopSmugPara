@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { cx } from '../lib/format'
 import { CheckCircle2, AlertTriangle, Info, X } from 'lucide-react'
 
 type Kind = 'success' | 'error' | 'info'
@@ -28,7 +29,7 @@ export function Toaster() {
       {list.map((t) => {
         const Icon = icons[t.kind]
         return (
-          <div key={t.id} className="pointer-events-auto flex animate-rise items-start gap-3 rounded-xl border border-ink-700 bg-ink-900/95 p-3 shadow-2xl backdrop-blur">
+          <div key={t.id} className={cx(t.kind === 'error' ? 'animate-rise' : 'animate-float-away', 'pointer-events-auto flex items-start gap-3 rounded-xl border border-ink-700 bg-ink-900/95 p-3 shadow-2xl backdrop-blur')}>
             <Icon size={18} className={t.kind === 'error' ? 'text-flame' : 'text-acid'} />
             <p className="flex-1 text-sm">{t.text}</p>
             <button onClick={() => drop(t.id)} className="text-ink-400 hover:text-black" aria-label="Dismiss"><X size={16} /></button>

@@ -103,7 +103,7 @@ export default function Product() {
 
           <div className="mt-8 grid gap-3 text-sm text-ink-400 sm:grid-cols-2">
             <p className="flex items-center gap-2"><Truck size={16} className="text-acid" /> Delivery or free pickup</p>
-            <p className="flex items-center gap-2"><ShieldCheck size={16} className="text-acid" /> Printed to order, quality checked</p>
+            <p className="flex items-center gap-2"><ShieldCheck size={16} className="text-acid" /> Printed to order, ready within 48 hours of payment</p>
           </div>
         </div>
       </div>

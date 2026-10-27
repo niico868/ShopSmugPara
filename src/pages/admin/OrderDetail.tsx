@@ -154,7 +154,7 @@ function ItemRow({ item, code }: { item: OrderItem; code: string }) {
   return (
     <li className="grid gap-4 sm:grid-cols-[220px_1fr]">
       <div>
-        <div className="rounded-xl bg-ink-900 p-2"><TeeMockup ref={ref} color={d.color} fit={d.fit} area={area} layers={layers} className="w-full" /></div>
+        <div className="rounded-xl bg-ink-900 p-2"><TeeMockup ref={ref} color={d.color} fit={d.fit} area={area} size={d.size ?? item.size} layers={layers} className="w-full" /></div>
         <div className="mt-2 flex flex-wrap gap-1 print:hidden">
           {(printed.length ? printed : (['front'] as Area[])).map((a) => (
             <button key={a} onClick={() => setArea(a)} className={cx('flex-1 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-semibold', area === a ? 'bg-black text-white' : 'bg-ink-800 text-ink-400')}>{AREAS[a].name}</button>
@@ -175,8 +175,8 @@ function ItemRow({ item, code }: { item: OrderItem; code: string }) {
         )}
         {printed.length > 0 && (
           <p className="mt-3 text-xs text-ink-400">
-            Print sizes (longest side, as the customer placed it):{' '}
-            {printed.map((a) => `${AREAS[a].name} ${d.print?.[a] ?? '?'} in`).join(' · ')}
+            Printed area (as the customer placed it):{' '}
+            {printed.map((a) => d.print_sq_in?.[a] !== undefined ? `${AREAS[a].name} ${d.print_sq_in[a]} sq in (${d.print?.[a]} inches charged)` : `${AREAS[a].name} ${d.print?.[a] ?? '?'} inches`).join(' · ')}
           </p>
         )}
         <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-ink-400">Print spec · {AREAS[area].name}</p>
@@ -197,7 +197,7 @@ function ItemRow({ item, code }: { item: OrderItem; code: string }) {
                   <>
                     <img src={l.src} alt="" className="h-10 w-10 rounded bg-ink-700 object-contain" />
                     <span className="flex-1 text-xs text-ink-400">
-                      Image · {l.width}w{l.rotation ? ` · ${l.rotation}°` : ''}{imageDpi(l) ? ` · ${imageDpi(l)} DPI` : ''}{l.shadow ? ' · shadow' : ''}
+                      Image · {l.width}w{l.rotation ? ` · ${l.rotation}°` : ''}{imageDpi(l, d.fit) ? ` · ${imageDpi(l, d.fit)} DPI` : ''}{l.shadow ? ' · shadow' : ''}
                       {l.flagged && <b className="text-flame"> · flagged</b>}
                     </span>
                     <a href={l.src} download={`${code}-art-${i + 1}`} target="_blank" rel="noreferrer" className="text-xs text-acid print:hidden">Original</a>
