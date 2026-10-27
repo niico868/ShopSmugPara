@@ -9,6 +9,8 @@ const Shop = lazy(() => import('./pages/Shop'))
 const Product = lazy(() => import('./pages/Product'))
 const Designer = lazy(() => import('./pages/Designer'))
 const SignIn = lazy(() => import('./pages/SignIn'))
+const Account = lazy(() => import('./pages/Account'))
+const SharedDesign = lazy(() => import('./pages/SharedDesign'))
 const Checkout = lazy(() => import('./pages/Checkout'))
 const Track = lazy(() => import('./pages/Track'))
 const OrderStatus = lazy(() => import('./pages/OrderStatus'))
@@ -38,6 +40,8 @@ export default function App() {
           <Route path="shop/:slug" element={<Product />} />
           <Route path="design" element={<RequireAccount><Designer /></RequireAccount>} />
           <Route path="signin" element={<SignIn />} />
+          <Route path="account" element={<RequireAccount><Account /></RequireAccount>} />
+          <Route path="d/:id" element={<SharedDesign />} />
           <Route path="checkout" element={<Checkout />} />
           <Route path="track" element={<Track />} />
           <Route path="order/:code" element={<OrderStatus />} />

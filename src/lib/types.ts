@@ -8,6 +8,7 @@ export type OrderStatus =
   | 'cancelled'
 
 export type PaymentStatus = 'unpaid' | 'paid' | 'refunded'
+export type ProofStatus = 'none' | 'sent' | 'approved' | 'changes'
 
 export interface Product {
   id: string
@@ -27,6 +28,8 @@ export interface Product {
 }
 
 export type Side = 'front' | 'back'
+/** Every place on the shirt that can carry a print. */
+export type Area = 'front' | 'back' | 'sleeve_left' | 'sleeve_right' | 'label'
 
 export interface Layer {
   id: string
@@ -40,11 +43,23 @@ export interface Layer {
   fill?: string
   size?: number
   weight?: number
+  outline?: { color: string; width: number }
+  shadow?: boolean
+  /** Bend in degrees of arc: positive arches up, negative curves down. */
+  curve?: number
+  /** Team orders: this text is replaced by each player's name or number. */
+  roster?: 'name' | 'number'
   // image
   src?: string
   width?: number
   aspect?: number
+  /** Pixel width of the stored image, for the blurry-print warning. Absent for vector art. */
+  px?: number
+  /** The automatic content check thought this might be explicit; staff should look closely. */
+  flagged?: boolean
 }
+
+export interface RosterRow { name: string; number: string; size: string }
 
 export interface Design {
   color: string
@@ -53,6 +68,23 @@ export interface Design {
   rules_accepted_at?: string
   front: Layer[]
   back: Layer[]
+  sleeve_left?: Layer[]
+  sleeve_right?: Layer[]
+  label?: Layer[]
+  /** Longest side of each printed area in inches, used for pricing (checked by staff). */
+  print?: Partial<Record<Area, number>>
+  /** Team order: one tee per row. */
+  roster?: RosterRow[]
+}
+
+export interface SavedDesign {
+  id: string
+  name: string
+  design: Design
+  preview: string | null
+  shared: boolean
+  created_at: string
+  updated_at: string
 }
 
 export interface OrderItem {
@@ -92,6 +124,9 @@ export interface Order {
   subtotal: number
   shipping: number
   total: number
+  proof_url?: string | null
+  proof_status?: ProofStatus
+  proof_note?: string
   items: OrderItem[]
   events: OrderEvent[]
 }
@@ -101,6 +136,12 @@ export interface Settings {
   currency: string
   custom_base_price: number
   custom_back_price: number
+  /** Longest side (inches) the base custom price covers. */
+  print_included_in: number
+  /** Longest side (inches) an extra print's starting price covers. */
+  extra_included_in: number
+  /** Added per running inch beyond the included size. */
+  price_per_inch: number
   shipping_fee: number
   free_shipping_over: number
   whatsapp: string
