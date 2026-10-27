@@ -73,8 +73,8 @@ export const defaultSettings = (): Settings => ({
   currency: 'TTD',
   custom_base_price: 350,
   custom_back_price: 8,
-  shipping_fee: 6,
-  free_shipping_over: 80,
+  shipping_fee: 40,
+  free_shipping_over: 0,
   whatsapp: '',
   announcement: 'New drop: Sovereignty. Ultra heavyweight 400gsm.',
   payment_instructions: 'Pay by bank transfer using your order code as the reference. We start printing once payment reflects.',
@@ -94,7 +94,7 @@ export const seedOrders = (products: Product[]): Order[] => {
     const unit = custom ? 350 : prod.price
     const status = age > 25 ? statuses[7 + (i % 2)] : statuses[i % statuses.length]
     const subtotal = unit * qty
-    const shipping = subtotal >= 80 ? 0 : 6
+    const shipping = 40
     const name = NAMES[i % NAMES.length]
     orders.push({
       id: uid(), code: orderCode(), created_at: created, customer_name: name,

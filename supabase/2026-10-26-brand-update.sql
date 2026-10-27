@@ -1,7 +1,7 @@
 -- =====================================================================
 -- Smug Para: brand update (26 Oct 2026)
 -- Paste into Supabase > SQL Editor > New query > Run. Safe to re-run.
--- Prices: oversized tees 300 TTD, custom tees from 350 TTD.
+-- Prices: oversized tees 300 TTD, custom tees from 350 TTD, delivery 40 TTD.
 -- =====================================================================
 
 -- Products can have extra photos (e.g. the back of the tee).
@@ -9,6 +9,7 @@ alter table public.products add column if not exists images text[] not null defa
 
 -- Prices in Trinidad and Tobago dollars.
 update public.settings set currency = 'TTD', custom_base_price = 350,
+  shipping_fee = 40, free_shipping_over = 0,
   announcement = 'New drop: Sovereignty. Ultra heavyweight 400gsm.'
 where id = 1;
 
