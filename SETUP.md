@@ -7,7 +7,7 @@ A full brand portal for your tees, free to run:
 - **Order tracking**: every order gets a code (like `SP-7K2QXM`). Customers enter code + email to see a progress bar, timeline, notes from you and payment instructions.
 - **Owner dashboard** (`/admin`): revenue and order KPIs, 30-day revenue chart, status breakdown, best sellers, recent orders. Orders as a table or a drag-and-drop kanban board, filters, CSV export. Order pages with one-tap status updates, mark as paid, customer notes, WhatsApp/email/call buttons with a pre-written status message, print-ready packing slip, and full print specs + mockup downloads for custom designs. Product manager (add/edit/hide/feature, upload artwork), custom-design gallery, and store settings (currency, prices, delivery fee, free-delivery threshold, WhatsApp number, announcement bar, payment instructions). New orders pop up live with a sound.
 
-**Stack:** React + Vite + Tailwind (frontend), Supabase free tier (database, login, file storage, realtime), Vercel or Netlify free tier (hosting). No paid services, no card needed.
+**Stack:** React + Vite + Tailwind (frontend), Supabase free tier (database, login, file storage, realtime), Cloudflare free tier (hosting). No paid services, no card needed.
 
 ---
 
@@ -63,18 +63,15 @@ The anon key is meant to be public. Security lives in the database rules from `s
 
 ## Step 4: Put it online for free
 
-**Option A: Vercel (recommended)**
+Hosting is on Cloudflare (free, and commercial use is allowed). `wrangler.jsonc` in the repo holds the settings.
 
-1. Put the folder in a GitHub repo (GitHub Desktop is the easiest way: *File > Add local repository > Publish*). `.env` is ignored, so your keys stay off GitHub.
-2. Go to https://vercel.com, sign in with GitHub, **Add New > Project**, pick the repo.
-3. Under **Environment Variables** add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
-4. Click **Deploy**. You get a link like `smug-para.vercel.app`. Every push to GitHub redeploys automatically.
+1. Put the folder in a GitHub repo. `.env` is ignored, so your keys stay off GitHub.
+2. Go to https://dash.cloudflare.com, **Workers & Pages > Create > Import a repository**, and pick the repo.
+3. Build command `npm run build`, deploy command `npx wrangler deploy`, root directory `/`.
+4. Under **Build variables** add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (without them the site runs in demo mode).
+5. Deploy. You get a link like `shop-smug-para.<your-name>.workers.dev`. Every push to `main` redeploys automatically.
 
-**Option B: Netlify**
-
-Same idea: https://app.netlify.com > **Add new site > Import from Git**. Build command `npm run build`, publish folder `dist`, add the two environment variables, deploy. (`netlify.toml` and `public/_redirects` are already included.)
-
-**Custom domain:** both let you add your own domain for free under the project's Domains settings (you only pay for the domain itself).
+**Custom domain:** Cloudflare lets you add your own domain for free under the project's Domains settings (you only pay for the domain itself).
 
 ---
 
@@ -91,7 +88,7 @@ Same idea: https://app.netlify.com > **Add new site > Import from Git**. Build c
 ## Free-tier notes
 
 - Supabase free: 500 MB database, 1 GB file storage, 50k monthly users. That's thousands of orders. Free projects pause after a week with zero activity; just open the dashboard to wake it.
-- Vercel/Netlify free: plenty of bandwidth for a small brand.
+- Cloudflare free: unlimited bandwidth for static files.
 
 ## Ideas for the next session
 
