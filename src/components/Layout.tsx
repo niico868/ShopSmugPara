@@ -1,7 +1,7 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { Menu, ShoppingBag, X, Sparkles, User } from 'lucide-react'
-import { signOut, useAccount } from '../lib/auth'
+import { useAccount } from '../lib/auth'
 import { useCart, cartCount } from '../store/cart'
 import { useSettings } from '../lib/settings'
 import { DEMO } from '../lib/supabase'
@@ -57,9 +57,9 @@ export default function Layout() {
           </nav>
           <div className="flex items-center gap-2">
             {account ? (
-              <button onClick={() => confirm(`Signed in as ${account.email}. Sign out?`) && signOut()} className="rounded-full p-2.5 hover:bg-ink-800" title={account.email} aria-label="Account">
+              <Link to="/account" className="rounded-full p-2.5 hover:bg-ink-800" title={`My account (${account.email})`} aria-label="My account">
                 <User size={20} />
-              </button>
+              </Link>
             ) : (
               <Link to="/signin" className="hidden px-2 text-xs font-semibold uppercase tracking-[.18em] hover:text-acid sm:block">Sign in</Link>
             )}

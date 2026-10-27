@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { Copy, PartyPopper } from 'lucide-react'
-import { trackOrder } from '../lib/api'
+import { Check, Copy, PartyPopper, PenLine } from 'lucide-react'
+import { respondProof, trackOrder } from '../lib/api'
 import type { Order } from '../lib/types'
-import { Button, Card, Empty, PageLoader, StatusBadge } from '../components/ui'
+import { Button, Card, Empty, PageLoader, StatusBadge, Textarea } from '../components/ui'
 import { EventList, OrderProgress } from '../components/OrderTimeline'
 import { ItemThumb } from '../components/ItemThumb'
 import { colorName } from '../lib/constants'
@@ -69,6 +69,10 @@ export default function OrderStatus() {
         </Card>
       )}
 
+      {order.proof_url && order.proof_status && order.proof_status !== 'none' && (
+        <ProofReview order={order} email={email} onDone={() => trackOrder(code, email).then(setOrder)} />
+      )}
+
       <div className="mt-4 grid gap-4 md:grid-cols-[1fr_300px]">
         <Card>
           <h3 className="mb-4 font-display font-bold">Items</h3>
@@ -97,5 +101,50 @@ export default function OrderStatus() {
         </Card>
       </div>
     </div>
+  )
+}
+
+/** The customer approves the print proof, or says what to change. */
+function ProofReview({ order, email, onDone }: { order: Order; email: string; onDone: () => void }) {
+  const [asking, setAsking] = useState(false)
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(false)
+  const answer = async (approve: boolean) => {
+    setBusy(true)
+    try {
+      await respondProof(order.code, email, approve, approve ? '' : note.trim())
+      toast.success(approve ? 'Thanks! We’ll start printing.' : 'Thanks, we’ll update the proof and send it again.')
+      setAsking(false)
+      onDone()
+    } catch (e) { toast.error((e as Error).message) } finally { setBusy(false) }
+  }
+  const s = order.proof_status
+  return (
+    <Card className={s === 'sent' ? 'mt-4 border-acid' : 'mt-4'}>
+      <div className="grid gap-5 sm:grid-cols-[220px_1fr]">
+        <a href={order.proof_url!} target="_blank" rel="noreferrer"><img src={order.proof_url!} alt="Your print proof" className="w-full rounded-xl border border-ink-800 bg-white" /></a>
+        <div>
+          <h3 className="font-display text-lg font-bold">Your print proof</h3>
+          {s === 'sent' && <p className="mt-1 text-sm text-ink-400">This is how your design will be printed. Check the spelling, colours and placement, then approve it or tell us what to change.</p>}
+          {s === 'approved' && <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-acid"><Check size={16} /> You approved this proof. It’s on its way to print.</p>}
+          {s === 'changes' && <p className="mt-1 text-sm text-ink-400">You asked for changes{order.proof_note ? <>: “{order.proof_note}”</> : ''}. We’ll send an updated proof soon.</p>}
+          {s === 'sent' && !asking && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button disabled={busy} onClick={() => answer(true)}><Check size={16} /> Approve proof</Button>
+              <Button variant="outline" disabled={busy} onClick={() => setAsking(true)}><PenLine size={16} /> Request changes</Button>
+            </div>
+          )}
+          {s === 'sent' && asking && (
+            <div className="mt-4 space-y-2">
+              <Textarea value={note} onChange={(e) => setNote(e.target.value.slice(0, 1000))} placeholder="What should we change?" autoFocus />
+              <div className="flex gap-2">
+                <Button disabled={busy || !note.trim()} onClick={() => answer(false)}>Send changes</Button>
+                <Button variant="ghost" onClick={() => setAsking(false)}>Cancel</Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
   )
 }

@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Download, Link2, Mail, MessageCircle, Phone, Printer } from 'lucide-react'
-import { getOrder, subscribeOrders, updateOrder } from '../../lib/api'
-import type { Order, OrderItem, OrderStatus, PaymentStatus, Side } from '../../lib/types'
+import { AlertTriangle, ArrowLeft, Download, Link2, Mail, MessageCircle, Phone, Printer, Upload } from 'lucide-react'
+import { getOrder, sendProof, subscribeOrders, updateOrder } from '../../lib/api'
+import type { Area, Order, OrderItem, OrderStatus, PaymentStatus, ProofStatus } from '../../lib/types'
 import { STATUS_FLOW, STATUS_META, colorName, fitName, fontCss } from '../../lib/constants'
 import { Button, Card, Empty, PageLoader, StatusBadge, Textarea } from '../../components/ui'
 import { EventList } from '../../components/OrderTimeline'
 import { ItemThumb } from '../../components/ItemThumb'
-import { TeeMockup, svgToPng } from '../../components/TeeMockup'
+import { AREAS, TeeMockup, imageDpi, svgToPng } from '../../components/TeeMockup'
+import { AREA_ORDER } from '../../lib/pricing'
 import { cx, dateTime, money } from '../../lib/format'
 import { toast } from '../../components/Toast'
 
@@ -109,6 +110,8 @@ export default function OrderDetail() {
             </div>
           </Card>
 
+          <ProofCard order={order} onSent={() => getOrder(order.id).then(setOrder)} />
+
           <Card className="print:hidden">
             <p className="mb-4 font-semibold">Timeline</p>
             <EventList order={order} />
@@ -124,13 +127,14 @@ export default function OrderDetail() {
 }
 
 function ItemRow({ item, code }: { item: OrderItem; code: string }) {
-  const [side, setSide] = useState<Side>('front')
-  const ref = useRef<SVGSVGElement>(null)
   const d = item.design
+  const printed = d ? AREA_ORDER.filter((a) => (d[a] ?? []).length) : []
+  const [area, setArea] = useState<Area>(printed[0] ?? 'front')
+  const ref = useRef<SVGSVGElement>(null)
   const download = async () => {
     try {
       const png = await svgToPng(ref.current!, 3)
-      const a = document.createElement('a'); a.href = png; a.download = `${code}-${side}.png`; a.click()
+      const a = document.createElement('a'); a.href = png; a.download = `${code}-${area}.png`; a.click()
     } catch { toast.error('Could not export. Remote images may block export; use the asset links below.') }
   }
   if (item.kind !== 'custom' || !d) {
@@ -145,39 +149,57 @@ function ItemRow({ item, code }: { item: OrderItem; code: string }) {
       </li>
     )
   }
-  const layers = d[side]
+  const layers = d[area] ?? []
+  const flagged = printed.some((a) => (d[a] ?? []).some((l) => l.flagged))
   return (
     <li className="grid gap-4 sm:grid-cols-[220px_1fr]">
       <div>
-        <div className="rounded-xl bg-ink-900 p-2"><TeeMockup ref={ref} color={d.color} fit={d.fit} side={side} layers={layers} className="w-full" /></div>
-        <div className="mt-2 flex gap-1 print:hidden">
-          {(['front', 'back'] as Side[]).map((s) => (
-            <button key={s} onClick={() => setSide(s)} className={cx('flex-1 rounded-lg py-1 text-xs font-semibold capitalize', side === s ? 'bg-black text-white' : 'bg-ink-800 text-ink-400')}>{s} ({d[s].length})</button>
+        <div className="rounded-xl bg-ink-900 p-2"><TeeMockup ref={ref} color={d.color} fit={d.fit} area={area} layers={layers} className="w-full" /></div>
+        <div className="mt-2 flex flex-wrap gap-1 print:hidden">
+          {(printed.length ? printed : (['front'] as Area[])).map((a) => (
+            <button key={a} onClick={() => setArea(a)} className={cx('flex-1 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-semibold', area === a ? 'bg-black text-white' : 'bg-ink-800 text-ink-400')}>{AREAS[a].name}</button>
           ))}
         </div>
       </div>
-      <div>
+      <div className="min-w-0">
         <div className="flex justify-between gap-2">
           <p className="font-semibold">{item.name} <span className="ml-1 rounded-full bg-acid/15 px-2 py-0.5 text-[11px] font-semibold text-acid-dark">Custom</span></p>
-          <p className="font-semibold">{money(item.unit_price * item.qty)}</p>
+          <p className="shrink-0 font-semibold">{money(item.unit_price * item.qty)}</p>
         </div>
         <p className="text-sm text-ink-400">{fitName(d.fit)} · {colorName(d.color)} · Size {item.size} · Qty {item.qty}</p>
         <p className="text-xs text-ink-400">{d.rules_accepted_at ? `Agreed to design rules ${dateTime(d.rules_accepted_at)}` : 'No design-rules agreement on record'}</p>
-        <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-ink-400">Print spec · {side}</p>
-        {layers.length === 0 ? <p className="text-sm text-ink-400">Nothing printed on this side.</p> : (
+        {flagged && (
+          <p className="mt-2 flex gap-2 rounded-lg bg-flame/10 p-2.5 text-xs font-semibold text-flame">
+            <AlertTriangle size={14} className="shrink-0" /> The automatic check flagged an uploaded image as possibly explicit. Look closely before printing.
+          </p>
+        )}
+        {printed.length > 0 && (
+          <p className="mt-3 text-xs text-ink-400">
+            Print sizes (longest side, as the customer placed it):{' '}
+            {printed.map((a) => `${AREAS[a].name} ${d.print?.[a] ?? '?'} in`).join(' · ')}
+          </p>
+        )}
+        <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-ink-400">Print spec · {AREAS[area].name}</p>
+        {layers.length === 0 ? <p className="text-sm text-ink-400">Nothing printed here.</p> : (
           <ul className="mt-2 space-y-2 text-sm">
             {layers.map((l, i) => (
               <li key={l.id} className="flex items-center gap-3 rounded-lg bg-ink-800 p-2">
                 <span className="text-xs text-ink-400">#{i + 1}</span>
                 {l.type === 'text' ? (
-                  <span className="flex-1">
+                  <span className="min-w-0 flex-1">
                     <span style={{ fontFamily: fontCss(l.font), color: l.fill }} className="mr-2 text-base">{l.text}</span>
-                    <span className="text-xs text-ink-400">{l.font} · {l.size}px · {l.fill}{l.rotation ? ` · ${l.rotation}°` : ''}</span>
+                    <span className="text-xs text-ink-400">
+                      {l.font} · {l.size}px · {l.fill}{l.rotation ? ` · ${l.rotation}°` : ''}
+                      {l.outline ? ` · outline ${l.outline.color} ${l.outline.width}px` : ''}{l.shadow ? ' · shadow' : ''}{l.curve ? ` · curve ${l.curve}°` : ''}
+                    </span>
                   </span>
                 ) : (
                   <>
                     <img src={l.src} alt="" className="h-10 w-10 rounded bg-ink-700 object-contain" />
-                    <span className="flex-1 text-xs text-ink-400">Image · {l.width}w{l.rotation ? ` · ${l.rotation}°` : ''}</span>
+                    <span className="flex-1 text-xs text-ink-400">
+                      Image · {l.width}w{l.rotation ? ` · ${l.rotation}°` : ''}{imageDpi(l) ? ` · ${imageDpi(l)} DPI` : ''}{l.shadow ? ' · shadow' : ''}
+                      {l.flagged && <b className="text-flame"> · flagged</b>}
+                    </span>
                     <a href={l.src} download={`${code}-art-${i + 1}`} target="_blank" rel="noreferrer" className="text-xs text-acid print:hidden">Original</a>
                   </>
                 )}
@@ -185,8 +207,48 @@ function ItemRow({ item, code }: { item: OrderItem; code: string }) {
             ))}
           </ul>
         )}
-        <Button size="sm" variant="outline" className="mt-3 print:hidden" onClick={download}><Download size={14} /> Download {side} mockup</Button>
+        <Button size="sm" variant="outline" className="mt-3 print:hidden" onClick={download}><Download size={14} /> Download {AREAS[area].name.toLowerCase()} mockup</Button>
       </div>
     </li>
+  )
+}
+
+const PROOF_LABEL: Record<ProofStatus, string> = {
+  none: 'No proof sent yet',
+  sent: 'Waiting for the customer',
+  approved: 'Approved by the customer',
+  changes: 'Customer asked for changes',
+}
+
+/** Staff send a print proof; the customer approves it or asks for changes on their tracking page. */
+function ProofCard({ order, onSent }: { order: Order; onSent: () => void }) {
+  const [busy, setBusy] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const status = order.proof_status ?? 'none'
+  const preview = order.items.find((i) => i.kind === 'custom' && i.preview)?.preview
+  const send = async (src: string) => {
+    setBusy(true)
+    try { await sendProof(order.id, src); onSent(); toast.success('Proof sent. The customer can approve it on their tracking page.') }
+    catch (e) { toast.error((e as Error).message) } finally { setBusy(false) }
+  }
+  const onFile = (f?: File) => {
+    if (!f) return
+    const r = new FileReader()
+    r.onload = () => send(r.result as string)
+    r.readAsDataURL(f)
+  }
+  if (!order.items.some((i) => i.kind === 'custom')) return null
+  return (
+    <Card className="print:hidden">
+      <p className="mb-1 font-semibold">Print proof</p>
+      <p className={cx('text-sm', status === 'approved' ? 'text-acid' : status === 'changes' ? 'text-flame' : 'text-ink-400')}>{PROOF_LABEL[status]}</p>
+      {status === 'changes' && order.proof_note && <p className="mt-2 rounded-lg bg-ink-800 p-2.5 text-sm">“{order.proof_note}”</p>}
+      {order.proof_url && <img src={order.proof_url} alt="Proof sent to the customer" className="mt-3 w-full rounded-xl border border-ink-800" />}
+      <div className="mt-4 grid gap-2">
+        <Button size="sm" variant="outline" disabled={busy} onClick={() => fileRef.current?.click()}><Upload size={14} /> {order.proof_url ? 'Send a new proof' : 'Upload a proof'}</Button>
+        {preview && <Button size="sm" variant="ghost" disabled={busy} onClick={() => send(preview)}>Send the customer’s preview as the proof</Button>}
+      </div>
+      <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = '' }} />
+    </Card>
   )
 }

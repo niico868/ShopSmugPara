@@ -41,6 +41,9 @@ export const FONTS = [
   { name: 'Permanent Marker', css: '"Permanent Marker", cursive' },
   { name: 'Pacifico', css: 'Pacifico, cursive' },
   { name: 'Playfair Display', css: '"Playfair Display", serif' },
+  { name: 'Archivo Black', css: '"Archivo Black", sans-serif' },
+  { name: 'Blackletter', css: '"UnifrakturMaguntia", serif' },
+  { name: 'Script', css: '"Pinyon Script", cursive' },
 ]
 
 export const fontCss = (name?: string) => FONTS.find((f) => f.name === name)?.css ?? FONTS[0].css

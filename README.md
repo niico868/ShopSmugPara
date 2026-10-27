@@ -1,6 +1,6 @@
 # Smug Para Portal
 
-Storefront, custom tee designer, order tracking and owner dashboard. Free to run on Supabase + Vercel/Netlify.
+Storefront, custom tee designer, order tracking and owner dashboard. Free to run on Supabase + Cloudflare.
 
 ```bash
 npm install

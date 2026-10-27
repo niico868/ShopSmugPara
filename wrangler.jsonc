@@ -1,0 +1,11 @@
+// Cloudflare hosting: the site is plain static files, so no Worker script is needed.
+// Unknown paths (e.g. /design, /order/SP-ABC123) serve index.html and the app's router takes over.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "shop-smug-para",
+  "compatibility_date": "2026-10-23",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}

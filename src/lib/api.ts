@@ -1,12 +1,13 @@
 import { supabase, DEMO } from './supabase'
-import type { CheckoutInput, Design, Order, OrderEvent, OrderStatus, PaymentStatus, Product, Settings } from './types'
+import type { CheckoutInput, Design, Order, OrderEvent, OrderStatus, PaymentStatus, Product, ProofStatus, SavedDesign, Settings } from './types'
+import { AREA_ORDER } from './pricing'
 import { defaultSettings, seedOrders, seedProducts } from './seed'
 import { orderCode, uid } from './format'
 
 // ---------------------------------------------------------------------------
 // Demo backend: everything lives in localStorage so the app runs with zero setup.
 // ---------------------------------------------------------------------------
-const K = { products: 'sp.products', orders: 'sp.orders', settings: 'sp.settings', admin: 'sp.admin' }
+const K = { products: 'sp.products', orders: 'sp.orders', settings: 'sp.settings', admin: 'sp.admin', designs: 'sp.designs' }
 const read = <T,>(k: string, fallback: () => T): T => {
   try {
     const raw = localStorage.getItem(k)
@@ -78,8 +79,17 @@ export async function deleteProduct(id: string) {
 // ---------------------------------------------------------------------------
 const dataUrlToBlob = async (dataUrl: string) => (await fetch(dataUrl)).blob()
 
-export async function uploadMedia(dataUrl: string, folder: 'designs' | 'products'): Promise<string> {
-  if (DEMO || !dataUrl.startsWith('data:')) return dataUrl
+// The same artwork often appears many times (team orders, re-saves), so upload each image once per visit.
+const uploaded = new Map<string, Promise<string>>()
+
+export function uploadMedia(dataUrl: string, folder: 'designs' | 'products' | 'proofs'): Promise<string> {
+  if (DEMO || !dataUrl.startsWith('data:')) return Promise.resolve(dataUrl)
+  const key = folder + dataUrl
+  if (!uploaded.has(key)) uploaded.set(key, upload(dataUrl, folder).catch((e) => { uploaded.delete(key); throw e }))
+  return uploaded.get(key)!
+}
+
+async function upload(dataUrl: string, folder: string): Promise<string> {
   const blob = await dataUrlToBlob(dataUrl)
   const ext = blob.type.split(';')[0].split('/')[1]?.replace('svg+xml', 'svg') || 'png'
   const path = `${folder}/${uid()}.${ext}`
@@ -87,10 +97,13 @@ export async function uploadMedia(dataUrl: string, folder: 'designs' | 'products
   return supabase!.storage.from('media').getPublicUrl(path).data.publicUrl
 }
 
+/** Uploads any inline images in a design so the stored JSON only holds links. */
 async function persistDesign(d: Design): Promise<Design> {
-  const up = async (layers: Design['front']) =>
+  const up = async (layers: Design['front'] = []) =>
     Promise.all(layers.map(async (l) => (l.type === 'image' && l.src ? { ...l, src: await uploadMedia(l.src, 'designs') } : l)))
-  return { ...d, front: await up(d.front), back: await up(d.back) }
+  const out: Design = { ...d }
+  for (const a of AREA_ORDER) if (d[a]) out[a] = await up(d[a])
+  return out
 }
 
 // ---------------------------------------------------------------------------
@@ -186,6 +199,80 @@ export function subscribeOrders(cb: (newOrder?: { code: string; customer_name: s
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, () => cb())
     .subscribe()
   return () => { supabase!.removeChannel(ch) }
+}
+
+// ---------------------------------------------------------------------------
+// Proofs: staff send a proof, the customer approves it or asks for changes
+// ---------------------------------------------------------------------------
+export async function sendProof(orderId: string, imageDataUrl: string) {
+  const proof_url = await uploadMedia(imageDataUrl, 'proofs')
+  const patch = { proof_url, proof_status: 'sent' as ProofStatus, proof_note: '' }
+  const note = 'Proof sent for your approval'
+  if (DEMO) {
+    const event: OrderEvent = { id: uid(), created_at: new Date().toISOString(), status: null, note }
+    return write(K.orders, demoOrders().map((o) => (o.id === orderId ? { ...o, ...patch, events: [...o.events, event] } : o)))
+  }
+  must(await supabase!.from('orders').update(patch).eq('id', orderId))
+  must(await supabase!.from('order_events').insert({ order_id: orderId, status: null, note }))
+}
+
+export async function respondProof(code: string, email: string, approve: boolean, note: string) {
+  if (DEMO) {
+    const proof_status: ProofStatus = approve ? 'approved' : 'changes'
+    const event: OrderEvent = { id: uid(), created_at: new Date().toISOString(), status: null, note: approve ? 'Proof approved' : `Changes requested: ${note}` }
+    return write(K.orders, demoOrders().map((o) =>
+      o.code === code.toUpperCase() && o.email === email.toLowerCase() ? { ...o, proof_status, proof_note: note, events: [...o.events, event] } : o))
+  }
+  must(await supabase!.rpc('respond_proof', { p_code: code, p_email: email, p_approve: approve, p_note: note }))
+}
+
+// ---------------------------------------------------------------------------
+// Customer accounts: saved designs and order history
+// ---------------------------------------------------------------------------
+const demoDesigns = () => read<(SavedDesign & { owner: string })[]>(K.designs, () => [])
+const demoOwner = () => { try { return JSON.parse(localStorage.getItem('sp.account') ?? 'null')?.email ?? '' } catch { return '' } }
+
+export async function listMyDesigns(): Promise<SavedDesign[]> {
+  if (DEMO) return demoDesigns().filter((d) => d.owner === demoOwner())
+  const { data: u } = await supabase!.auth.getUser()
+  return must(await supabase!.from('saved_designs').select('*').eq('user_id', u.user?.id ?? '').order('updated_at', { ascending: false }))
+}
+
+/** Saves (or updates, when `id` is given) a design to the signed-in customer's account. */
+export async function saveDesign(input: { id?: string; name: string; design: Design; preview: string; shared?: boolean }): Promise<SavedDesign> {
+  const now = new Date().toISOString()
+  const design = await persistDesign(input.design)
+  const preview = await uploadMedia(input.preview, 'designs')
+  if (DEMO) {
+    const all = demoDesigns()
+    const existing = all.find((d) => d.id === input.id)
+    const row = { id: existing?.id ?? uid(), owner: demoOwner(), name: input.name, design, preview, shared: input.shared ?? existing?.shared ?? false, created_at: existing?.created_at ?? now, updated_at: now }
+    write(K.designs, [row, ...all.filter((d) => d.id !== row.id)])
+    return row
+  }
+  const row = { name: input.name, design, preview, updated_at: now, ...(input.shared !== undefined && { shared: input.shared }) }
+  const q = input.id
+    ? supabase!.from('saved_designs').update(row).eq('id', input.id)
+    : supabase!.from('saved_designs').insert(row)
+  return must(await q.select().single())
+}
+
+/** A design you own, or one someone shared by link. */
+export async function getDesign(id: string): Promise<SavedDesign | null> {
+  if (DEMO) return demoDesigns().find((d) => d.id === id) ?? null
+  return must(await supabase!.from('saved_designs').select('*').eq('id', id).maybeSingle())
+}
+
+export async function deleteDesign(id: string) {
+  if (DEMO) return write(K.designs, demoDesigns().filter((d) => d.id !== id))
+  must(await supabase!.from('saved_designs').delete().eq('id', id))
+}
+
+export async function listMyOrders(email: string): Promise<Order[]> {
+  if (DEMO) return demoOrders().filter((o) => o.email.toLowerCase() === email.toLowerCase())
+  const { data: u } = await supabase!.auth.getUser()
+  const rows = must(await supabase!.from('orders').select(ORDER_SELECT).eq('user_id', u.user?.id ?? '').order('created_at', { ascending: false })) as Order[]
+  return rows.map(sortEvents)
 }
 
 // ---------------------------------------------------------------------------

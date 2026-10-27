@@ -4,6 +4,7 @@ import { Empty, PageLoader, StatusBadge } from '../../components/ui'
 import { TeeMockup } from '../../components/TeeMockup'
 import { colorName } from '../../lib/constants'
 import { dateShort } from '../../lib/format'
+import { AREA_ORDER } from '../../lib/pricing'
 
 export default function Designs() {
   const { orders } = useOrders()
@@ -20,13 +21,14 @@ export default function Designs() {
           {designs.map(({ o, i }) => (
             <Link key={i.id} to={`/admin/orders/${o.id}`} className="group rounded-2xl border border-ink-800 bg-ink-900/60 p-3 transition hover:border-ink-600">
               <div className="grid grid-cols-2 gap-1 rounded-xl bg-ink-800 p-1">
-                <TeeMockup color={i.design!.color} fit={i.design!.fit} side="front" layers={i.design!.front} />
-                <TeeMockup color={i.design!.color} fit={i.design!.fit} side="back" layers={i.design!.back} />
+                <TeeMockup color={i.design!.color} fit={i.design!.fit} area="front" layers={i.design!.front} />
+                <TeeMockup color={i.design!.color} fit={i.design!.fit} area="back" layers={i.design!.back} />
               </div>
               <div className="mt-3 flex items-center justify-between">
                 <span className="font-mono text-sm font-semibold">{o.code}</span>
                 <StatusBadge status={o.status} />
               </div>
+              {AREA_ORDER.some((a) => (i.design![a] ?? []).some((l) => l.flagged)) && <p className="mt-1 text-xs font-semibold text-flame">Image flagged for a closer look</p>}
               <p className="mt-1 text-xs text-ink-400">{o.customer_name} · {colorName(i.design!.color)} · {i.size} × {i.qty} · {dateShort(o.created_at)}</p>
             </Link>
           ))}
