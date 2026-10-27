@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 import { Mail } from 'lucide-react'
-import { signInWithEmail, signInWithGoogle, useAccount } from '../lib/auth'
+import { AUTH_ERROR, signInWithEmail, signInWithGoogle, useAccount } from '../lib/auth'
 import { DEMO } from '../lib/supabase'
 import { Button, Field, Input, PageLoader } from '../components/ui'
 import { toast } from '../components/Toast'
@@ -43,6 +43,7 @@ export default function SignIn() {
       <p className="text-xs font-semibold uppercase tracking-[.3em] text-acid">Design studio</p>
       <h1 className="mt-2 font-poster text-4xl uppercase leading-none">Sign in to design</h1>
       <p className="mt-3 text-sm text-ink-400">Your designs and orders are saved to your account. No password needed.</p>
+      {AUTH_ERROR && <p role="alert" className="mt-4 rounded-lg border border-flame/40 bg-flame/10 p-3 text-sm text-flame">Sign-in didn't finish: {AUTH_ERROR}</p>}
       {sent ? (
         <div className="mt-8 border border-ink-800 p-5 text-sm">
           <Mail className="text-acid" />

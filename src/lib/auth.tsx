@@ -4,6 +4,12 @@ import { DEMO, supabase } from './supabase'
 export interface Account { id: string; email: string; name: string }
 
 const DEMO_KEY = 'sp.account'
+
+/** A failed Google or email-link sign-in comes back with the reason in the address; keep it so the sign-in page can show it. */
+export const AUTH_ERROR: string | null = (() => {
+  const read = (q: string) => new URLSearchParams(q).get('error_description') || new URLSearchParams(q).get('error')
+  return read(location.search) || read(location.hash.slice(1))
+})()
 const Ctx = createContext<{ account: Account | null; ready: boolean }>({ account: null, ready: false })
 
 export function AccountProvider({ children }: { children: ReactNode }) {
