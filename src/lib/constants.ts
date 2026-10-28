@@ -43,6 +43,7 @@ export const FONTS = [
   { name: 'Playfair Display', css: '"Playfair Display", serif' },
   { name: 'Archivo Black', css: '"Archivo Black", sans-serif' },
   { name: 'Blackletter', css: '"UnifrakturMaguntia", serif' },
+  { name: 'Pirate', css: '"Pirata One", serif' },
   { name: 'Script', css: '"Pinyon Script", cursive' },
 ]
 
