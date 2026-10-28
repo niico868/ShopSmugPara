@@ -15,13 +15,13 @@ export const CUSTOM_SIZES = Object.keys(SIZE_CHEST)
 /** The main print area in inches. Everything inside it is covered by the base price. */
 export const MAIN_PRINT_IN = { w: 14, h: 20 }
 
-// Tee photos (greyscale shading + cut-out), recoloured at render time. Coordinates are canvas units,
-// measured from the photos: body = chest panel edges, sh = shoulder seam top, arm = armpit, neck = front neckline dip.
+// Pressed-flat blank tees (greyscale shading + cut-out), recoloured at render time. Coordinates are canvas units,
+// matching the drawn shapes: body = chest panel edges, sh = shoulder seam top, arm = armpit, neck = front neckline dip.
 const TEE_TOP = 105
 interface Tee { src: string; w: number; h: number; sleeveX: number; sleeveY: number; body: [number, number]; sh: [number, number, number]; armY: number; neck: [number, number, number] }
 const TEES: Record<Fit, Tee> = {
-  regular: { src: regularTee, w: 420, h: 410, sleeveX: 156, sleeveY: 212, body: [126, 373], sh: [116, 384, 148], armY: 276, neck: [210, 291, 140] },
-  oversized: { src: oversizedTee, w: 490, h: 373, sleeveX: 180, sleeveY: 212, body: [112, 386], sh: [100, 400, 152], armY: 272, neck: [214, 288, 152] },
+  regular: { src: regularTee, w: 420, h: 410, sleeveX: 152, sleeveY: 229, body: [128, 372], sh: [124, 376, 139], armY: 257, neck: [212, 288, 141] },
+  oversized: { src: oversizedTee, w: 490, h: 373, sleeveX: 176, sleeveY: 248, body: [112, 388], sh: [104, 396, 150], armY: 283, neck: [208, 292, 146] },
 }
 const tee = (fit: Fit = 'regular') => TEES[fit] ?? TEES.regular
 

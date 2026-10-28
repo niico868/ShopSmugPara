@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { Menu, ShoppingBag, X, Sparkles, User } from 'lucide-react'
+import { Instagram, Menu, ShoppingBag, X, Sparkles, User } from 'lucide-react'
 import { useAccount } from '../lib/auth'
 import { useCart, cartCount } from '../store/cart'
 import { useSettings } from '../lib/settings'
@@ -8,6 +8,7 @@ import { DEMO } from '../lib/supabase'
 import { cx } from '../lib/format'
 import { CartDrawer } from './CartDrawer'
 import { Bird } from './Bird'
+import { INSTAGRAM, TAGLINE } from '../lib/brand'
 
 const links = [
   { to: '/shop', label: 'Shop' },
@@ -36,15 +37,13 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      {settings.announcement && (
-        <div className="overflow-hidden bg-black py-2 text-[11px] font-semibold uppercase tracking-[.25em] text-white">
-          <div className="flex w-max animate-marquee gap-12 whitespace-nowrap">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <span key={i} className="flex items-center gap-2"><Sparkles size={12} className="text-acid" />{settings.announcement}</span>
-            ))}
-          </div>
+      <div className="overflow-hidden bg-black py-2 text-[11px] font-semibold uppercase tracking-[.25em] text-white">
+        <div className="flex w-max animate-marquee gap-12 whitespace-nowrap">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <span key={i} className="flex items-center gap-2"><Sparkles size={12} className="text-acid" />{settings.announcement || TAGLINE}</span>
+          ))}
         </div>
-      )}
+      </div>
       <header className="sticky top-0 z-40 border-b border-black/10 bg-white/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
           <Logo />
@@ -89,7 +88,8 @@ export default function Layout() {
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-3">
           <div>
             <Logo />
-            <p className="mt-3 max-w-xs text-sm text-white/60">Heavyweight tees and bold prints from Trinidad. Custom designs made to order, ready within 48 hours of payment.</p>
+            <p className="mt-3 max-w-xs text-sm text-white/60">Streetwear for the bold, from Smuggler&rsquo;s Paradise in Trinidad and Tobago. Custom designs made to order, ready within 48 hours of payment.</p>
+            <p className="mt-4 font-pirate text-2xl text-white">{TAGLINE}</p>
           </div>
           <div className="text-sm">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid">Shop</p>
@@ -104,6 +104,7 @@ export default function Layout() {
             ) : (
               <p className="text-white/60">Questions about an order? Use your order code on the Track page.</p>
             )}
+            <a className="mt-3 flex items-center gap-2 text-white/60 hover:text-white" href={INSTAGRAM} target="_blank" rel="noreferrer"><Instagram size={16} /> @smugglerparadise</a>
             <p className="mt-4"><Link to="/admin" className="text-white/30 hover:text-white/60">Staff login</Link></p>
           </div>
         </div>

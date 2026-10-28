@@ -14,6 +14,8 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         display: ['"Space Grotesk"', 'Inter', 'sans-serif'],
         poster: ['"Archivo Black"', '"Bebas Neue"', 'Impact', 'sans-serif'],
+        // Smuggler's Paradise blackletter, for brand lines and quotes.
+        pirate: ['"Pirata One"', '"UnifrakturMaguntia"', 'serif'],
       },
       borderRadius: { xl: '6px', '2xl': '8px', '3xl': '10px' },
       keyframes: {
