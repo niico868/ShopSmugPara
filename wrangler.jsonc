@@ -12,5 +12,7 @@
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/d/*"]
-  }
+  },
+  // Pull requests build a preview with `wrangler preview`, which needs this block (it can stay empty).
+  "previews": {}
 }
