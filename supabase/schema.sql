@@ -232,11 +232,11 @@ grant execute on function public.is_admin() to anon, authenticated;
 -- Design studio features (added 27 Oct 2026)
 -- =====================================================================
 -- ---------- Size-based print pricing ----------------------------------
-alter table public.settings add column if not exists print_included_in numeric(6,2) not null default 17;
+alter table public.settings add column if not exists print_included_in numeric(6,2) not null default 20;
 alter table public.settings add column if not exists extra_included_in numeric(6,2) not null default 10;
-alter table public.settings add column if not exists price_per_inch numeric(10,2) not null default 25;
-alter table public.settings add column if not exists price_tier_in numeric(6,2) not null default 21;
-alter table public.settings add column if not exists price_per_inch_after numeric(10,2) not null default 5;
+alter table public.settings add column if not exists price_per_inch numeric(10,2) not null default 5;
+alter table public.settings add column if not exists price_tier_in numeric(6,2) not null default 30;
+alter table public.settings add column if not exists price_per_inch_after numeric(10,2) not null default 6;
 
 -- ---------- Orders linked to customer accounts, and proofs ------------
 alter table public.orders add column if not exists user_id uuid references auth.users on delete set null;

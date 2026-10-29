@@ -9,7 +9,7 @@ const useToasts = create<{ list: T[]; push: (k: Kind, t: string) => void; drop: 
   push: (kind, text) => {
     const id = Date.now() + Math.random()
     set((s) => ({ list: [...s.list, { id, kind, text }] }))
-    setTimeout(() => set((s) => ({ list: s.list.filter((t) => t.id !== id) })), 4500)
+    setTimeout(() => set((s) => ({ list: s.list.filter((t) => t.id !== id) })), kind === 'error' ? 9000 : 7000)
   },
   drop: (id) => set((s) => ({ list: s.list.filter((t) => t.id !== id) })),
 }))
