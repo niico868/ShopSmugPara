@@ -138,14 +138,16 @@ export interface Order {
 export interface Settings {
   store_name: string
   currency: string
+  /** Custom tee price, covering `print_included_in` running inches of print across all areas. */
   custom_base_price: number
-  custom_back_price: number
-  /** Longest side (inches) the base custom price covers. */
+  /** Running inches of print (all areas together) the base price covers. */
   print_included_in: number
-  /** Longest side (inches) an extra print's starting price covers. */
-  extra_included_in: number
-  /** Added per running inch beyond the included size. */
+  /** Added per running inch beyond the included length, up to `price_tier_in`. */
   price_per_inch: number
+  /** Running inches up to which `price_per_inch` applies. */
+  price_tier_in: number
+  /** Added per running inch beyond `price_tier_in`. */
+  price_per_inch_after: number
   shipping_fee: number
   free_shipping_over: number
   whatsapp: string

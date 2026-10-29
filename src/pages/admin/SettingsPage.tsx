@@ -32,12 +32,12 @@ export default function SettingsPage() {
         <Field label="Announcement bar" hint="Leave empty to hide it"><Input value={s.announcement} onChange={set('announcement')} /></Field>
       </Card>
       <Card className="grid gap-4 sm:grid-cols-2">
-        <p className="text-sm text-ink-400 sm:col-span-2">Custom tees are priced by print size (the longest side of the artwork). The first print is the main print; back, sleeve and label prints are extras.</p>
-        <Field label="Custom tee price (main print)"><Input type="number" step="0.01" value={s.custom_base_price} onChange={set('custom_base_price', true)} /></Field>
-        <Field label="Main print included up to (inches)"><Input type="number" step="0.5" value={s.print_included_in} onChange={set('print_included_in', true)} /></Field>
-        <Field label="Each extra print from"><Input type="number" step="0.01" value={s.custom_back_price} onChange={set('custom_back_price', true)} /></Field>
-        <Field label="Extra print included up to (inches)"><Input type="number" step="0.5" value={s.extra_included_in} onChange={set('extra_included_in', true)} /></Field>
-        <Field label="Per running inch beyond that"><Input type="number" step="0.01" value={s.price_per_inch} onChange={set('price_per_inch', true)} /></Field>
+        <p className="text-sm text-ink-400 sm:col-span-2">Custom tees are priced on the print length of every area together (front, back, sleeves and label), counted as a 22-inch-wide strip. Small sleeve and label prints have no minimum of their own.</p>
+        <Field label="Custom tee price"><Input type="number" step="0.01" value={s.custom_base_price} onChange={set('custom_base_price', true)} /></Field>
+        <Field label="Covers up to (running inches)"><Input type="number" step="0.5" value={s.print_included_in} onChange={set('print_included_in', true)} /></Field>
+        <Field label="Then per running inch"><Input type="number" step="0.01" value={s.price_per_inch} onChange={set('price_per_inch', true)} /></Field>
+        <Field label="Up to (running inches)"><Input type="number" step="0.5" value={s.price_tier_in} onChange={set('price_tier_in', true)} /></Field>
+        <Field label="Per running inch beyond that"><Input type="number" step="0.01" value={s.price_per_inch_after} onChange={set('price_per_inch_after', true)} /></Field>
         <span className="hidden sm:block" />
         <Field label="Delivery fee"><Input type="number" step="0.01" value={s.shipping_fee} onChange={set('shipping_fee', true)} /></Field>
         <Field label="Free delivery over" hint="0 turns this off"><Input type="number" step="0.01" value={s.free_shipping_over} onChange={set('free_shipping_over', true)} /></Field>

@@ -140,7 +140,8 @@ declare
   v_ship numeric;
   v_area text;
   v_in numeric;
-  v_first boolean;
+  v_over numeric;
+  v_tier numeric;
   chars text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 begin
   select * into s from public.settings where id = 1;
@@ -175,22 +176,18 @@ begin
   for item in select * from jsonb_array_elements(payload->'items') loop
     v_qty := greatest(1, least(500, coalesce((item->>'qty')::int, 1)));
     if item->>'kind' = 'custom' then
-      -- First printed area is the main print, every other area is an extra print.
+      -- Priced on the print length of all areas together: the base price covers print_included_in inches,
+      -- then price_per_inch per started inch up to price_tier_in, then price_per_inch_after.
       -- Keep in step with src/lib/pricing.ts.
-      v_price := 0;
-      v_first := true;
+      v_in := 0;
       foreach v_area in array array['front', 'back', 'sleeve_left', 'sleeve_right', 'label'] loop
         if jsonb_array_length(coalesce(item->'design'->v_area, '[]'::jsonb)) > 0 then
-          v_in := least(greatest(coalesce((item->'design'->'print'->>v_area)::numeric, 0), 0), 100);
-          if v_first then
-            v_price := v_price + s.custom_base_price + s.price_per_inch * greatest(0, ceil(v_in - s.print_included_in));
-          else
-            v_price := v_price + s.custom_back_price + s.price_per_inch * greatest(0, ceil(v_in - s.extra_included_in));
-          end if;
-          v_first := false;
+          v_in := v_in + least(greatest(coalesce((item->'design'->'print'->>v_area)::numeric, 0), 0), 100);
         end if;
       end loop;
-      if v_first then v_price := s.custom_base_price; end if;
+      v_over := greatest(0, ceil(round(v_in, 1) - s.print_included_in));
+      v_tier := least(v_over, greatest(0, s.price_tier_in - s.print_included_in));
+      v_price := s.custom_base_price + v_tier * s.price_per_inch + (v_over - v_tier) * s.price_per_inch_after;
       insert into public.order_items (order_id, kind, name, color, size, qty, unit_price, design, preview)
       values (v_order, 'custom', left(coalesce(nullif(trim(item->>'name'), ''), 'Custom Tee'), 80),
         coalesce(item->'design'->>'color', item->>'color'), item->>'size', v_qty, v_price, item->'design', item->>'preview');
@@ -235,9 +232,11 @@ grant execute on function public.is_admin() to anon, authenticated;
 -- Design studio features (added 27 Oct 2026)
 -- =====================================================================
 -- ---------- Size-based print pricing ----------------------------------
-alter table public.settings add column if not exists print_included_in numeric(6,2) not null default 20;
+alter table public.settings add column if not exists print_included_in numeric(6,2) not null default 17;
 alter table public.settings add column if not exists extra_included_in numeric(6,2) not null default 10;
-alter table public.settings add column if not exists price_per_inch numeric(10,2) not null default 5;
+alter table public.settings add column if not exists price_per_inch numeric(10,2) not null default 25;
+alter table public.settings add column if not exists price_tier_in numeric(6,2) not null default 21;
+alter table public.settings add column if not exists price_per_inch_after numeric(10,2) not null default 5;
 
 -- ---------- Orders linked to customer accounts, and proofs ------------
 alter table public.orders add column if not exists user_id uuid references auth.users on delete set null;

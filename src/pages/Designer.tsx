@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ArrowDown, ArrowUp, Download, Info, Link2, Minus, Plus, Redo2, RotateCcw, Save, Type, Undo2 } from 'lucide-react'
 import type { Area, Design, Layer, RosterRow } from '../lib/types'
-import { AREAS, CUSTOM_SIZES, sizeScale, MAIN_PRINT_IN, PRICE_STRIP_IN, PRINT, TeeMockup, areaCentre, svgToPng, teeBounds, VIEW } from '../components/TeeMockup'
+import { AREAS, CUSTOM_SIZES, sizeScale, PRICE_STRIP_IN, PRINT, TeeMockup, areaCentre, svgToPng, teeBounds, VIEW } from '../components/TeeMockup'
 import { Button, Field, Input, Swatch } from '../components/ui'
 import { FITS, TEE_COLORS, colorName, fitName } from '../lib/constants'
 import { cx, money, uid } from '../lib/format'
@@ -10,7 +10,7 @@ import { useSettings } from '../lib/settings'
 import { useCart } from '../store/cart'
 import { toast } from '../components/Toast'
 import { getDesign, getProduct, saveDesign } from '../lib/api'
-import { AREA_ORDER, areaLayers, customPrice, printLines } from '../lib/pricing'
+import { AREA_ORDER, areaLayers, customPrice, quoteCustom } from '../lib/pricing'
 import { checkImage, warmUpChecker } from '../lib/moderation'
 import { designForRow, fillRoster, hasArt, mainArea, measurePrints } from '../lib/design'
 import { AddPanel } from '../components/designer/AddPanel'
@@ -291,8 +291,8 @@ export default function Designer() {
   // ---- Price, measured from the artwork ---------------------------------
   const sized: Design = { ...design, size }
   const measured: Design = { ...sized, ...measurePrints({ ...sized, ...Object.fromEntries(AREA_ORDER.map((a) => [a, fillRoster(areaLayers(design, a), roster[0])])) }) }
-  const lines = printLines(measured, settings)
-  const unit = customPrice(measured, settings)
+  const quote = quoteCustom(measured, settings)
+  const unit = quote.price
   const team = roster.length > 0
   const rowDesigns = team ? roster.map((r) => designForRow(design, r)) : []
   const total = team ? rowDesigns.reduce((n, d) => n + customPrice(d, settings), 0) : unit * qty
@@ -501,21 +501,22 @@ export default function Designer() {
               <p className="mt-1 text-xs text-ink-400">True to the size chart: the same print looks smaller on a bigger tee.</p>
             </div>
             <div className="space-y-1 text-sm">
-              {lines.length === 0 && <div className="flex justify-between text-ink-400"><span>Custom tee, {fitName(fit).toLowerCase()}</span><span>{money(settings.custom_base_price)}</span></div>}
-              {lines.map((l) => (
-                <div key={l.area} className="flex justify-between gap-2 text-ink-400">
-                  <span>{AREAS[l.area].name} print, {measured.print_sq_in?.[l.area] ?? 0} sq in{l.inches > l.included && <span className="text-[#9a6a00]"> (+{Math.ceil(l.inches - l.included)} inches)</span>}</span>
-                  <span className="shrink-0">{l.main ? '' : '+'}{money(l.price)}</span>
+              <div className="flex justify-between text-ink-400"><span>Custom tee, {fitName(fit).toLowerCase()}, up to {settings.print_included_in} in of print</span><span className="shrink-0">{money(settings.custom_base_price)}</span></div>
+              {quote.lines.map((l) => (
+                <div key={l.area} className="flex justify-between gap-2 pl-3 text-xs text-ink-400">
+                  <span>{AREAS[l.area].name} print, {measured.print_sq_in?.[l.area] ?? 0} sq in</span>
+                  <span className="shrink-0">{l.inches} in</span>
                 </div>
               ))}
+              {quote.tier > 0 && <div className="flex justify-between text-[#9a6a00]"><span>+{quote.tier} in at {money(settings.price_per_inch)}</span><span className="shrink-0">+{money(quote.tier * settings.price_per_inch)}</span></div>}
+              {quote.after > 0 && <div className="flex justify-between text-[#9a6a00]"><span>+{quote.after} in at {money(settings.price_per_inch_after)}</span><span className="shrink-0">+{money(quote.after * settings.price_per_inch_after)}</span></div>}
               {team && <div className="flex justify-between text-ink-400"><span>Team order</span><span>{roster.length} tees</span></div>}
             </div>
             <p className="flex gap-2 rounded-lg bg-acid/10 p-2.5 text-xs text-ink-300">
               <Info size={14} className="mt-0.5 shrink-0 text-acid" />
               <span>
-                The dashed area ({MAIN_PRINT_IN.w} × {MAIN_PRINT_IN.h} inches) is within the {money(settings.custom_base_price)} price. Going over adds small charges of {money(settings.price_per_inch)} per running inch.
-                Extra prints (back, sleeves) start at {money(settings.custom_back_price)} up to {settings.extra_included_in} inches.
-                We price by total printed area, counted as a {PRICE_STRIP_IN}-inch-tall strip: the main print includes {settings.print_included_in} inches of it ({settings.print_included_in * PRICE_STRIP_IN} sq in).
+                We price the whole tee by its total printed area, counted as a {PRICE_STRIP_IN}-inch-wide strip. {money(settings.custom_base_price)} covers {settings.print_included_in} inches of it ({settings.print_included_in * PRICE_STRIP_IN} sq in): one full print plus small sleeve or label prints.
+                Each inch after that adds {money(settings.price_per_inch)} up to {settings.price_tier_in} inches, then {money(settings.price_per_inch_after)}.
               </span>
             </p>
             <div className="flex items-center gap-3">
