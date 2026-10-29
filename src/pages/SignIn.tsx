@@ -5,6 +5,7 @@ import { AUTH_ERROR, signInWithEmail, signInWithGoogle, useAccount } from '../li
 import { DEMO } from '../lib/supabase'
 import { Button, Field, Input, PageLoader } from '../components/ui'
 import { toast } from '../components/Toast'
+import { POINTS, pointsLabel, usePoints } from '../lib/points'
 
 function GoogleIcon() {
   return (
@@ -24,6 +25,8 @@ export default function SignIn() {
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [busy, setBusy] = useState(false)
+  const stash = usePoints((s) => s.guest)
+  const claim = params.get('claim') === '1'
 
   if (!ready) return <PageLoader />
   if (account) return <Navigate to={next} replace />
@@ -40,9 +43,21 @@ export default function SignIn() {
 
   return (
     <div className="mx-auto max-w-sm px-4 py-16">
-      <p className="text-xs font-semibold uppercase tracking-[.3em] text-acid">Design studio</p>
-      <h1 className="mt-2 font-poster text-4xl uppercase leading-none">Sign in to design</h1>
-      <p className="mt-3 text-sm text-ink-400">Your designs and orders are saved to your account. No password needed.</p>
+      {claim ? (
+        <>
+          <p className="text-xs font-semibold uppercase tracking-[.3em] text-acid">{POINTS.many}</p>
+          <h1 className="mt-2 font-poster text-4xl uppercase leading-none">{stash > 0 ? 'Claim your stash' : 'Join the crew'}</h1>
+          <p className="mt-3 text-sm text-ink-400">
+            {stash > 0 ? `Sign up and your ${pointsLabel(stash)} move to your account.` : `Sign up to keep the ${POINTS.many} you earn.`} Your designs and orders are saved there too. No password needed.
+          </p>
+        </>
+      ) : (
+        <>
+          <p className="text-xs font-semibold uppercase tracking-[.3em] text-acid">Design studio</p>
+          <h1 className="mt-2 font-poster text-4xl uppercase leading-none">Sign in to design</h1>
+          <p className="mt-3 text-sm text-ink-400">Your designs and orders are saved to your account. No password needed.</p>
+        </>
+      )}
       {AUTH_ERROR && <p role="alert" className="mt-4 rounded-lg border border-flame/40 bg-flame/10 p-3 text-sm text-flame">Sign-in didn't finish: {AUTH_ERROR}</p>}
       {sent ? (
         <div className="mt-8 border border-ink-800 p-5 text-sm">
