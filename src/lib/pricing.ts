@@ -4,25 +4,32 @@ export const AREA_ORDER: Area[] = ['front', 'back', 'sleeve_left', 'sleeve_right
 
 export const areaLayers = (d: Design, a: Area) => d[a] ?? []
 
-export interface PrintLine { area: Area; inches: number; included: number; price: number; main: boolean }
+export interface PrintLine { area: Area; inches: number }
 
-/**
- * The first printed area is the main print (base price up to `print_included_in`);
- * every other printed area is an extra print (from `custom_back_price` up to `extra_included_in`).
- * Beyond the included size each running inch adds `price_per_inch`.
- * Keep in step with place_order in supabase/schema.sql.
- */
-export function printLines(d: Design, s: Settings): PrintLine[] {
-  const lines: PrintLine[] = []
-  for (const area of AREA_ORDER) {
-    if (!areaLayers(d, area).length) continue
-    const main = lines.length === 0
-    const inches = d.print?.[area] ?? 0
-    const included = main ? s.print_included_in : s.extra_included_in
-    const over = Math.max(0, Math.ceil(inches - included))
-    lines.push({ area, inches, included, main, price: (main ? s.custom_base_price : s.custom_back_price) + over * s.price_per_inch })
-  }
-  return lines
+export interface CustomQuote {
+  lines: PrintLine[]
+  /** Print length of every area added together, in running inches. */
+  inches: number
+  /** Running inches charged at `price_per_inch` (between the included length and `price_tier_in`). */
+  tier: number
+  /** Running inches charged at `price_per_inch_after` (beyond `price_tier_in`). */
+  after: number
+  price: number
 }
 
-export const customPrice = (d: Design, s: Settings) => printLines(d, s).reduce((n, l) => n + l.price, 0) || s.custom_base_price
+/**
+ * A custom tee is priced on the print length of all its areas together, so small sleeve and label
+ * prints have no minimum of their own. `custom_base_price` covers up to `print_included_in` inches;
+ * each started inch up to `price_tier_in` adds `price_per_inch`, and each one beyond adds `price_per_inch_after`.
+ * Keep in step with place_order in supabase/schema.sql.
+ */
+export function quoteCustom(d: Design, s: Settings): CustomQuote {
+  const lines = AREA_ORDER.filter((a) => areaLayers(d, a).length).map((area) => ({ area, inches: d.print?.[area] ?? 0 }))
+  const inches = Math.round(lines.reduce((n, l) => n + Math.min(Math.max(l.inches, 0), 100), 0) * 10) / 10
+  const over = Math.max(0, Math.ceil(inches - s.print_included_in))
+  const tier = Math.min(over, Math.max(0, s.price_tier_in - s.print_included_in))
+  const after = over - tier
+  return { lines, inches, tier, after, price: s.custom_base_price + tier * s.price_per_inch + after * s.price_per_inch_after }
+}
+
+export const customPrice = (d: Design, s: Settings) => quoteCustom(d, s).price

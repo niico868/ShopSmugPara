@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react'
+import { usePoints } from '../lib/points'
 
 // A pirogue, seen from above, that crosses the screen once a minute on a random straight line in any
 // direction, turned to face where it is going. Each hop lifts it toward the viewer (it grows and its
 // shadow falls away) and drops it back, pushing the water out from the hull. The outboard throws a
 // spray that re-forms several times a second, and a foam wake trails behind and fades.
 // The boat is SVG; the water is drawn on a canvas underneath it.
+// Catching it (a click or tap) earns Doubloons, once per crossing, and makes it leap.
 
 const FIRST_RUN_MS = 4000
 const EVERY_MS = 60_000
@@ -48,12 +50,13 @@ export function Pirogue() {
   const canvas = useRef<HTMLCanvasElement>(null)
   const boat = useRef<HTMLDivElement>(null)
   const hull = useRef<HTMLDivElement>(null)
+  const hit = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const cv = canvas.current, boatEl = boat.current, hullEl = hull.current
+    const cv = canvas.current, boatEl = boat.current, hullEl = hull.current, hitEl = hit.current
     const ctx = cv?.getContext('2d')
-    if (!cv || !boatEl || !hullEl || !ctx) return
+    if (!cv || !boatEl || !hullEl || !hitEl || !ctx) return
 
     let dpr = 1
     const fit = () => {
@@ -65,7 +68,7 @@ export function Pirogue() {
 
     const foam: Foam[] = []
     const pushes: Push[] = []
-    let run: (Route & { start: number; ms: number; L: number }) | null = null
+    let run: (Route & { start: number; ms: number; L: number; caught: boolean }) | null = null
     let spray: Drop[] = [], plume: number[] = [], nextSpray = 0
     let hopStart = 0, hopMs = 0, lastFoam = 0, raf = 0
 
@@ -195,14 +198,29 @@ export function Pirogue() {
       const L = Math.max(39, Math.min(75, vw * 0.051))
       const r = pickRoute(vw, vh, L)
       const now = performance.now()
-      run = { ...r, L, start: now, ms: (Math.hypot(r.x1 - r.x0, r.y1 - r.y0) / Math.max(170, vw * 0.16)) * 1000 }
+      run = { ...r, L, caught: false, start: now, ms: (Math.hypot(r.x1 - r.x0, r.y1 - r.y0) / Math.max(170, vw * 0.16)) * 1000 }
       hullEl.style.width = `${L}px`
       hullEl.style.height = `${L / 4}px`
+      // A round target a little longer than the hull, so a moving boat is fair to catch on a phone.
+      hitEl.style.width = hitEl.style.height = `${Math.max(56, L * 1.2)}px`
+      hitEl.style.display = 'block'
       boatEl.style.display = 'block'
       newHop(now)
       nextSpray = 0
       if (!raf) raf = requestAnimationFrame(tick)
     }
+
+    const onCatch = (e: PointerEvent) => {
+      if (!run || run.caught) return
+      e.preventDefault()
+      run.caught = true
+      hitEl.style.display = 'none'
+      usePoints.getState().catchBoat(e.clientX, e.clientY)
+      // A big happy leap.
+      hopStart = performance.now()
+      hopMs = 1300
+    }
+    hitEl.addEventListener('pointerdown', onCatch)
 
     const first = window.setTimeout(go, FIRST_RUN_MS)
     const every = window.setInterval(go, EVERY_MS)
@@ -211,6 +229,7 @@ export function Pirogue() {
       window.clearTimeout(first)
       window.clearInterval(every)
       window.removeEventListener('resize', fit)
+      hitEl.removeEventListener('pointerdown', onCatch)
       cancelAnimationFrame(raf)
     }
   }, [])
@@ -222,6 +241,7 @@ export function Pirogue() {
         <div ref={hull} className="absolute left-0 top-0 will-change-transform">
           <TopDownPirogue />
         </div>
+        <button ref={hit} tabIndex={-1} aria-hidden className="pointer-events-auto absolute left-0 top-0 hidden -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-none rounded-full" />
       </div>
     </div>
   )
