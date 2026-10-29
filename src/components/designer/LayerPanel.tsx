@@ -1,4 +1,4 @@
-import { AlertTriangle, AlignCenter, Copy, Eraser, Layers, Loader2, Trash2 } from 'lucide-react'
+import { AlertTriangle, AlignCenter, Copy, Eraser, Layers, Loader2, Sparkles, Trash2 } from 'lucide-react'
 import type { Layer } from '../../lib/types'
 import { FONTS, type Fit } from '../../lib/constants'
 import { cx } from '../../lib/format'
@@ -28,7 +28,7 @@ export function DpiWarning({ layer, fit }: { layer: Layer; fit?: Fit }) {
   )
 }
 
-export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicate, onRemove, onRemoveBg, removingBg }: {
+export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicate, onRemove, onEraseBg, onRemoveBg, removingBg }: {
   layer: Layer
   fit?: Fit
   onPatch: (p: Partial<Layer>, record?: boolean) => void
@@ -36,6 +36,7 @@ export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicat
   onCentre: () => void
   onDuplicate: () => void
   onRemove: () => void
+  onEraseBg: () => void
   onRemoveBg: () => void
   /** Download progress (0..1) while this layer's background is being removed, otherwise null. */
   removingBg: number | null
@@ -96,7 +97,7 @@ export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicat
 
       {layer.type === 'image' && (
         <>
-          {canRemoveBackground(layer.src) && <RemoveBgButton onClick={onRemoveBg} progress={removingBg} />}
+          {canRemoveBackground(layer.src) && <RemoveBgButtons onErase={onEraseBg} onAi={onRemoveBg} progress={removingBg} />}
           <Range label="Width" min={10} max={520} value={layer.width!} onChange={(v) => onPatch({ width: v }, false)} />
           <DpiWarning layer={layer} fit={fit} />
           {layer.flagged && <p className="rounded-lg bg-ink-800 p-2.5 text-xs text-ink-400">Our team will take a closer look at this image before printing.</p>}
@@ -109,21 +110,29 @@ export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicat
   )
 }
 
-/** The first press downloads the cut-out model once, so the button shows how far along that is. */
-function RemoveBgButton({ onClick, progress }: { onClick: () => void; progress: number | null }) {
+/**
+ * Two ways to drop a backdrop: an instant eraser for art on white or one plain colour, and the AI cut-out for photos.
+ * The AI's first use downloads its model once, so that button shows how far along it is.
+ */
+function RemoveBgButtons({ onErase, onAi, progress }: { onErase: () => void; onAi: () => void; progress: number | null }) {
   const busy = progress !== null
+  const btn = 'flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-ink-700 bg-white px-2 py-2.5 text-sm font-semibold text-black transition hover:border-acid disabled:cursor-wait disabled:opacity-60'
   return (
     <div>
-      <button
-        onClick={onClick}
-        disabled={busy}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-ink-700 bg-white px-3 py-2.5 text-sm font-semibold text-black transition hover:border-acid disabled:cursor-wait disabled:opacity-70"
-      >
-        {busy ? <Loader2 size={16} className="animate-spin" /> : <Eraser size={16} />}
-        {!busy ? 'Remove background' : progress < 1 ? `Getting ready… ${Math.round(progress * 100)}%` : 'Removing background…'}
-      </button>
+      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-black">Remove background</p>
+      <div className="flex gap-2">
+        <button onClick={onErase} disabled={busy} className={btn} title="Instant. For logos and art on white or one plain colour.">
+          <Eraser size={16} />Plain
+        </button>
+        <button onClick={onAi} disabled={busy} className={btn} title="For photos and busy backgrounds.">
+          {busy ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+          {!busy ? 'Photo (AI)' : progress < 1 ? `Getting ready ${Math.round(progress * 100)}%` : 'Working…'}
+        </button>
+      </div>
       <p className="mt-1.5 text-xs text-ink-400">
-        {busy && progress < 1 ? 'First time only: this downloads a one-off 44 MB helper. Wi-Fi is best.' : 'Works best on photos and art with a clear subject. Undo brings it back.'}
+        {busy && progress < 1
+          ? 'First time only: the AI downloads a one-off 44 MB helper. Wi-Fi is best.'
+          : 'Plain is instant, for art on white or one colour. Photo (AI) is for pictures and busy backgrounds. Undo brings it back.'}
       </p>
     </div>
   )
