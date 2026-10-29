@@ -22,6 +22,13 @@ export default {
       keyframes: {
         marquee: { from: { transform: 'translateX(0)' }, to: { transform: 'translateX(-50%)' } },
         rise: { from: { opacity: '0', transform: 'translateY(12px)' }, to: { opacity: '1', transform: 'none' } },
+        // The points bin wobbles as a Doubloon lands in it.
+        'bin-bump': {
+          '0%': { transform: 'scale(1)' },
+          '30%': { transform: 'scale(1.35) rotate(-10deg)' },
+          '60%': { transform: 'scale(.92) rotate(6deg)' },
+          '100%': { transform: 'scale(1)' },
+        },
         // Toasts appear in place, pause, then drift to the top of the screen and fade, clearing the buttons under them.
         'float-away': {
           '0%': { opacity: '0', transform: 'translateY(12px)' },
@@ -29,7 +36,7 @@ export default {
           '100%': { opacity: '0', transform: 'translateY(calc(-100vh + 10rem))' },
         },
       },
-      animation: { marquee: 'marquee 30s linear infinite', rise: 'rise .5s ease both', 'float-away': 'float-away 3.5s cubic-bezier(.4,0,.2,1) both' },
+      animation: { marquee: 'marquee 30s linear infinite', rise: 'rise .5s ease both', 'float-away': 'float-away 3.5s cubic-bezier(.4,0,.2,1) both', 'bin-bump': 'bin-bump .45s ease-out' },
     },
   },
   plugins: [],
