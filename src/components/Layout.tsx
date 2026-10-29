@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { Instagram, Menu, ShoppingBag, X, Sparkles, User } from 'lucide-react'
+import { ArrowUp, Instagram, Menu, ShoppingBag, X, Sparkles, User } from 'lucide-react'
 import { useAccount } from '../lib/auth'
 import { useCart, cartCount } from '../store/cart'
 import { useSettings } from '../lib/settings'
@@ -30,12 +30,29 @@ export function Logo({ className }: { className?: string }) {
   )
 }
 
+/** On a shared design, a callout under the glowing "Design yours" link (or the phone menu button) that invites people to make their own. */
+function DesignTip({ onClose, align }: { onClose: () => void; align: 'center' | 'right' }) {
+  const centre = align === 'center'
+  return (
+    <div role="note" className={cx('absolute top-full z-50 mt-8 w-60 animate-pop-in rounded-2xl bg-black p-4 pr-9 text-left text-white shadow-[0_10px_40px_rgba(92,174,219,.45)] ring-2 ring-acid', centre ? 'left-1/2 -ml-[7.5rem]' : '-right-1')}>
+      <span aria-hidden className={cx('absolute -top-2 h-4 w-4 rotate-45 bg-black ring-2 ring-acid [clip-path:polygon(0_0,100%_0,0_100%)]', centre ? 'left-1/2 -ml-2' : 'right-4')} />
+      <ArrowUp aria-hidden size={18} className={cx('absolute -top-7 animate-bounce text-acid', centre ? 'left-1/2 -ml-[9px]' : 'right-[15px]')} />
+      <p className="font-poster text-sm uppercase tracking-wider">Like this tee?</p>
+      <p className="mt-1 text-sm text-white/70">Make one that&rsquo;s all yours with <b className="text-acid">Design yours</b>.</p>
+      <button onClick={onClose} className="absolute right-2 top-2 rounded-full p-1 text-white/60 hover:bg-white/10 hover:text-white" aria-label="Hide tip"><X size={16} /></button>
+    </div>
+  )
+}
+
 export default function Layout() {
   const { items, setOpen } = useCart()
   const { settings } = useSettings()
   const [menu, setMenu] = useState(false)
   const loc = useLocation()
-  useEffect(() => { setMenu(false); window.scrollTo(0, 0) }, [loc.pathname])
+  const [tipOff, setTipOff] = useState(false)
+  useEffect(() => { setMenu(false); setTipOff(false); window.scrollTo(0, 0) }, [loc.pathname])
+  // Someone opened a shared design link: light up "Design yours" until they use it or close the tip.
+  const beacon = loc.pathname.startsWith('/d/') && !tipOff
   const count = cartCount(items)
   const { account, ready } = useAccount()
   useEffect(() => { if (ready) syncPoints(!!account) }, [ready, account?.id])
@@ -53,11 +70,17 @@ export default function Layout() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4">
           <Logo />
           <nav className="hidden items-center gap-1 md:flex">
-            {links.map((l) => (
-              <NavLink key={l.to} to={l.to} className={({ isActive }) => cx('px-4 py-2 text-xs font-semibold uppercase tracking-[.18em] transition', isActive ? 'text-acid' : 'text-black hover:text-acid')}>
-                {l.label}
-              </NavLink>
-            ))}
+            {links.map((l) => {
+              const lit = beacon && l.to === '/design'
+              return (
+                <span key={l.to} className="relative">
+                  <NavLink to={l.to} className={({ isActive }) => cx('block px-4 py-2 text-xs font-semibold uppercase tracking-[.18em] transition', isActive ? 'text-acid' : 'text-black hover:text-acid', lit && 'beacon')}>
+                    {l.label}
+                  </NavLink>
+                  {lit && <DesignTip onClose={() => setTipOff(true)} align="center" />}
+                </span>
+              )
+            })}
           </nav>
           <div className="flex items-center gap-1 sm:gap-2">
             {/* Signed in, the Doubloons counter links to the account too, so phones skip the account icon. */}
@@ -76,15 +99,18 @@ export default function Layout() {
                 <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-acid px-1 text-[11px] font-bold text-white">{count}</span>
               )}
             </button>
-            <button className="rounded-full p-2 sm:p-2.5 hover:bg-ink-800 md:hidden" onClick={() => setMenu(!menu)} aria-label="Menu">
-              {menu ? <X size={20} /> : <Menu size={20} />}
-            </button>
+            <span className="relative md:hidden">
+              <button className={cx('rounded-full p-2 sm:p-2.5 hover:bg-ink-800', beacon && !menu && 'beacon')} onClick={() => setMenu(!menu)} aria-label="Menu">
+                {menu ? <X size={20} /> : <Menu size={20} />}
+              </button>
+              {beacon && !menu && <DesignTip onClose={() => setTipOff(true)} align="right" />}
+            </span>
           </div>
         </div>
         {menu && (
           <nav className="border-t border-ink-800 px-4 py-3 md:hidden">
             {links.map((l) => (
-              <NavLink key={l.to} to={l.to} className="block rounded-xl px-3 py-3 font-medium hover:bg-ink-800">{l.label}</NavLink>
+              <NavLink key={l.to} to={l.to} className={cx('block rounded-xl px-3 py-3 font-medium hover:bg-ink-800', beacon && l.to === '/design' && 'beacon')}>{l.label}</NavLink>
             ))}
           </nav>
         )}

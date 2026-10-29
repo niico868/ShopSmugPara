@@ -1,11 +1,16 @@
-// Cloudflare hosting: the site is plain static files, so no Worker script is needed.
+// Cloudflare hosting: the site is plain static files in ./dist.
 // Unknown paths (e.g. /design, /order/SP-ABC123) serve index.html and the app's router takes over.
+// Shared design links (/d/<id>) go through worker/index.ts first, which adds the design's picture
+// and name to the page's preview tags so the link unfurls as a photo card in WhatsApp, Facebook, etc.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "shop-smug-para",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-10-23",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "single-page-application"
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/d/*"]
   }
 }
