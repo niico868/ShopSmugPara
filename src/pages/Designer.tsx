@@ -14,6 +14,7 @@ import { AREA_ORDER, areaLayers, customPrice, quoteCustom } from '../lib/pricing
 import { checkImage, warmUpChecker } from '../lib/moderation'
 import { detectToneBase } from '../lib/tone'
 import { erasePlainBackground, removeBackground } from '../lib/bgRemoval'
+import { cropCanvas, fitLayerToCrop, opaqueBounds, trimTransparent } from '../lib/trim'
 import { designForRow, fillRoster, hasArt, mainArea, measurePrints } from '../lib/design'
 import { AddPanel } from '../components/designer/AddPanel'
 import { LayerPanel, dpiNote } from '../components/designer/LayerPanel'
@@ -43,7 +44,10 @@ const loadDraft = (): Design => {
   return blank()
 }
 
-/** Reads an upload, shrinking big photos to 2400 px so they stay sharp at full-front size without bloating orders. */
+/**
+ * Reads an upload, shrinking big photos to 2400 px so they stay sharp at full-front size without bloating orders.
+ * See-through borders are cropped off so they aren't priced as print.
+ */
 async function readImage(file: File): Promise<{ src: string; aspect: number; px?: number }> {
   const raw = await new Promise<string>((res, rej) => {
     const r = new FileReader()
@@ -53,18 +57,21 @@ async function readImage(file: File): Promise<{ src: string; aspect: number; px?
   })
   const img = new Image()
   await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = raw })
-  const aspect = img.naturalHeight / img.naturalWidth || 1
-  if (file.type === 'image/svg+xml') return { src: raw, aspect }
+  if (file.type === 'image/svg+xml') return { src: raw, aspect: img.naturalHeight / img.naturalWidth || 1 }
   const max = 2400
   const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight))
-  const c = document.createElement('canvas')
+  let c = document.createElement('canvas')
   c.width = Math.round(img.naturalWidth * k)
   c.height = Math.round(img.naturalHeight * k)
-  c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height)
-  const png = c.toDataURL('image/png')
+  const ctx = c.getContext('2d', { willReadFrequently: true })!
+  ctx.drawImage(img, 0, 0, c.width, c.height)
+  if (file.type !== 'image/jpeg') {
+    const crop = opaqueBounds(ctx, c.width, c.height)
+    if (crop) c = cropCanvas(c, crop)
+  }
   // Photos are far smaller as JPEG; keep PNG for artwork with transparency.
-  const src = file.type === 'image/jpeg' ? c.toDataURL('image/jpeg', 0.92) : png
-  return { src, aspect, px: c.width }
+  const src = file.type === 'image/jpeg' ? c.toDataURL('image/jpeg', 0.92) : c.toDataURL('image/png')
+  return { src, aspect: c.height / c.width, px: c.width }
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
@@ -254,10 +261,15 @@ export default function Designer() {
       toast.error('Could not read that image.')
     } finally { setChecking(false) }
   }
-  /** Swaps in the cut-out art. Without its backdrop it may now read as all white or all black, so brightness starts over. */
-  const swapArt = async (id: string, src: string, a: Area) => {
+  /**
+   * Swaps in the cut-out art, cropped to what's left so the cleared space isn't priced as print.
+   * Without its backdrop it may now read as all white or all black, so brightness starts over.
+   */
+  const swapArt = async (id: string, cut: string, a: Area) => {
+    const t = await trimTransparent(cut)
+    const src = t?.src ?? cut
     const toneBase = (await detectToneBase(src)) || undefined
-    setLayers((ls) => ls.map((x) => (x.id === id ? { ...x, src, toneBase, tone: undefined } : x)), true, a)
+    setLayers((ls) => ls.map((x) => (x.id === id ? { ...x, ...(t && fitLayerToCrop(x, t.crop)), src, toneBase, tone: undefined } : x)), true, a)
   }
   const eraseBg = async (l: Layer) => {
     if (cutting || !l.src) return
