@@ -1,8 +1,9 @@
-import { AlertTriangle, AlignCenter, Copy, Layers, Trash2 } from 'lucide-react'
+import { AlertTriangle, AlignCenter, Copy, Eraser, Layers, Loader2, Trash2 } from 'lucide-react'
 import type { Layer } from '../../lib/types'
 import { FONTS, type Fit } from '../../lib/constants'
 import { cx } from '../../lib/format'
 import { imageDpi } from '../TeeMockup'
+import { canRemoveBackground } from '../../lib/bgRemoval'
 import { Field, Select, Textarea } from '../ui'
 import { Range, Toggle } from './Controls'
 
@@ -27,7 +28,7 @@ export function DpiWarning({ layer, fit }: { layer: Layer; fit?: Fit }) {
   )
 }
 
-export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicate, onRemove }: {
+export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicate, onRemove, onRemoveBg, removingBg }: {
   layer: Layer
   fit?: Fit
   onPatch: (p: Partial<Layer>, record?: boolean) => void
@@ -35,6 +36,9 @@ export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicat
   onCentre: () => void
   onDuplicate: () => void
   onRemove: () => void
+  onRemoveBg: () => void
+  /** Download progress (0..1) while this layer's background is being removed, otherwise null. */
+  removingBg: number | null
 }) {
   const multiLine = (layer.text ?? '').includes('\n')
   return (
@@ -92,6 +96,7 @@ export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicat
 
       {layer.type === 'image' && (
         <>
+          {canRemoveBackground(layer.src) && <RemoveBgButton onClick={onRemoveBg} progress={removingBg} />}
           <Range label="Width" min={10} max={520} value={layer.width!} onChange={(v) => onPatch({ width: v }, false)} />
           <DpiWarning layer={layer} fit={fit} />
           {layer.flagged && <p className="rounded-lg bg-ink-800 p-2.5 text-xs text-ink-400">Our team will take a closer look at this image before printing.</p>}
@@ -100,6 +105,26 @@ export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicat
         </>
       )}
       <Range label="Rotation" min={-180} max={180} value={layer.rotation} onChange={(v) => onPatch({ rotation: v }, false)} suffix="°" />
+    </div>
+  )
+}
+
+/** The first press downloads the cut-out model once, so the button shows how far along that is. */
+function RemoveBgButton({ onClick, progress }: { onClick: () => void; progress: number | null }) {
+  const busy = progress !== null
+  return (
+    <div>
+      <button
+        onClick={onClick}
+        disabled={busy}
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-ink-700 bg-white px-3 py-2.5 text-sm font-semibold text-black transition hover:border-acid disabled:cursor-wait disabled:opacity-70"
+      >
+        {busy ? <Loader2 size={16} className="animate-spin" /> : <Eraser size={16} />}
+        {!busy ? 'Remove background' : progress < 1 ? `Getting ready… ${Math.round(progress * 100)}%` : 'Removing background…'}
+      </button>
+      <p className="mt-1.5 text-xs text-ink-400">
+        {busy && progress < 1 ? 'First time only: this downloads a one-off 44 MB helper. Wi-Fi is best.' : 'Works best on photos and art with a clear subject. Undo brings it back.'}
+      </p>
     </div>
   )
 }
