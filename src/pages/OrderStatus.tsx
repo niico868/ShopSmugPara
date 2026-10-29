@@ -11,6 +11,7 @@ import { Dialog } from '../components/designer/Controls'
 import { AREA_ORDER } from '../lib/pricing'
 import { DEPOSIT_NOTE, READY_NOTE, colorName } from '../lib/constants'
 import { dateTime, money } from '../lib/format'
+import { WHATSAPP } from '../lib/brand'
 import { useSettings } from '../lib/settings'
 import { toast } from '../components/Toast'
 
@@ -37,7 +38,7 @@ export default function OrderStatus() {
     </div>
   )
 
-  const wa = settings.whatsapp && `https://wa.me/${settings.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi! Question about order ${order.code}`)}`
+  const wa = `${settings.whatsapp ? `https://wa.me/${settings.whatsapp.replace(/\D/g, '')}` : WHATSAPP}?text=${encodeURIComponent(`Hi! Question about order ${order.code}`)}`
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">

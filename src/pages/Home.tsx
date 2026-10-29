@@ -12,7 +12,7 @@ import { INSTAGRAM, brandMark } from '../lib/brand'
 const STEPS = [
   { t: 'Pick a tee', d: 'Shop a drop, or choose a regular or oversized blank.' },
   { t: 'Make it yours', d: 'Add text and artwork, front and back.' },
-  { t: 'We print it', d: 'Printed to order and ready within 48 hours of payment.' },
+  { t: 'We print it', d: 'Printed to order and ready 2-5 work days after payment is made.' },
   { t: 'Track it live', d: 'Follow each step with your order code.' },
 ]
 

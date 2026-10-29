@@ -1,3 +1,14 @@
+/* Brand type: Creato Display for reading text, Jack Pirate for brand lines, Akira Expanded for bold headers. */
+@font-face { font-family: 'Creato Display'; src: url('/fonts/creato-display-light.woff2') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Creato Display'; src: url('/fonts/creato-display-regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Creato Display'; src: url('/fonts/creato-display-regularitalic.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Creato Display'; src: url('/fonts/creato-display-medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Creato Display'; src: url('/fonts/creato-display-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Creato Display'; src: url('/fonts/creato-display-extrabold.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Creato Display'; src: url('/fonts/creato-display-black.woff2') format('woff2'); font-weight: 900; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Akira Expanded'; src: url('/fonts/akira-expanded.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Jack Pirate'; src: url('/fonts/jack-pirate-alt.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,7 +20,7 @@ body { @apply font-sans antialiased; }
 input[type='number']::-webkit-inner-spin-button { opacity: .4; }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-fly, .animate-flap, .animate-marquee { animation: none !important; }
+  .animate-marquee { animation: none !important; }
 }
 
 @media print {
