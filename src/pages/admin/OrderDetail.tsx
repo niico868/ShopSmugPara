@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AlertTriangle, ArrowLeft, Download, Link2, Mail, MessageCircle, Phone, Printer, Upload } from 'lucide-react'
 import { getOrder, sendProof, subscribeOrders, updateOrder } from '../../lib/api'
-import type { Area, Order, OrderItem, OrderStatus, PaymentStatus, ProofStatus } from '../../lib/types'
+import type { Area, Layer, Order, OrderItem, OrderStatus, PaymentStatus, ProofStatus } from '../../lib/types'
 import { STATUS_FLOW, STATUS_META, colorName, fitName, fontCss } from '../../lib/constants'
 import { Button, Card, Empty, PageLoader, StatusBadge, Textarea } from '../../components/ui'
 import { EventList } from '../../components/OrderTimeline'
 import { ItemThumb } from '../../components/ItemThumb'
 import { AREAS, TeeMockup, imageDpi, svgToPng } from '../../components/TeeMockup'
+import { bakeTone, toneLabel, toneOf } from '../../lib/tone'
 import { AREA_ORDER } from '../../lib/pricing'
 import { cx, dateTime, money } from '../../lib/format'
 import { toast } from '../../components/Toast'
@@ -126,6 +127,15 @@ export default function OrderDetail() {
   )
 }
 
+/** Saves uploaded art with the customer's hue and brightness applied. */
+async function downloadToned(l: Layer, name: string) {
+  try {
+    const a = document.createElement('a')
+    a.href = await bakeTone(l.src!, toneOf(l)!)
+    a.download = name; a.click()
+  } catch { toast.error('Could not prepare that file.') }
+}
+
 function ItemRow({ item, code }: { item: OrderItem; code: string }) {
   const d = item.design
   const printed = d ? AREA_ORDER.filter((a) => (d[a] ?? []).length) : []
@@ -198,9 +208,14 @@ function ItemRow({ item, code }: { item: OrderItem; code: string }) {
                     <img src={l.src} alt="" className="h-10 w-10 rounded bg-ink-700 object-contain" />
                     <span className="flex-1 text-xs text-ink-400">
                       Image · {l.width}w{l.rotation ? ` · ${l.rotation}°` : ''}{imageDpi(l, d.fit) ? ` · ${imageDpi(l, d.fit)} DPI` : ''}{l.shadow ? ' · shadow' : ''}
+                      {toneLabel(l) && ` · ${toneLabel(l)}`}
                       {l.flagged && <b className="text-flame"> · flagged</b>}
                     </span>
                     <a href={l.src} download={`${code}-art-${i + 1}`} target="_blank" rel="noreferrer" className="text-xs text-acid print:hidden">Original</a>
+                    {toneOf(l) && (
+                      // The customer changed the art's colour: this is the file to print.
+                      <button onClick={() => downloadToned(l, `${code}-art-${i + 1}-adjusted.png`)} className="text-xs font-semibold text-acid print:hidden">As designed</button>
+                    )}
                   </>
                 )}
               </li>

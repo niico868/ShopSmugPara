@@ -7,7 +7,7 @@ export const TEE_COLORS: { name: string; hex: string }[] = [
   { name: 'Black', hex: '#111111' },
   { name: 'White', hex: '#ffffff' },
   { name: 'Cream', hex: '#efe6d2' },
-  { name: 'Grey', hex: '#9b9ca1' },
+  { name: 'Charcoal', hex: '#3d3d3d' },
 ]
 
 export type Fit = 'regular' | 'oversized'
@@ -20,7 +20,7 @@ export const fitName = (fit?: Fit) => FITS.find((f) => f.id === fit)?.name ?? FI
 // Older colours stay here so existing orders still show a name.
 const LEGACY_COLORS = [
   { name: 'Bone White', hex: '#f4f1ea' },
-  { name: 'Heather Grey', hex: '#9b9ca1' },
+  { name: 'Grey', hex: '#9b9ca1' },
   { name: 'Navy', hex: '#1d2a4d' },
   { name: 'Forest', hex: '#22412f' },
   { name: 'Burgundy', hex: '#5c1a2b' },

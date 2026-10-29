@@ -1,8 +1,17 @@
 import { forwardRef, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import type { Area, Layer } from '../lib/types'
 import { fontCss, type Fit } from '../lib/constants'
-import regularTee from '../assets/regular-tee.webp?inline'
-import oversizedTee from '../assets/oversized-tee.webp?inline'
+import { toneOf } from '../lib/tone'
+
+// Flat-lay photos of the Shaka Wear blanks, front, back and a neckline close-up for each fit and colour
+// (cut out and lined up by tools/tee-photos.py).
+const PHOTOS = import.meta.glob('../assets/tees/*.webp', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
+const SHADES: Record<string, string> = { '#111111': 'black', '#ffffff': 'white', '#efe6d2': 'cream', '#3d3d3d': 'charcoal', '#9b9ca1': 'charcoal' }
+/** The photo for a colour; colours we have no photo for tint the white one. */
+const teePhoto = (fit: Fit, color: string, view: 'front' | 'back' | 'neck') => {
+  const shade = SHADES[color.toLowerCase()]
+  return { src: PHOTOS[`../assets/tees/${fit}-${shade ?? 'white'}-${view}.webp`], tint: !shade }
+}
 
 // The visible window of the 500-wide canvas. Layer positions are offsets from PRINT's centre.
 export const VIEW = { y: 60, w: 500, h: 470 }
@@ -15,15 +24,32 @@ export const CUSTOM_SIZES = Object.keys(SIZE_CHEST)
 /** The main print area in inches. Everything inside it is covered by the base price. */
 export const MAIN_PRINT_IN = { w: 14, h: 20 }
 
-// Pressed-flat blank tees (greyscale shading + cut-out), recoloured at render time. Coordinates are canvas units,
-// matching the drawn shapes: body = chest panel edges, sh = shoulder seam top, arm = armpit, neck = front neckline dip.
+// Where things are on the photos, in canvas units (each photo covers x = 250 - w/2 .. 250 + w/2, y = TEE_TOP .. TEE_TOP + h).
+// body = chest panel edges, sh = shoulder seam top, armY = armpit, seam = how far the armhole seam bows in,
+// neck / backNeck = collar corners and the bottom of the collar rib, sleeve = sleeve centre offset.
 const TEE_TOP = 105
-interface Tee { src: string; w: number; h: number; sleeveX: number; sleeveY: number; body: [number, number]; sh: [number, number, number]; armY: number; neck: [number, number, number] }
+interface Tee {
+  w: number; h: number; sleeveX: number; sleeveY: number; body: [number, number]; sh: [number, number, number]; armY: number; seam: number
+  neck: [number, number, number]; backNeck: [number, number, number]
+  /** Inside of the back neck on the close-up photo (621 px square): the only printable part of the label area. */
+  inside: string; insideAt: [number, number]
+}
 const TEES: Record<Fit, Tee> = {
-  regular: { src: regularTee, w: 420, h: 410, sleeveX: 152, sleeveY: 229, body: [128, 372], sh: [124, 376, 139], armY: 257, neck: [212, 288, 141] },
-  oversized: { src: oversizedTee, w: 490, h: 373, sleeveX: 176, sleeveY: 248, body: [112, 388], sh: [104, 396, 150], armY: 283, neck: [208, 292, 146] },
+  regular: {
+    w: 377, h: 359, sleeveX: 157, sleeveY: 204, body: [128, 372], sh: [134, 366, 136], armY: 250, seam: 18,
+    neck: [203, 297, 161], backNeck: [194, 306, 130],
+    inside: 'M 110 165 Q 312 180 515 165 C 520 250 430 318 312 318 C 195 318 105 250 110 165 Z', insideAt: [312, 240],
+  },
+  oversized: {
+    w: 431, h: 359, sleeveX: 175, sleeveY: 225, body: [112, 388], sh: [121, 379, 139], armY: 267, seam: 23,
+    neck: [202, 298, 160], backNeck: [205, 295, 125],
+    inside: 'M 112 170 Q 312 200 512 170 C 515 245 430 296 312 296 C 195 296 110 245 112 170 Z', insideAt: [312, 235],
+  },
 }
 const tee = (fit: Fit = 'regular') => TEES[fit] ?? TEES.regular
+const CLOSE_PX = 621
+/** Where the neck label sits on the canvas (the centre of the inside back). */
+const LABEL_Y = 125
 
 /** Canvas units per printed inch, so the mockup is true to the chosen size: bigger shirts make the same print look smaller. */
 export const unitsPerInch = (fit: Fit = 'regular', size = 'L') => {
@@ -36,45 +62,63 @@ export const unitsPerInch = (fit: Fit = 'regular', size = 'L') => {
  * the shirt grows around it. This is how much bigger the shirt photo is than the print at the chosen size.
  */
 export const sizeScale = (fit: Fit = 'regular', size = 'L') => unitsPerInch(fit, size) / unitsPerInch(fit, 'L')
+/** The same, per area: a neck label is the same size on every shirt, and the close-up photo doesn't change with size. */
+export const areaScale = (area: Area, fit: Fit = 'regular', size = 'L') => (area === 'label' ? 1 : sizeScale(fit, size))
 const scaleAboutPrint = (k: number) => (k === 1 ? undefined : `translate(${PRINT.cx} ${PRINT.cy}) scale(${k}) translate(${-PRINT.cx} ${-PRINT.cy})`)
 
 type Box = { x: number; y: number; w: number; h: number }
 const around = (cx: number, cy: number, w: number, h = w): Box => ({ x: cx - w / 2, y: cy - h / 2, w, h })
 
-const mainGuide = (f: Fit, size: string) => {
+const mainGuide = (back: boolean) => (f: Fit, size: string) => {
   const u = unitsPerInch(f, size)
-  const top = tee(f).neck[2] + 3 * u
+  const top = (back ? tee(f).backNeck : tee(f).neck)[2] + 3 * u
   return around(250, top + (MAIN_PRINT_IN.h * u) / 2, MAIN_PRINT_IN.w * u, MAIN_PRINT_IN.h * u)
 }
 const sleeveAt = (f: Fit, side: 1 | -1) => ({ x: 250 + side * tee(f).sleeveX, y: tee(f).sleeveY })
+/** The whole shirt with a little room around it, in the canvas's proportions. */
+const shirtView = (f: Fit): Box => {
+  const t = tee(f)
+  const w = t.w + 40, h = (w * VIEW.h) / VIEW.w
+  return around(250, TEE_TOP + t.h / 2, w, h)
+}
+/** The neckline close-up photo, placed so the inside back is centred on LABEL_Y. */
+const labelBox = (f: Fit): Box => {
+  const t = tee(f)
+  const w = ((t.neck[1] - t.neck[0]) * CLOSE_PX) / 595
+  return { x: 250 - (t.insideAt[0] / CLOSE_PX) * w, y: LABEL_Y - (t.insideAt[1] / CLOSE_PX) * w, w, h: w }
+}
 
 /** Each print area: the part of the canvas its view shows, and the dashed guide inside it. */
 export const AREAS: Record<Area, { name: string; view: (fit: Fit) => Box; guide: (fit: Fit, size: string) => Box }> = {
-  front: { name: 'Front', view: () => ({ x: 0, y: VIEW.y, w: VIEW.w, h: VIEW.h }), guide: mainGuide },
-  back: { name: 'Back', view: () => ({ x: 0, y: VIEW.y, w: VIEW.w, h: VIEW.h }), guide: mainGuide },
+  front: { name: 'Front', view: shirtView, guide: mainGuide(false) },
+  back: { name: 'Back', view: shirtView, guide: mainGuide(true) },
   // Wearer's left sleeve sits on the viewer's right of the front photo.
-  sleeve_left: { name: 'Left sleeve', view: (f) => around(sleeveAt(f, 1).x, sleeveAt(f, 1).y, 210), guide: (f, s) => around(sleeveAt(f, 1).x, sleeveAt(f, 1).y, 4 * unitsPerInch(f, s)) },
-  sleeve_right: { name: 'Right sleeve', view: (f) => around(sleeveAt(f, -1).x, sleeveAt(f, -1).y, 210), guide: (f, s) => around(sleeveAt(f, -1).x, sleeveAt(f, -1).y, 4 * unitsPerInch(f, s)) },
+  sleeve_left: { name: 'Left sleeve', view: (f) => around(sleeveAt(f, 1).x, sleeveAt(f, 1).y, 190), guide: (f, s) => around(sleeveAt(f, 1).x, sleeveAt(f, 1).y, 4 * unitsPerInch(f, s)) },
+  sleeve_right: { name: 'Right sleeve', view: (f) => around(sleeveAt(f, -1).x, sleeveAt(f, -1).y, 190), guide: (f, s) => around(sleeveAt(f, -1).x, sleeveAt(f, -1).y, 4 * unitsPerInch(f, s)) },
   label: {
     name: 'Neck label',
-    view: (f) => around(250, tee(f).neck[2] - 10, 200),
-    guide: (f, s) => around(250, (TEE_TOP + tee(f).neck[2]) / 2 + 2, 3 * unitsPerInch(f, s), 2 * unitsPerInch(f, s)),
+    view: labelBox,
+    // The inside back is under 2 inches tall, so the guide is a typical 2.5 x 1.5 inch label.
+    guide: (f) => around(250, LABEL_Y, 2.5 * unitsPerInch(f), 1.5 * unitsPerInch(f)),
   },
 }
 
-/** Where each area's prints may show: front and back on the body panel, sleeves on their sleeve, the label inside the collar. */
+/** Where each area's prints may show: front and back on their body panel (not the collar), sleeves on their sleeve. */
 function panelPath(area: Area, fit: Fit) {
   const t = tee(fit)
   const [l, r] = t.body
   const [shL, shR, shY] = t.sh
-  const [nl, nr, ny] = t.neck
-  const collar = `M ${nl} 90 L ${nr} 90 L ${nr} ${TEE_TOP} Q 250 ${2 * ny - TEE_TOP} ${nl} ${TEE_TOP} Z`
-  const bottom = VIEW.y + VIEW.h
+  const mid = (shY + t.armY) / 2
+  const bottom = TEE_TOP + t.h + 10
+  const collar = ([nl, nr, ny]: [number, number, number]) =>
+    `M ${nl} 0 L ${nr} 0 L ${nr} ${TEE_TOP} A ${(nr - nl) / 2} ${ny - TEE_TOP} 0 0 1 ${nl} ${TEE_TOP} Z`
   switch (area) {
-    case 'label': return collar
-    case 'sleeve_right': return `M 0 0 L ${shL} 0 L ${shL} ${shY} L ${l} ${t.armY} L ${l} ${bottom} L 0 ${bottom} Z`
-    case 'sleeve_left': return `M ${VIEW.w} 0 L ${shR} 0 L ${shR} ${shY} L ${r} ${t.armY} L ${r} ${bottom} L ${VIEW.w} ${bottom} Z`
-    default: return `M ${shL} 0 L ${shR} 0 L ${shR} ${shY} L ${r} ${t.armY} L ${r} ${bottom} L ${l} ${bottom} L ${l} ${t.armY} L ${shL} ${shY} Z ${collar}`
+    case 'sleeve_right': return `M 0 0 L ${shL} 0 L ${shL} ${shY} Q ${shL + t.seam} ${mid} ${l} ${t.armY} L ${l} ${bottom} L 0 ${bottom} Z`
+    case 'sleeve_left': return `M ${VIEW.w} 0 L ${shR} 0 L ${shR} ${shY} Q ${shR - t.seam} ${mid} ${r} ${t.armY} L ${r} ${bottom} L ${VIEW.w} ${bottom} Z`
+    default: {
+      const body = `M ${shL} 0 L ${shR} 0 L ${shR} ${shY} Q ${shR - t.seam} ${mid} ${r} ${t.armY} L ${r} ${bottom} L ${l} ${bottom} L ${l} ${t.armY} Q ${shL + t.seam} ${mid} ${shL} ${shY} Z`
+      return `${body} ${collar(area === 'back' ? t.backNeck : t.neck)}`
+    }
   }
 }
 
@@ -82,6 +126,13 @@ function panelPath(area: Area, fit: Fit) {
 export const teeBounds = (fit: Fit = 'regular') => {
   const t = tee(fit)
   return { left: -t.w / 2, right: t.w / 2, top: TEE_TOP - PRINT.cy, bottom: TEE_TOP + t.h - PRINT.cy }
+}
+
+/** Where a layer's centre may go in an area, as offsets: anywhere on the shirt, or within the neckline close-up. */
+export const areaBounds = (area: Area, fit: Fit = 'regular') => {
+  if (area !== 'label') return teeBounds(fit)
+  const b = labelBox(fit)
+  return { left: b.x - PRINT.cx, right: b.x + b.w - PRINT.cx, top: b.y - PRINT.cy, bottom: b.y + b.h - PRINT.cy }
 }
 
 /** Centre of an area's guide, as a layer offset. */
@@ -192,23 +243,93 @@ function arcPath(r: number, up: boolean) {
     : `M 0 ${-2 * r} A ${r} ${r} 0 1 0 0 0 A ${r} ${r} 0 1 0 0 ${-2 * r}`
 }
 
-export function LayerView({ layer, selected, faint, shadowId, ui = 1 }: { layer: Layer; selected?: boolean; faint?: boolean; shadowId?: string; /** Size of on-screen guides, in canvas units per screen unit. */ ui?: number }) {
+/** Hue and brightness as an SVG filter (see lib/tone). */
+function ToneFilter({ id, layer }: { id: string; layer: Layer }) {
+  const t = toneOf(layer)
+  if (!t) return null
+  const keep = 1 - t.mix
+  const add = t.to === 'white' ? t.mix : 0
+  return (
+    <filter id={id} colorInterpolationFilters="sRGB">
+      {t.hue !== 0 && <feColorMatrix type="hueRotate" values={String(t.hue)} />}
+      {t.mix > 0 && (
+        <feComponentTransfer>
+          <feFuncR type="linear" slope={keep} intercept={add} />
+          <feFuncG type="linear" slope={keep} intercept={add} />
+          <feFuncB type="linear" slope={keep} intercept={add} />
+        </feComponentTransfer>
+      )}
+    </filter>
+  )
+}
+
+/** Resize handles on the corners and edges, a rotate handle above, and a quick delete. */
+const HANDLES: [number, number][] = [[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5]]
+const RESIZE_CURSORS = ['nwse-resize', 'ns-resize', 'nesw-resize', 'ew-resize']
+function Handles({ layer, box, ui }: { layer: Layer; box: DOMRect; ui: number }) {
+  const pad = 6 * ui
+  const x = box.x - pad, y = box.y - pad, w = box.width + 2 * pad, h = box.height + 2 * pad
+  const stem = 26 * ui
+  return (
+    <>
+      <rect data-ui x={x} y={y} width={w} height={h} fill="none" stroke="#5caedb" strokeWidth={2 * ui} strokeDasharray={`${6 * ui} ${4 * ui}`} rx={4 * ui} pointerEvents="none" />
+      <line data-ui x1={x + w / 2} y1={y} x2={x + w / 2} y2={y - stem} stroke="#5caedb" strokeWidth={1.5 * ui} pointerEvents="none" />
+      <g data-ui data-handle="rotate" transform={`translate(${x + w / 2} ${y - stem}) scale(${ui})`} style={{ cursor: 'grab' }}>
+        <title>Rotate</title>
+        <circle r="14" fill="transparent" />
+        <circle r="8" fill="#ffffff" stroke="#5caedb" strokeWidth="2" />
+        <path d="M -3.5 -1 A 4 4 0 1 1 -1 3.6" fill="none" stroke="#5caedb" strokeWidth="1.6" strokeLinecap="round" />
+      </g>
+      {HANDLES.map(([fx, fy], i) => {
+        // Hit areas are bigger than the dots, for fingers.
+        const cursor = RESIZE_CURSORS[(i + Math.round(((layer.rotation % 180) + 180) / 45)) % 4]
+        return (
+          <g key={i} data-ui data-handle="scale" transform={`translate(${x + fx * w} ${y + fy * h}) scale(${ui})`} style={{ cursor }}>
+            <circle r="13" fill="transparent" />
+            {fx === 0.5 || fy === 0.5
+              ? <rect x="-4" y="-4" width="8" height="8" rx="2" fill="#ffffff" stroke="#5caedb" strokeWidth="2" />
+              : <circle r="5.5" fill="#ffffff" stroke="#5caedb" strokeWidth="2" />}
+          </g>
+        )
+      })}
+      <g data-ui data-delete={layer.id} transform={`translate(${x - 18 * ui} ${y - 18 * ui}) scale(${ui})`} style={{ cursor: 'pointer' }}>
+        <title>Delete</title>
+        <circle r="11" fill="#111111" fillOpacity=".55" stroke="#ffffff" strokeOpacity=".8" strokeWidth="1.5" />
+        <path d="M -4 -4 L 4 4 M 4 -4 L -4 4" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+      </g>
+    </>
+  )
+}
+
+export function LayerView({ layer, overlay, fxId, shadowId, ui = 1 }: {
+  layer: Layer
+  /**
+   * The selection controls for this layer, drawn above the shirt: an invisible copy to grab it by (so it can be moved
+   * even when it is hidden past an edge) plus its handles. Nothing of the print itself shows here.
+   */
+  overlay?: boolean
+  /** Prefix for this mockup's filter ids. */
+  fxId?: string
+  shadowId?: string
+  /** Size of on-screen guides, in canvas units per screen unit. */
+  ui?: number
+}) {
   const ref = useRef<SVGGraphicsElement>(null)
   const [box, setBox] = useState<DOMRect | null>(null)
-  const pathId = `arc-${layer.id}${faint ? '-f' : ''}`
+  const pathId = `arc-${layer.id}${overlay ? '-o' : ''}${fxId ?? ''}`
   useLayoutEffect(() => {
-    if (selected && ref.current) setBox(ref.current.getBBox())
-  }, [selected, layer.text, layer.size, layer.font, layer.width, layer.weight, layer.curve, layer.outline?.width])
+    if (overlay && ref.current) setBox(ref.current.getBBox())
+  }, [overlay, layer.text, layer.size, layer.font, layer.width, layer.aspect, layer.weight, layer.curve, layer.outline?.width])
   // re-measure after webfonts load
   useLayoutEffect(() => {
-    if (!selected) return
+    if (!overlay) return
     document.fonts?.ready.then(() => ref.current && setBox(ref.current.getBBox()))
-  }, [selected, layer.font])
+  }, [overlay, layer.font])
 
   const tx = `translate(${PRINT.cx + layer.x} ${PRINT.cy + layer.y}) rotate(${layer.rotation})`
   const effects = {
-    opacity: faint ? 0.3 : undefined,
-    filter: layer.shadow && shadowId && !faint ? `url(#${shadowId})` : undefined,
+    opacity: overlay ? 0 : undefined,
+    filter: layer.shadow && shadowId && !overlay ? `url(#${shadowId})` : undefined,
   }
   let body: ReactNode
   if (layer.type === 'text') {
@@ -249,44 +370,38 @@ export function LayerView({ layer, selected, faint, shadowId, ui = 1 }: { layer:
       )
     }
   } else {
-    body = (
+    const toneId = `tone-${layer.id}${fxId ?? ''}`
+    const toned = !overlay && toneOf(layer)
+    const w = layer.width ?? 100, h = w * (layer.aspect ?? 1)
+    const img = (
       <image
         ref={ref as React.Ref<SVGImageElement>}
         href={layer.src}
-        x={-(layer.width ?? 100) / 2}
-        y={-((layer.width ?? 100) * (layer.aspect ?? 1)) / 2}
-        width={layer.width}
-        height={(layer.width ?? 100) * (layer.aspect ?? 1)}
+        x={-w / 2}
+        y={-h / 2}
+        width={w}
+        height={h}
         preserveAspectRatio="xMidYMid meet"
-        {...effects}
+        opacity={effects.opacity}
+        filter={toned ? `url(#${toneId})` : undefined}
       />
+    )
+    body = (
+      <>
+        {toned && <defs><ToneFilter id={toneId} layer={layer} /></defs>}
+        {effects.filter ? <g filter={effects.filter}>{img}</g> : img}
+      </>
     )
   }
   return (
     <g transform={tx} data-layer={layer.id} style={{ cursor: 'move' }}>
       {body}
-      {selected && box && (
-        <rect
-          data-ui
-          x={box.x - 6 * ui}
-          y={box.y - 6 * ui}
-          width={box.width + 12 * ui}
-          height={box.height + 12 * ui}
-          fill="none"
-          stroke="#5caedb"
-          strokeWidth={2 * ui}
-          strokeDasharray={`${6 * ui} ${4 * ui}`}
-          rx={4 * ui}
-          pointerEvents="none"
-        />
-      )}
-      {selected && box && (
-        // Quick delete: the designer removes the layer when this is pressed.
-        <g data-ui data-delete={layer.id} transform={`translate(${box.x + box.width + 6 * ui} ${box.y - 6 * ui}) scale(${ui})`} style={{ cursor: 'pointer' }}>
-          <title>Delete</title>
-          <circle r="11" fill="#111111" fillOpacity=".45" stroke="#ffffff" strokeOpacity=".8" strokeWidth="1.5" />
-          <path d="M -4 -4 L 4 4 M 4 -4 L -4 4" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
-        </g>
+      {overlay && box && (
+        <>
+          {/* Grab anywhere inside the box, not just on the painted letters. */}
+          <rect x={box.x} y={box.y} width={box.width} height={box.height} fill="#000" fillOpacity={0} />
+          <Handles layer={layer} box={box} ui={ui} />
+        </>
       )}
     </g>
   )
@@ -309,6 +424,7 @@ interface Props {
   onPointerDown?: React.PointerEventHandler<SVGSVGElement>
   onPointerMove?: React.PointerEventHandler<SVGSVGElement>
   onPointerUp?: React.PointerEventHandler<SVGSVGElement>
+  onPointerCancel?: React.PointerEventHandler<SVGSVGElement>
 }
 
 export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
@@ -318,12 +434,21 @@ export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
   const id = useId().replace(/:/g, '')
   const light = luminance(color) > 0.6
   const t = tee(fit)
-  const photo = { href: t.src, x: 250 - t.w / 2, y: TEE_TOP, width: t.w, height: t.h, preserveAspectRatio: 'none' }
+  const label = area === 'label'
+  const shirt = teePhoto(fit, color, area === 'back' ? 'back' : 'front')
+  const photo = { href: shirt.src, x: 250 - t.w / 2, y: TEE_TOP, width: t.w, height: t.h, preserveAspectRatio: 'none' }
   const selected = layers.find((l) => l.id === selectedId)
   const view = (AREAS[area] ?? AREAS.front).view(fit)
   const guide = (AREAS[area] ?? AREAS.front).guide(fit, size)
   const zoom = VIEW.w / view.w
-  const k = sizeScale(fit, size)
+  const k = areaScale(area, fit, size)
+  const prints = (
+    <g transform={scaleAboutPrint(k)}>
+      {layers.map((l) => (
+        <LayerView key={l.id} layer={l} fxId={id} shadowId={`shadow${id}`} />
+      ))}
+    </g>
+  )
   return (
     <svg
       ref={ref}
@@ -347,10 +472,24 @@ export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
         <mask id={`shirt${id}`} maskUnits="userSpaceOnUse" x="0" y="0" width={VIEW.w} height={VIEW.y + VIEW.h}>
           <image {...photo} filter={`url(#white${id})`} />
         </mask>
-        <clipPath id={`panel${id}`}><path d={panelPath(area, fit)} clipRule="evenodd" /></clipPath>
+        <clipPath id={`panel${id}`}>
+          {label
+            ? <path d={t.inside} transform={`translate(${view.x} ${view.y}) scale(${view.w / CLOSE_PX})`} />
+            : <path d={panelPath(area, fit)} clipRule="evenodd" />}
+        </clipPath>
       </defs>
-      <ellipse cx="250" cy={TEE_TOP + t.h + 6} rx={t.w * 0.36} ry="8" fill="#000" opacity=".1" />
-      <image {...photo} filter={`url(#tint${id})`} pointerEvents="none" />
+      {label ? (
+        // The label prints inside the back of the neck, shown on a close-up of the collar.
+        (() => {
+          const neck = teePhoto(fit, color, 'neck')
+          return <image href={neck.src} x={view.x} y={view.y} width={view.w} height={view.h} preserveAspectRatio="none" filter={neck.tint ? `url(#tint${id})` : undefined} pointerEvents="none" />
+        })()
+      ) : (
+        <>
+          <ellipse cx="250" cy={TEE_TOP + t.h + 6} rx={t.w * 0.36} ry="8" fill="#000" opacity=".1" />
+          <image {...photo} filter={shirt.tint ? `url(#tint${id})` : undefined} pointerEvents="none" />
+        </>
+      )}
       {showPrintArea && (
         <rect
           data-ui
@@ -366,23 +505,20 @@ export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
           pointerEvents="none"
         />
       )}
-      <g mask={`url(#shirt${id})`}>
-        {art && (
-          <image href={art} x={PRINT.cx - 75} y={155} width="150" height="150" preserveAspectRatio="xMidYMid meet" pointerEvents="none" />
-        )}
-        {/* Each area only prints on its own panel: front art never spills onto the sleeves or inside the collar. */}
-        <g clipPath={`url(#panel${id})`}>
-          <g transform={scaleAboutPrint(k)}>
-            {layers.map((l) => (
-              <LayerView key={l.id} layer={l} shadowId={`shadow${id}`} />
-            ))}
-          </g>
+      {/* Each area only prints on its own panel: art past a seam, the collar or the shirt's edge is cut off, not faded. */}
+      {label ? (
+        <g clipPath={`url(#panel${id})`}>{prints}</g>
+      ) : (
+        <g mask={`url(#shirt${id})`}>
+          {art && (
+            <image href={art} x={PRINT.cx - 75} y={155} width="150" height="150" preserveAspectRatio="xMidYMid meet" pointerEvents="none" />
+          )}
+          <g clipPath={`url(#panel${id})`}>{prints}</g>
         </g>
-      </g>
-      {/* A faint copy of the selected layer shows what is hidden past the shirt's edge, and can still be dragged. */}
+      )}
       {selected && (
         <g data-ui transform={scaleAboutPrint(k)}>
-          <LayerView layer={selected} selected faint ui={1 / (zoom * k)} />
+          <LayerView layer={selected} overlay fxId={id} ui={1 / (zoom * k)} />
         </g>
       )}
       {children}
@@ -396,7 +532,7 @@ export async function svgToPng(svg: SVGSVGElement, scale = 2): Promise<string> {
   clone.querySelectorAll('[data-ui]').forEach((n) => n.remove())
   clone.setAttribute('width', String(VIEW.w))
   clone.setAttribute('height', String(VIEW.h))
-  await embedFonts(clone)
+  await Promise.all([embedFonts(clone), embedImages(clone)])
   const xml = new XMLSerializer().serializeToString(clone)
   const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml)
   const img = new Image()
@@ -412,6 +548,17 @@ export async function svgToPng(svg: SVGSVGElement, scale = 2): Promise<string> {
   const ctx = canvas.getContext('2d')!
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
   return canvas.toDataURL('image/png')
+}
+
+// An SVG drawn as an image can't load other files either, so the shirt photos go in as data URLs.
+const imageCache = new Map<string, Promise<string>>()
+async function embedImages(svg: SVGSVGElement) {
+  await Promise.all([...svg.querySelectorAll('image')].map(async (img) => {
+    const href = img.getAttribute('href')
+    if (!href || href.startsWith('data:')) return
+    if (!imageCache.has(href)) imageCache.set(href, toDataUrl(href).catch(() => { imageCache.delete(href); return href }))
+    img.setAttribute('href', await imageCache.get(href)!)
+  }))
 }
 
 // An SVG drawn as an image can't reach the page's web fonts, so inline the ones a design uses,
