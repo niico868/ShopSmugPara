@@ -68,6 +68,10 @@ export const STATUS_META: Record<OrderStatus, { label: string; color: string; bl
   cancelled: { label: 'Cancelled', color: '#d93a3a', blurb: 'This order was cancelled.' },
 }
 
+/** Pickup orders say Collected where delivery orders say Delivered. */
+export const statusLabel = (s: OrderStatus, fulfillment?: 'delivery' | 'pickup') =>
+  s === 'delivered' && fulfillment === 'pickup' ? 'Collected' : STATUS_META[s].label
+
 export const PAYMENT_METHODS = ['Bank transfer (preferred)', 'Cash on collection (50% down payment required)']
 /** Turnaround promise, used across the site. */
 export const READY_NOTE = 'Ready 2-5 work days after payment is made.'

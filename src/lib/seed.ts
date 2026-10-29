@@ -65,6 +65,7 @@ export const seedProducts = (): Product[] => [
       'Things money can\'t buy back. Black oversized, cropped tee with a gold print front and back. Ultra heavyweight 400gsm cotton.', true),
     images: ['/products/sovereignty-back.jpg'],
     sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
+    premium: true,
   },
 ]
 

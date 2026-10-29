@@ -100,6 +100,7 @@ export default function OrderStatus() {
           <div className="mt-5 space-y-1 border-t border-ink-800 pt-4 text-sm">
             <div className="flex justify-between text-ink-400"><span>Subtotal</span><span>{money(order.subtotal)}</span></div>
             <div className="flex justify-between text-ink-400"><span>{order.fulfillment === 'pickup' ? 'Collection' : 'Delivery'}</span><span>{order.shipping ? money(order.shipping) : 'Free'}</span></div>
+            {!!order.discount && Number(order.discount) > 0 && <div className="flex justify-between text-acid"><span>Paradise Points credit</span><span>-{money(Number(order.discount))}</span></div>}
             <div className="flex justify-between text-base font-bold"><span>Total</span><span>{money(order.total)}</span></div>
           </div>
         </Card>

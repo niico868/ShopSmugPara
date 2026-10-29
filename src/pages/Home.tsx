@@ -8,6 +8,8 @@ import { TeeMockup } from '../components/TeeMockup'
 import { Button } from '../components/ui'
 import { useSettings } from '../lib/settings'
 import { INSTAGRAM, brandMark } from '../lib/brand'
+import { huntSpot } from '../lib/contraband'
+import { TreasureMap } from '../components/Contraband'
 
 const STEPS = [
   { t: 'Pick a tee', d: 'Shop a drop, or choose a regular or oversized blank.' },
@@ -39,7 +41,7 @@ export default function Home() {
           <div className="animate-rise">
             <p className="mb-5 text-xs font-semibold uppercase tracking-[.3em] text-acid">Smuggler&rsquo;s Paradise &middot; Trinidad &amp; Tobago</p>
             <p className="mb-1 text-sm font-semibold uppercase tracking-[.35em] text-white/60">Made for</p>
-            <h1 className="font-pirate text-[13vw] leading-[.95] sm:text-7xl lg:text-8xl">
+            <h1 {...huntSpot('home-headline')} className="font-pirate text-[13vw] leading-[.95] sm:text-7xl lg:text-8xl">
               The Brave<br /><span className="text-acid">The Risk Takers</span><br />The Streets
             </h1>
             <p className="mt-6 max-w-md text-base text-white/70">
@@ -49,10 +51,11 @@ export default function Home() {
               <Link to={lead ? `/shop/${lead.slug}` : '/shop'}><Button size="lg" className="!bg-white !text-black hover:!bg-acid hover:!text-white">{lead ? `Shop ${lead.name}` : 'Shop now'} <ArrowRight size={18} /></Button></Link>
               <Link to="/design"><Button size="lg" variant="outline" className="!border-white !text-white hover:!bg-white hover:!text-black"><Brush size={18} /> Design your own</Button></Link>
             </div>
+            <TreasureMap className="mt-6" />
           </div>
           <div className="relative mx-auto w-full max-w-md">
             {lead ? (
-              <Link to={`/shop/${lead.slug}`} className="group block bg-white p-4 text-black transition hover:-translate-y-1">
+              <Link {...huntSpot('home-drop')} to={`/shop/${lead.slug}`} className="group block bg-white p-4 text-black transition hover:-translate-y-1">
                 <img src={lead.image_url} alt={lead.name} className="aspect-square w-full object-contain" />
                 <span className="mt-3 flex items-baseline justify-between border-t border-black pt-3">
                   <span className="text-[11px] font-semibold uppercase tracking-[.25em] text-acid">New drop</span>
@@ -68,7 +71,7 @@ export default function Home() {
 
       <section className="mx-auto max-w-7xl px-4 pt-16">
         <div className="mb-8 flex items-end justify-between border-b border-black pb-3">
-          <h2 className="font-poster text-2xl uppercase tracking-wide">New arrivals</h2>
+          <h2 {...huntSpot('home-arrivals')} className="font-poster text-2xl uppercase tracking-wide">New arrivals</h2>
           <Link to="/shop" className="text-xs font-semibold uppercase tracking-[.2em] hover:text-acid">View all</Link>
         </div>
         {shown.length ? (
@@ -84,9 +87,9 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 py-16">
           <p className="text-center text-xs font-semibold uppercase tracking-[.3em] text-acid">Brand codes</p>
           <div className="mt-10 grid gap-10 text-center md:grid-cols-3">
-            {CODES.map((c) => (
+            {CODES.map((c, i) => (
               <div key={c.t}>
-                <p className="font-pirate text-5xl">{c.t}</p>
+                <p {...huntSpot(`home-code-${i + 1}`)} className="mx-auto w-max font-pirate text-5xl">{c.t}</p>
                 <p className="mx-auto mt-3 max-w-xs whitespace-pre-line text-sm text-white/65">{c.d}</p>
               </div>
             ))}
@@ -96,20 +99,20 @@ export default function Home() {
 
       <section className="mx-auto max-w-2xl px-4 pt-20 text-center">
         <span aria-hidden className="mx-auto block h-20 w-20" style={brandMark('/brand/sp-monogram.svg', '#5caedb')} />
-        <h2 className="mt-6 font-pirate text-5xl">Who are we</h2>
+        <h2 {...huntSpot('home-who')} className="mx-auto mt-6 w-max font-pirate text-5xl">Who are we</h2>
         <p className="mt-5 text-ink-400">
           Smuggler&rsquo;s Paradise wasn&rsquo;t born as a brand. It began on the beaches of Trinidad and Tobago, in the places the system forgot,
           where we moved in the gaps, built in the margins and carved our own road. It&rsquo;s for those who treat freedom, wealth and risk
           as part of the same language.
         </p>
-        <p className="mt-5 font-pirate text-3xl">That&rsquo;s not a brand story. That&rsquo;s a way of life.</p>
+        <p {...huntSpot('home-way-of-life')} className="mt-5 font-pirate text-3xl">That&rsquo;s not a brand story. That&rsquo;s a way of life.</p>
         <a href={INSTAGRAM} target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 border border-black px-6 py-3 text-xs font-semibold uppercase tracking-[.2em] transition hover:bg-black hover:text-white">
           <Instagram size={16} /> Follow @smugglerparadise
         </a>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pt-24">
-        <div className="grid items-center gap-8 overflow-hidden bg-ink-900 md:grid-cols-2">
+        <div {...huntSpot('home-studio')} className="grid items-center gap-8 overflow-hidden bg-ink-900 md:grid-cols-2">
           <div className="p-8 md:p-14">
             <p className="text-xs font-semibold uppercase tracking-[.3em] text-acid">Design studio</p>
             <h2 className="mt-3 font-poster text-4xl uppercase leading-none sm:text-5xl">Got an idea?<br />Print it.</h2>
@@ -126,7 +129,7 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-4 pt-20">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((s, i) => (
-            <div key={s.t} className="border-t border-black pt-4">
+            <div key={s.t} {...(i === 2 ? huntSpot('home-step-3') : {})} className="border-t border-black pt-4">
               <p className="font-poster text-sm text-acid">0{i + 1}</p>
               <p className="mt-2 font-semibold uppercase tracking-wide">{s.t}</p>
               <p className="mt-1 text-sm text-ink-400">{s.d}</p>

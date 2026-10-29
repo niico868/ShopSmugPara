@@ -46,13 +46,13 @@ export function CartDrawer() {
                       <p className="font-semibold">{it.name}</p>
                       <p className="font-semibold">{money(it.unit_price * it.qty)}</p>
                     </div>
-                    <p className="text-xs text-ink-400">{colorName(it.color)} · {it.size}{it.kind === 'custom' && ' · Custom print'}</p>
+                    <p className="text-xs text-ink-400">{colorName(it.color)} · {it.size}{it.kind === 'custom' && ' · Custom print'}{it.reward && <span className="font-semibold text-acid"> · Reward tee</span>}</p>
                     <div className="mt-auto flex items-center justify-between pt-3">
-                      <div className="flex items-center rounded-full border border-ink-700">
+                      {it.reward ? <span className="text-xs text-ink-400">One reward tee</span> : <div className="flex items-center rounded-full border border-ink-700">
                         <button className="p-1.5" onClick={() => setQty(it.id, it.qty - 1)} aria-label="Decrease"><Minus size={14} /></button>
                         <span className="w-8 text-center text-sm">{it.qty}</span>
                         <button className="p-1.5" onClick={() => setQty(it.id, it.qty + 1)} aria-label="Increase"><Plus size={14} /></button>
-                      </div>
+                      </div>}
                       <button onClick={() => remove(it.id)} className="text-ink-400 hover:text-flame" aria-label="Remove"><Trash2 size={16} /></button>
                     </div>
                   </div>

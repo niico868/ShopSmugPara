@@ -8,8 +8,10 @@ import { DEMO } from '../lib/supabase'
 import { cx } from '../lib/format'
 import { CartDrawer } from './CartDrawer'
 import { Pirogue } from './Pirogue'
-import { PointsBin, PointsFx } from './Doubloons'
+import { PointsBin, PointsFx } from './Points'
 import { syncPoints } from '../lib/points'
+import { HuntCoin } from './Contraband'
+import { huntSpot } from '../lib/contraband'
 import { Intro, SoundToggle } from './Intro'
 import { WhatsAppIcon } from './icons'
 import { BRAND_LINE, INSTAGRAM, TAGLINE, WHATSAPP } from '../lib/brand'
@@ -83,7 +85,7 @@ export default function Layout() {
             })}
           </nav>
           <div className="flex items-center gap-1 sm:gap-2">
-            {/* Signed in, the Doubloons counter links to the account too, so phones skip the account icon. */}
+            {/* Signed in, the points counter links to the account too, so phones skip the account icon. */}
             <PointsBin />
             {account ? (
               <Link to="/account" className="hidden rounded-full p-2 hover:bg-ink-800 sm:block sm:p-2.5" title={`My account (${account.email})`} aria-label="My account">
@@ -119,6 +121,7 @@ export default function Layout() {
       <main className="relative flex-1"><Outlet /></main>
       <Pirogue />
       <PointsFx />
+      <HuntCoin />
       <Intro />
 
       <footer className="mt-24 bg-black text-white">
@@ -126,7 +129,7 @@ export default function Layout() {
           <div>
             <Logo />
             <p className="mt-3 max-w-xs text-sm text-white/60">Streetwear for the bold, from Smuggler&rsquo;s Paradise in Trinidad and Tobago. Custom designs made to order, ready 2&ndash;5 work days after payment is made.</p>
-            <p className="mt-4 font-pirate text-2xl text-white">{TAGLINE}</p>
+            <p {...huntSpot('footer-tagline')} className="mt-4 w-max max-w-full font-pirate text-2xl text-white">{TAGLINE}</p>
           </div>
           <div className="text-sm">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid">Shop</p>
@@ -136,8 +139,8 @@ export default function Layout() {
           </div>
           <div className="text-sm">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid">Get in touch</p>
-            <a className="flex items-center gap-2 text-white/60 hover:text-white" href={WHATSAPP} target="_blank" rel="noreferrer"><WhatsAppIcon size={16} /> WhatsApp us</a>
-            <a className="mt-3 flex items-center gap-2 text-white/60 hover:text-white" href={INSTAGRAM} target="_blank" rel="noreferrer"><Instagram size={16} /> @smugglerparadise</a>
+            <a {...huntSpot('footer-whatsapp')} className="flex w-max items-center gap-2 text-white/60 hover:text-white" href={WHATSAPP} target="_blank" rel="noreferrer"><WhatsAppIcon size={16} /> WhatsApp us</a>
+            <a {...huntSpot('footer-instagram')} className="mt-3 flex w-max items-center gap-2 text-white/60 hover:text-white" href={INSTAGRAM} target="_blank" rel="noreferrer"><Instagram size={16} /> @smugglerparadise</a>
             <p className="mt-4"><Link to="/admin" className="text-white/30 hover:text-white/60">Staff login</Link></p>
           </div>
         </div>

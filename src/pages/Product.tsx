@@ -9,6 +9,7 @@ import { colorName } from '../lib/constants'
 import { cx, money, uid } from '../lib/format'
 import { useCart } from '../store/cart'
 import { toast } from '../components/Toast'
+import { huntSpot } from '../lib/contraband'
 
 const GUIDE = [['S', '91', '71'], ['M', '97', '74'], ['L', '104', '76'], ['XL', '112', '79'], ['2XL', '120', '81'], ['3XL', '128', '84']]
 
@@ -55,7 +56,7 @@ export default function Product() {
       <button onClick={() => nav(-1)} className="mb-6 inline-flex items-center gap-2 text-sm text-ink-400 hover:text-black"><ArrowLeft size={16} /> Back</button>
       <div className="grid gap-10 md:grid-cols-2 [&>*]:min-w-0">
         <div>
-          <div className="aspect-square border border-ink-800 bg-white">
+          <div {...huntSpot('product-photo')} className="aspect-square border border-ink-800 bg-white">
             <img src={photos[shot]} alt={p.name} className="h-full w-full animate-rise object-contain p-4" key={shot} />
           </div>
           {photos.length > 1 && (
@@ -70,7 +71,7 @@ export default function Product() {
         </div>
         <div className="[container-type:inline-size]">
           <p className="text-sm font-semibold uppercase tracking-widest text-acid">{p.category}</p>
-          <h1 className="mt-2 break-words font-poster leading-none [hyphens:none]" style={titleSize(p.name)}>{p.name}</h1>
+          <h1 {...huntSpot('product-name')} className="mt-2 break-words font-poster leading-none [hyphens:none]" style={titleSize(p.name)}>{p.name}</h1>
           <p className="mt-3 text-2xl font-semibold">{money(p.price)}</p>
           <p className="mt-5 whitespace-pre-line text-ink-200">{p.description}</p>
 
@@ -83,7 +84,7 @@ export default function Product() {
           <div className="mt-8">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm font-semibold">Size</p>
-              <button onClick={() => setGuide(!guide)} className="inline-flex items-center gap-1 text-xs text-ink-400 hover:text-black"><Ruler size={14} /> Size guide</button>
+              <button {...huntSpot('product-size-guide')} onClick={() => setGuide(!guide)} className="inline-flex items-center gap-1 text-xs text-ink-400 hover:text-black"><Ruler size={14} /> Size guide</button>
             </div>
             <div className="flex flex-wrap gap-2">
               {p.sizes.map((s) => (

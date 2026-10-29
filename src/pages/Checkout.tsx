@@ -1,9 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Lock, MapPin, Store } from 'lucide-react'
 import { useCart, cartSubtotal } from '../store/cart'
 import { useSettings } from '../lib/settings'
-import { placeOrder } from '../lib/api'
+import { listProducts, placeOrder } from '../lib/api'
+import type { Product } from '../lib/types'
+import { usePoints } from '../lib/points'
+import { CheckoutRewards } from '../components/CheckoutRewards'
 import { DEPOSIT_NOTE, PAYMENT_METHODS, READY_NOTE, colorName } from '../lib/constants'
 import { cx, money } from '../lib/format'
 import { Button, Card, Empty, Field, Input, Select, Textarea } from '../components/ui'
@@ -16,11 +19,17 @@ export default function Checkout() {
   const nav = useNavigate()
   const [f, setF] = useState({ customer_name: '', email: '', phone: '', fulfillment: 'delivery' as 'delivery' | 'pickup', address: '', notes: '', payment_method: PAYMENT_METHODS[0] })
   const [busy, setBusy] = useState(false)
+  const [products, setProducts] = useState<Product[]>([])
+  const [credit, setCredit] = useState(false)
+  const rules = usePoints((s) => s.rules)
+  const refreshPoints = usePoints((s) => s.refresh)
+  useEffect(() => { listProducts().then(setProducts).catch(() => {}) }, [])
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value })
 
   const sub = cartSubtotal(items)
   const shipping = f.fulfillment === 'pickup' || (settings.free_shipping_over > 0 && sub >= settings.free_shipping_over) ? 0 : settings.shipping_fee
-  const total = sub + shipping
+  const discount = credit ? Math.min(rules.credit_ttd, sub) : 0
+  const total = sub + shipping - discount
 
   if (!items.length) return <div className="mx-auto max-w-xl px-4 py-20"><Empty title="Your bag is empty"><Link to="/shop" className="text-acid">Go shopping</Link></Empty></div>
 
@@ -29,8 +38,9 @@ export default function Checkout() {
     if (f.fulfillment === 'delivery' && !f.address.trim()) return toast.error('Please add a delivery address.')
     setBusy(true)
     try {
-      const { code } = await placeOrder({ ...f, email: f.email.trim().toLowerCase(), items }, settings)
+      const { code } = await placeOrder({ ...f, email: f.email.trim().toLowerCase(), items, use_credit: credit }, settings)
       clear()
+      refreshPoints()
       try { localStorage.removeItem('sp.designer.draft') } catch { /* ignore */ }
       nav(`/order/${code}?email=${encodeURIComponent(f.email.trim().toLowerCase())}&new=1`)
     } catch (err) {
@@ -63,6 +73,7 @@ export default function Checkout() {
           {f.fulfillment === 'delivery' && <Field label="Delivery address"><Textarea value={f.address} onChange={set('address')} autoComplete="street-address" /></Field>}
           <Field label="Notes (optional)"><Textarea value={f.notes} onChange={set('notes')} placeholder="Deadline, event date, special requests…" /></Field>
         </Card>
+        <CheckoutRewards items={items} products={products} credit={credit} setCredit={setCredit} />
         <Card className="space-y-4">
           <h2 className="font-display text-lg font-bold">Payment</h2>
           <Field label="How would you like to pay?">
@@ -86,7 +97,7 @@ export default function Checkout() {
                 <ItemThumb item={it} className="h-16 w-14 shrink-0" />
                 <div className="flex-1 text-sm">
                   <p className="font-semibold">{it.name} <span className="text-ink-400">× {it.qty}</span></p>
-                  <p className="text-xs text-ink-400">{colorName(it.color)} · {it.size}</p>
+                  <p className="text-xs text-ink-400">{colorName(it.color)} · {it.size}{it.reward && <span className="ml-1 font-semibold text-acid">· Reward</span>}</p>
                 </div>
                 <p className="text-sm font-semibold">{money(it.qty * it.unit_price)}</p>
               </li>
@@ -95,6 +106,7 @@ export default function Checkout() {
           <div className="mt-5 space-y-2 border-t border-ink-800 pt-4 text-sm">
             <div className="flex justify-between"><span className="text-ink-400">Subtotal</span><span>{money(sub)}</span></div>
             <div className="flex justify-between"><span className="text-ink-400">Delivery</span><span>{shipping ? money(shipping) : 'Free'}</span></div>
+            {discount > 0 && <div className="flex justify-between text-acid"><span>Paradise Points credit</span><span>-{money(discount)}</span></div>}
             <div className="flex justify-between pt-2 text-lg font-bold"><span>Total</span><span>{money(total)}</span></div>
           </div>
           <Button size="lg" type="submit" className="mt-5 w-full" disabled={busy}><Lock size={16} /> {busy ? 'Placing order…' : 'Place order'}</Button>

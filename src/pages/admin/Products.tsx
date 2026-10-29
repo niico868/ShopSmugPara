@@ -142,9 +142,10 @@ function Editor({ product, onClose, onSaved }: { product: Product; onClose: () =
                 {SIZES.map((s) => <button type="button" key={s} onClick={() => toggleIn('sizes', s)} className={cx('h-9 min-w-10 rounded-lg border px-2 text-xs font-bold', p.sizes.includes(s) ? 'border-black bg-black text-white' : 'border-ink-700')}>{s}</button>)}
               </div>
             </Field>
-            <div className="flex gap-6 text-sm">
+            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
               <label className="flex items-center gap-2"><input type="checkbox" checked={p.active} onChange={(e) => set('active', e.target.checked)} className="accent-[#5caedb]" /> Live in shop</label>
               <label className="flex items-center gap-2"><input type="checkbox" checked={p.featured} onChange={(e) => set('featured', e.target.checked)} className="accent-[#5caedb]" /> Featured on home</label>
+              <label className="flex items-center gap-2" title="Premium drops can't be claimed as a free reward tee"><input type="checkbox" checked={!!p.premium} onChange={(e) => set('premium', e.target.checked)} className="accent-[#5caedb]" /> Premium drop (no free tees)</label>
             </div>
           </div>
         </div>
