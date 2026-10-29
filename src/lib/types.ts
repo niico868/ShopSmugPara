@@ -150,11 +150,13 @@ export interface Settings {
   custom_base_price: number
   /** Running inches of print (all areas together) the base price covers. */
   print_included_in: number
-  /** Added per running inch beyond the included length, up to `price_tier_in`. */
-  price_per_inch: number
-  /** Running inches up to which `price_per_inch` applies. */
+  /** Second price point: `price_at_tier` at `price_tier_in` running inches. */
   price_tier_in: number
-  /** Added per running inch beyond `price_tier_in`. */
+  price_at_tier: number
+  /** Last price point: `price_at_max` at `price_max_in` running inches. */
+  price_max_in: number
+  price_at_max: number
+  /** Added per running inch beyond `price_max_in`. */
   price_per_inch_after: number
   shipping_fee: number
   free_shipping_over: number

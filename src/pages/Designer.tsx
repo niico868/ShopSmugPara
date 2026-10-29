@@ -25,6 +25,8 @@ const DRAFT = 'sp.designer.draft'
 const RULES_KEY = 'sp.designer.rules'
 const blank = (): Design => ({ color: '#111111', fit: 'regular', front: [], back: [] })
 const SMALL: Area[] = ['sleeve_left', 'sleeve_right', 'label']
+/** Running inches of the print strip, as square inches of print. */
+const sqIn = (inches: number) => Math.round(inches * PRICE_STRIP_IN)
 
 const loadDraft = (): Design => {
   try {
@@ -606,22 +608,28 @@ export default function Designer() {
               <p className="mt-1 text-xs text-ink-400">True to the size chart: the same print looks smaller on a bigger tee.</p>
             </div>
             <div className="space-y-1 text-sm">
-              <div className="flex justify-between text-ink-400"><span>Custom tee, {fitName(fit).toLowerCase()}, up to {settings.print_included_in} in of print</span><span className="shrink-0">{money(settings.custom_base_price)}</span></div>
+              <div className="flex justify-between text-ink-400"><span>Custom tee, {fitName(fit).toLowerCase()}, up to {sqIn(settings.print_included_in)} sq in of print</span><span className="shrink-0">{money(settings.custom_base_price)}</span></div>
               {quote.lines.map((l) => (
                 <div key={l.area} className="flex justify-between gap-2 pl-3 text-xs text-ink-400">
-                  <span>{AREAS[l.area].name} print, {measured.print_sq_in?.[l.area] ?? 0} sq in</span>
-                  <span className="shrink-0">{l.inches} in</span>
+                  <span>{AREAS[l.area].name} print</span>
+                  <span className="shrink-0">{measured.print_sq_in?.[l.area] ?? 0} sq in</span>
                 </div>
               ))}
-              {quote.tier > 0 && <div className="flex justify-between text-[#9a6a00]"><span>+{quote.tier} in at {money(settings.price_per_inch)}</span><span className="shrink-0">+{money(quote.tier * settings.price_per_inch)}</span></div>}
-              {quote.after > 0 && <div className="flex justify-between text-[#9a6a00]"><span>+{quote.after} in at {money(settings.price_per_inch_after)}</span><span className="shrink-0">+{money(quote.after * settings.price_per_inch_after)}</span></div>}
+              {quote.price > settings.custom_base_price && (
+                <div className="flex justify-between text-[#9a6a00]">
+                  <span>Extra print area, {sqIn(quote.inches - settings.print_included_in)} sq in</span>
+                  <span className="shrink-0">+{money(quote.price - settings.custom_base_price)}</span>
+                </div>
+              )}
               {team && <div className="flex justify-between text-ink-400"><span>Team order</span><span>{roster.length} tees</span></div>}
             </div>
             <p className="flex gap-2 rounded-lg bg-acid/10 p-2.5 text-xs text-ink-300">
               <Info size={14} className="mt-0.5 shrink-0 text-acid" />
               <span>
-                We price the whole tee by its total printed area, counted as a {PRICE_STRIP_IN}-inch-wide strip. {money(settings.custom_base_price)} covers {settings.print_included_in} inches of it ({settings.print_included_in * PRICE_STRIP_IN} sq in): one full print plus small sleeve or label prints.
-                Each inch after that adds {money(settings.price_per_inch)} up to {settings.price_tier_in} inches, then {money(settings.price_per_inch_after)}.
+                Your price depends on how much of the tee you print: front, back, sleeves and label added together.
+                {money(settings.custom_base_price)} covers up to {sqIn(settings.print_included_in)} sq in, enough for one big front or back print.
+                More print adds a little at a time: {money(settings.price_at_tier)} at {sqIn(settings.price_tier_in)} sq in (like a full front and a medium back), {money(settings.price_at_max)} at {sqIn(settings.price_max_in)} sq in (a full front and full back),
+                then {money(settings.price_per_inch_after)} for every extra {PRICE_STRIP_IN} sq in.
               </span>
             </p>
             <div className="flex items-center gap-3">
@@ -639,7 +647,7 @@ export default function Designer() {
               <span>I agree to the design rules. I understand Smug Para reviews every design and may decline it.</span>
             </label>
             <Button size="lg" className="w-full" onClick={addToBag} disabled={busy || !rulesAt}>{busy ? 'Preparing…' : team ? `Add ${roster.length} tees to bag` : 'Add to bag'}</Button>
-            <p className="text-center text-xs text-ink-400">Final print size is confirmed by our team before printing.</p>
+            <p className="text-center text-xs text-ink-400">Final print size and price is confirmed by our team before printing.</p>
           </div>
         </aside>
       </div>

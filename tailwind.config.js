@@ -32,13 +32,13 @@ export default {
         // Toasts appear in place, pause, then drift to the top of the screen and fade, clearing the buttons under them.
         'float-away': {
           '0%': { opacity: '0', transform: 'translateY(12px)' },
-          '8%, 22%': { opacity: '1', transform: 'translateY(0)' },
+          '6%, 65%': { opacity: '1', transform: 'translateY(0)' },
           '100%': { opacity: '0', transform: 'translateY(calc(-100vh + 10rem))' },
         },
         // The shared-design tip pops in under the "Design yours" link.
         'pop-in': { from: { opacity: '0', transform: 'translateY(-8px) scale(.85)' }, to: { opacity: '1', transform: 'none' } },
       },
-      animation: { marquee: 'marquee 30s linear infinite', rise: 'rise .5s ease both', 'float-away': 'float-away 3.5s cubic-bezier(.4,0,.2,1) both', 'bin-bump': 'bin-bump .45s ease-out', 'pop-in': 'pop-in .45s cubic-bezier(.3,1.5,.6,1) .5s both' },
+      animation: { marquee: 'marquee 30s linear infinite', rise: 'rise .5s ease both', 'float-away': 'float-away 7s cubic-bezier(.4,0,.2,1) both', 'bin-bump': 'bin-bump .45s ease-out', 'pop-in': 'pop-in .45s cubic-bezier(.3,1.5,.6,1) .5s both' },
     },
   },
   plugins: [],
