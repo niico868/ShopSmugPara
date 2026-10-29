@@ -13,6 +13,7 @@ import { getDesign, getProduct, saveDesign } from '../lib/api'
 import { AREA_ORDER, areaLayers, customPrice, quoteCustom } from '../lib/pricing'
 import { checkImage, warmUpChecker } from '../lib/moderation'
 import { detectToneBase } from '../lib/tone'
+import { erasePlainBackground, removeBackground } from '../lib/bgRemoval'
 import { designForRow, fillRoster, hasArt, mainArea, measurePrints } from '../lib/design'
 import { AddPanel } from '../components/designer/AddPanel'
 import { LayerPanel, dpiNote } from '../components/designer/LayerPanel'
@@ -106,6 +107,7 @@ export default function Designer() {
   const [qty, setQty] = useState(1)
   const [busy, setBusy] = useState(false)
   const [checking, setChecking] = useState(false)
+  const [cutting, setCutting] = useState<{ id: string; progress: number } | null>(null)
   const [panel, setPanel] = useState<'add' | 'layers' | 'team'>('add')
   const [rulesAt, setRulesAt] = useState<string | null>(storedRules)
   const [dialog, setDialog] = useState<'rules' | 'save' | 'share' | null>(null)
@@ -251,6 +253,35 @@ export default function Designer() {
     } catch {
       toast.error('Could not read that image.')
     } finally { setChecking(false) }
+  }
+  /** Swaps in the cut-out art. Without its backdrop it may now read as all white or all black, so brightness starts over. */
+  const swapArt = async (id: string, src: string, a: Area) => {
+    const toneBase = (await detectToneBase(src)) || undefined
+    setLayers((ls) => ls.map((x) => (x.id === id ? { ...x, src, toneBase, tone: undefined } : x)), true, a)
+  }
+  const eraseBg = async (l: Layer) => {
+    if (cutting || !l.src) return
+    const a = area
+    try {
+      const src = await erasePlainBackground(l.src)
+      if (!src) return toast.info('This background isn’t one plain colour. Try Photo (AI) instead.')
+      await swapArt(l.id, src, a)
+      toast.success('Background erased. Not quite right? Press undo, or try Photo (AI).')
+    } catch {
+      toast.error('Could not erase the background on this image.')
+    }
+  }
+  const removeBg = async (l: Layer) => {
+    if (cutting || !l.src) return
+    const a = area
+    setCutting({ id: l.id, progress: 0 })
+    try {
+      const src = await removeBackground(l.src, (p) => setCutting({ id: l.id, progress: p }))
+      await swapArt(l.id, src, a)
+      toast.success('Background removed. Not quite right? Press undo.')
+    } catch {
+      toast.error('Could not remove the background on this device. Try again on Wi-Fi, or upload a PNG that already has no background.')
+    } finally { setCutting(null) }
   }
   const remove = (id: string) => { setLayers((ls) => ls.filter((l) => l.id !== id)); setSel(null) }
   const duplicate = (l: Layer) => { const c = { ...l, id: uid(), x: l.x + 12, y: l.y + 12 }; setLayers((ls) => [...ls, c]); setSel(c.id) }
@@ -594,6 +625,9 @@ export default function Designer() {
               onCentre={() => centreLayer(selected)}
               onDuplicate={() => duplicate(selected)}
               onRemove={() => remove(selected.id)}
+              onEraseBg={() => eraseBg(selected)}
+              onRemoveBg={() => removeBg(selected)}
+              removingBg={cutting?.id === selected.id ? cutting.progress : null}
             />
           ) : (
             <div className="rounded-2xl border border-dashed border-ink-700 p-5 text-center text-sm text-ink-400">Select something on the tee to edit it.</div>

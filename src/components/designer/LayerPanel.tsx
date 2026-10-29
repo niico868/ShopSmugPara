@@ -1,8 +1,9 @@
-import { AlertTriangle, AlignCenter, Copy, Layers, Trash2 } from 'lucide-react'
+import { AlertTriangle, AlignCenter, Copy, Eraser, Layers, Loader2, Sparkles, Trash2 } from 'lucide-react'
 import type { Layer } from '../../lib/types'
 import { FONTS, type Fit } from '../../lib/constants'
 import { cx } from '../../lib/format'
 import { imageDpi } from '../TeeMockup'
+import { canRemoveBackground } from '../../lib/bgRemoval'
 import { Field, Select, Textarea } from '../ui'
 import { Range, Toggle } from './Controls'
 
@@ -27,7 +28,7 @@ export function DpiWarning({ layer, fit }: { layer: Layer; fit?: Fit }) {
   )
 }
 
-export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicate, onRemove }: {
+export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicate, onRemove, onEraseBg, onRemoveBg, removingBg }: {
   layer: Layer
   fit?: Fit
   onPatch: (p: Partial<Layer>, record?: boolean) => void
@@ -35,6 +36,10 @@ export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicat
   onCentre: () => void
   onDuplicate: () => void
   onRemove: () => void
+  onEraseBg: () => void
+  onRemoveBg: () => void
+  /** Download progress (0..1) while this layer's background is being removed, otherwise null. */
+  removingBg: number | null
 }) {
   const multiLine = (layer.text ?? '').includes('\n')
   return (
@@ -92,6 +97,7 @@ export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicat
 
       {layer.type === 'image' && (
         <>
+          {canRemoveBackground(layer.src) && <RemoveBgButtons onErase={onEraseBg} onAi={onRemoveBg} progress={removingBg} />}
           <Range label="Width" min={10} max={520} value={layer.width!} onChange={(v) => onPatch({ width: v }, false)} />
           <DpiWarning layer={layer} fit={fit} />
           {layer.flagged && <p className="rounded-lg bg-ink-800 p-2.5 text-xs text-ink-400">Our team will take a closer look at this image before printing.</p>}
@@ -100,6 +106,34 @@ export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicat
         </>
       )}
       <Range label="Rotation" min={-180} max={180} value={layer.rotation} onChange={(v) => onPatch({ rotation: v }, false)} suffix="°" />
+    </div>
+  )
+}
+
+/**
+ * Two ways to drop a backdrop: an instant eraser for art on white or one plain colour, and the AI cut-out for photos.
+ * The AI's first use downloads its model once, so that button shows how far along it is.
+ */
+function RemoveBgButtons({ onErase, onAi, progress }: { onErase: () => void; onAi: () => void; progress: number | null }) {
+  const busy = progress !== null
+  const btn = 'flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-ink-700 bg-white px-2 py-2.5 text-sm font-semibold text-black transition hover:border-acid disabled:cursor-wait disabled:opacity-60'
+  return (
+    <div>
+      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-black">Remove background</p>
+      <div className="flex gap-2">
+        <button onClick={onErase} disabled={busy} className={btn} title="Instant. For logos and art on white or one plain colour.">
+          <Eraser size={16} />Plain
+        </button>
+        <button onClick={onAi} disabled={busy} className={btn} title="For photos and busy backgrounds.">
+          {busy ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+          {!busy ? 'Photo (AI)' : progress < 1 ? `Getting ready ${Math.round(progress * 100)}%` : 'Working…'}
+        </button>
+      </div>
+      <p className="mt-1.5 text-xs text-ink-400">
+        {busy && progress < 1
+          ? 'First time only: the AI downloads a one-off 44 MB helper. Wi-Fi is best.'
+          : 'Plain is instant, for art on white or one colour. Photo (AI) is for pictures and busy backgrounds. Undo brings it back.'}
+      </p>
     </div>
   )
 }

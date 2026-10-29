@@ -19,4 +19,7 @@ function shareConfig(env: Record<string, string>): Plugin {
 
 export default defineConfig(({ mode }) => ({
   plugins: [react(), shareConfig(loadEnv(mode, process.cwd(), 'VITE_'))],
+  // Background removal runs on the CPU-only build of ONNX Runtime and loads its WebAssembly from /bg-removal/.
+  // Pointing the default and WebGPU builds at it keeps an unused 24 MB WebAssembly file out of the site.
+  resolve: { alias: [{ find: /^onnxruntime-web(\/webgpu)?$/, replacement: 'onnxruntime-web/wasm' }] },
 }))
