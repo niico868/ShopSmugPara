@@ -1,43 +1,57 @@
 // The Smug Para sticker pack. List stickers newest first: the six newest show in the pack,
 // older ones move down into "More graphics".
-// Each file in public/stickers is a one-colour SVG drawn in INK, so it can be recoloured before it goes on a shirt.
-export interface Sticker { name: string; src: string; aspect?: number }
+// Full-colour PNGs live in public/stickers, with small previews in public/stickers/thumbs.
+export interface Sticker { name: string; src: string; thumb: string; aspect: number }
 
-const pack = (name: string, file: string, aspect: number): Sticker => ({ name, src: `/stickers/${file}.svg`, aspect })
+const pack = (name: string, file: string, w: number, h: number): Sticker =>
+  ({ name, src: `/stickers/${file}.png`, thumb: `/stickers/thumbs/${file}.webp`, aspect: h / w })
 
 export const STICKERS: Sticker[] = [
-  pack('Smugglers Paradise emblem', 'emblem', 0.613),
-  pack('Sovereignty', 'sovereignty', 0.289),
-  pack('SP badge', 'sp-badge', 1),
-  pack('Faith Rewards The Brave', 'faith-rewards-the-brave', 0.298),
-  pack('Smugglers Paradise wordmark', 'wordmark', 0.231),
-  pack('SP monogram', 'sp-monogram', 0.98),
-  pack('Rifles and skull', 'rifles-skull', 0.402),
-  pack('Earn Your Mark', 'earn-your-mark', 0.135),
-  pack('Stay Dangerous', 'stay-dangerous', 0.274),
-  pack('Made For The Brave', 'made-for-the-brave', 0.556),
-  pack('We Move With Intent', 'move-with-intent', 0.205),
-  pack('Risk Is The Tax On Freedom', 'risk-is-the-tax', 0.28),
-  pack('No Handouts. No Masters.', 'no-masters', 0.202),
-  pack('Sovereignty · Risk · Purpose', 'brand-codes', 0.044),
+  pack('SP Tropical Blue', 'tropicalblue', 1016, 953),
+  pack('Faith Rewards The Brave (gold)', 'frtbbonusprint', 878, 939),
+  pack('Faith Rewards The Brave script', 'frtbscript', 674, 755),
+  pack('Original seal', 'originalseal', 966, 769),
+  pack('Handmade by the Brave stamp', 'handmadestamp', 822, 815),
+  pack('SP logo, black gradient', 'newlogoblackgradient', 945, 934),
+  pack('SP logo, gold gradient', 'newlogogoldgradient', 945, 934),
+  pack('Smugglers in flames', 'flamessmugglers', 986, 532),
+  pack('Smugglers, gold', 'esotericksmugglers', 734, 219),
+  pack('Smugglers Mutha Fuckin Paradise', 'flamesmfp', 706, 835),
+  pack('Trinidad map', 'trinidad-posoperation', 788, 570),
+  pack('Goat head', 'goathead', 687, 916),
+  pack('Survivor', 'survivor', 996, 418),
+  pack('Classic logo, coral and pink', 'classiclogocoral-pink', 933, 740),
+  pack('Faith Rewards The Brave in flames', 'flamingfrtb', 694, 862),
+  pack('Fully Sovereign in flames', 'scorchesfullysovereign', 843, 834),
+  pack('Scorched Smugglers', 'scorchedsmugglers', 853, 720),
+  pack('Smugglers Paradise arch, sand', 'spfrtbarchsand', 964, 445),
+  pack('Smugglers Paradise arch, pink', 'spfrtbarchidk', 944, 445),
+  pack('Smugglers Paradise arch, magenta', 'spfrtbarchpink', 944, 452),
+  pack('Classic logo, white', 'classiclogowhite', 943, 537),
+  pack('Classic logo, gold gradient', 'classiclogoyellowgradient', 978, 539),
+  pack('Classic logo, coral gradient', 'classiclogocoralgradient', 922, 508),
+  pack('Classic logo, coral', 'classiclogocoral', 1012, 558),
+  pack('Smugglers Paradise diamond', 'diamondtext1', 986, 596),
+  pack('SP logo, gold', 'newlogoyellow', 786, 776),
+  pack('Rifles and skull', 'oldlogonowords', 979, 540),
+  pack('SP logo, black', 'newlogoblack', 787, 777),
+  pack('SP logo, white', 'newlogowhite', 722, 717),
+  pack('Smugglers Paradise arch, orange', 'spfrtbarch', 963, 465),
+  pack('No Risk No Reward', 'norisknorewardred', 1042, 568),
+  pack('Classic logo, blue', 'classiclogoblue', 1013, 773),
+  pack('SP Smugglers Paradise script', 'spsticker', 1016, 557),
+  pack('Money rose', 'moneyrosesticker', 900, 794),
 ]
 
 export const PACK_SIZE = 6
 
-/** The colour every sticker file is drawn in. */
-export const INK = '#111111'
-
-/** Print colours offered for stickers. */
-export const STICKER_COLORS: { name: string; hex: string }[] = [
-  { name: 'Black', hex: '#111111' },
-  { name: 'White', hex: '#ffffff' },
-  { name: 'Gold', hex: '#c9a24a' },
-  { name: 'Caribbean blue', hex: '#5caedb' },
-  { name: 'Smuggler red', hex: '#e0482d' },
-]
-
-/** The sticker as a self-contained SVG data URL in the chosen colour, ready to place and print. */
-export async function stickerIn(s: Sticker, hex: string): Promise<string> {
-  const svg = await (await fetch(s.src)).text()
-  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg.split(INK).join(hex))
+/** The sticker as a data URL, so it renders inside previews and uploads with the order like any artwork. */
+export async function stickerData(s: Sticker): Promise<string> {
+  const blob = await (await fetch(s.src)).blob()
+  return new Promise((res, rej) => {
+    const r = new FileReader()
+    r.onload = () => res(r.result as string)
+    r.onerror = rej
+    r.readAsDataURL(blob)
+  })
 }

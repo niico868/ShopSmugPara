@@ -12,7 +12,7 @@ import { INSTAGRAM, brandMark } from '../lib/brand'
 const STEPS = [
   { t: 'Pick a tee', d: 'Shop a drop, or choose a regular or oversized blank.' },
   { t: 'Make it yours', d: 'Add text and artwork, front and back.' },
-  { t: 'We print it', d: 'Printed to order and ready within 48 hours of payment.' },
+  { t: 'We print it', d: 'Printed to order and ready 2-5 work days after payment is made.' },
   { t: 'Track it live', d: 'Follow each step with your order code.' },
 ]
 
@@ -34,7 +34,7 @@ export default function Home() {
     <>
       <section className="relative overflow-hidden bg-black text-white">
         {/* The brand emblem, faint behind the hero */}
-        <span aria-hidden className="pointer-events-none absolute -right-24 top-1/2 hidden h-[520px] w-[860px] -translate-y-1/2 opacity-[.07] md:block" style={brandMark('/stickers/emblem.svg', '#ffffff')} />
+        <span aria-hidden className="pointer-events-none absolute -right-24 top-1/2 hidden h-[520px] w-[860px] -translate-y-1/2 opacity-[.07] md:block" style={brandMark('/brand/emblem.svg', '#ffffff')} />
         <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 md:grid-cols-[1.1fr_1fr] md:py-24">
           <div className="animate-rise">
             <p className="mb-5 text-xs font-semibold uppercase tracking-[.3em] text-acid">Smuggler&rsquo;s Paradise &middot; Trinidad &amp; Tobago</p>
@@ -60,7 +60,7 @@ export default function Home() {
                 </span>
               </Link>
             ) : (
-              <span role="img" aria-label={settings.store_name} className="block aspect-[1/.62] w-full" style={brandMark('/stickers/emblem.svg', '#ffffff')} />
+              <span role="img" aria-label={settings.store_name} className="block aspect-[1/.62] w-full" style={brandMark('/brand/emblem.svg', '#ffffff')} />
             )}
           </div>
         </div>
@@ -95,7 +95,7 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-2xl px-4 pt-20 text-center">
-        <span aria-hidden className="mx-auto block h-20 w-20" style={brandMark('/stickers/sp-monogram.svg', '#5caedb')} />
+        <span aria-hidden className="mx-auto block h-20 w-20" style={brandMark('/brand/sp-monogram.svg', '#5caedb')} />
         <h2 className="mt-6 font-pirate text-5xl">Who are we</h2>
         <p className="mt-5 text-ink-400">
           Smuggler&rsquo;s Paradise wasn&rsquo;t born as a brand. It began on the beaches of Trinidad and Tobago, in the places the system forgot,

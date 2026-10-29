@@ -401,7 +401,6 @@ export default function Designer() {
               onUpload={pickFile}
               onDropFile={(f) => (rulesAt ? onFile(f) : setDialog('rules'))}
               onAddImage={(src, aspect) => addImage(src, aspect)}
-              ink={ink}
             />
           )}
           {panel === 'layers' && (

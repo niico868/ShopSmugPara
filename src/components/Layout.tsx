@@ -7,8 +7,10 @@ import { useSettings } from '../lib/settings'
 import { DEMO } from '../lib/supabase'
 import { cx } from '../lib/format'
 import { CartDrawer } from './CartDrawer'
-import { Bird } from './Bird'
-import { INSTAGRAM, TAGLINE } from '../lib/brand'
+import { Pirogue } from './Pirogue'
+import { Intro, SoundToggle } from './Intro'
+import { WhatsAppIcon } from './icons'
+import { INSTAGRAM, TAGLINE, WHATSAPP } from '../lib/brand'
 
 const links = [
   { to: '/shop', label: 'Shop' },
@@ -62,6 +64,7 @@ export default function Layout() {
             ) : (
               <Link to="/signin" className="hidden px-2 text-xs font-semibold uppercase tracking-[.18em] hover:text-acid sm:block">Sign in</Link>
             )}
+            <SoundToggle className="rounded-full p-2.5 hover:bg-ink-800" />
             <button onClick={() => setOpen(true)} className="relative rounded-full p-2.5 hover:bg-ink-800" aria-label="Open cart">
               <ShoppingBag size={20} />
               {count > 0 && (
@@ -82,13 +85,15 @@ export default function Layout() {
         )}
       </header>
 
-      <main className="relative flex-1"><Bird /><Outlet /></main>
+      <main className="relative flex-1"><Outlet /></main>
+      <Pirogue />
+      <Intro />
 
       <footer className="mt-24 bg-black text-white">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-3">
           <div>
             <Logo />
-            <p className="mt-3 max-w-xs text-sm text-white/60">Streetwear for the bold, from Smuggler&rsquo;s Paradise in Trinidad and Tobago. Custom designs made to order, ready within 48 hours of payment.</p>
+            <p className="mt-3 max-w-xs text-sm text-white/60">Streetwear for the bold, from Smuggler&rsquo;s Paradise in Trinidad and Tobago. Custom designs made to order, ready 2&ndash;5 work days after payment is made.</p>
             <p className="mt-4 font-pirate text-2xl text-white">{TAGLINE}</p>
           </div>
           <div className="text-sm">
@@ -99,11 +104,7 @@ export default function Layout() {
           </div>
           <div className="text-sm">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid">Get in touch</p>
-            {settings.whatsapp ? (
-              <a className="text-white/60 hover:text-white" href={`https://wa.me/${settings.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">WhatsApp us</a>
-            ) : (
-              <p className="text-white/60">Questions about an order? Use your order code on the Track page.</p>
-            )}
+            <a className="flex items-center gap-2 text-white/60 hover:text-white" href={WHATSAPP} target="_blank" rel="noreferrer"><WhatsAppIcon size={16} /> WhatsApp us</a>
             <a className="mt-3 flex items-center gap-2 text-white/60 hover:text-white" href={INSTAGRAM} target="_blank" rel="noreferrer"><Instagram size={16} /> @smugglerparadise</a>
             <p className="mt-4"><Link to="/admin" className="text-white/30 hover:text-white/60">Staff login</Link></p>
           </div>

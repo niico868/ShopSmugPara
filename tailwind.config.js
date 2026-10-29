@@ -11,23 +11,16 @@ export default {
         flame: '#e5484d',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['"Space Grotesk"', 'Inter', 'sans-serif'],
-        poster: ['"Archivo Black"', '"Bebas Neue"', 'Impact', 'sans-serif'],
-        // Smuggler's Paradise blackletter, for brand lines and quotes.
-        pirate: ['"Pirata One"', '"UnifrakturMaguntia"', 'serif'],
+        sans: ['"Creato Display"', 'Inter', 'system-ui', 'sans-serif'],
+        display: ['"Creato Display"', 'Inter', 'sans-serif'],
+        // Bold expanded sans for headers.
+        poster: ['"Akira Expanded"', '"Archivo Black"', 'Impact', 'sans-serif'],
+        // Smuggler's Paradise blackletter, for brand lines and captions.
+        pirate: ['"Jack Pirate"', '"Pirata One"', 'serif'],
       },
       borderRadius: { xl: '6px', '2xl': '8px', '3xl': '10px' },
       keyframes: {
         marquee: { from: { transform: 'translateX(0)' }, to: { transform: 'translateX(-50%)' } },
-        fly: {
-          '0%': { transform: 'translate(-12vw, 0)' },
-          '25%': { transform: 'translate(22vw, -40px)' },
-          '50%': { transform: 'translate(50vw, 10px)' },
-          '75%': { transform: 'translate(80vw, -30px)' },
-          '100%': { transform: 'translate(115vw, 0)' },
-        },
-        flap: { '0%,100%': { transform: 'scaleY(1)' }, '50%': { transform: 'scaleY(-.55)' } },
         rise: { from: { opacity: '0', transform: 'translateY(12px)' }, to: { opacity: '1', transform: 'none' } },
         // Toasts appear in place, pause, then drift to the top of the screen and fade, clearing the buttons under them.
         'float-away': {
@@ -36,7 +29,7 @@ export default {
           '100%': { opacity: '0', transform: 'translateY(calc(-100vh + 10rem))' },
         },
       },
-      animation: { marquee: 'marquee 30s linear infinite', fly: 'fly 14s linear infinite', flap: 'flap .32s ease-in-out infinite', rise: 'rise .5s ease both', 'float-away': 'float-away 3.5s cubic-bezier(.4,0,.2,1) both' },
+      animation: { marquee: 'marquee 30s linear infinite', rise: 'rise .5s ease both', 'float-away': 'float-away 3.5s cubic-bezier(.4,0,.2,1) both' },
     },
   },
   plugins: [],
