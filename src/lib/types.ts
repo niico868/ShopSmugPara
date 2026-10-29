@@ -92,6 +92,8 @@ export interface SavedDesign {
   name: string
   design: Design
   preview: string | null
+  /** The 1200x630 picture that shared links unfurl into (WhatsApp, Facebook, …). */
+  share_image?: string | null
   shared: boolean
   created_at: string
   updated_at: string

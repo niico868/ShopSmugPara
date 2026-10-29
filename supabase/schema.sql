@@ -272,10 +272,12 @@ create table if not exists public.saved_designs (
   name text not null default 'Untitled design',
   design jsonb not null,
   preview text,
+  share_image text, -- the photo card shared links unfurl into
   shared boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+alter table public.saved_designs add column if not exists share_image text;
 create index if not exists saved_designs_user_idx on public.saved_designs (user_id, updated_at desc);
 alter table public.saved_designs enable row level security;
 drop policy if exists "own designs" on public.saved_designs;

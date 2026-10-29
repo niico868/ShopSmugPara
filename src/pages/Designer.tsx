@@ -18,6 +18,8 @@ import { AddPanel } from '../components/designer/AddPanel'
 import { LayerPanel, dpiNote } from '../components/designer/LayerPanel'
 import { TeamPanel } from '../components/designer/TeamPanel'
 import { Dialog, RulesDialog } from '../components/designer/Controls'
+import { makeShareCard } from '../lib/shareCard'
+import { ShareButtons } from '../components/ShareButtons'
 
 const DRAFT = 'sp.designer.draft'
 const RULES_KEY = 'sp.designer.rules'
@@ -435,12 +437,23 @@ export default function Designer() {
     } finally { setBusy(false) }
   }
 
+  // The picture shared links unfurl into: the main view, plus the back when there's art on it too.
+  const cardFor = async (title: string, preview: string) => {
+    try {
+      const main = mainArea(design)
+      const back = main !== 'back' && areaLayers(design, 'back').length ? await snapshot('back') : null
+      return await makeShareCard(back ? [preview, back] : [preview], title, `${fitName(fit)} · ${colorName(design.color)}`)
+    } catch { return undefined } // the link still works without a card, it just unfurls plainer
+  }
+
   const save = async (share = false) => {
     if (!hasArt(design)) { toast.error('Add some text or artwork first.'); return null }
     setBusy(true)
     try {
       const preview = await snapshot()
-      const row = await saveDesign({ id: saved?.id, name: name.trim() || 'Untitled design', design: measured, preview, shared: share || undefined })
+      const title = name.trim() || 'Untitled design'
+      const shareImage = share || saved?.shared ? await cardFor(title, preview) : undefined
+      const row = await saveDesign({ id: saved?.id, name: title, design: measured, preview, shared: share || undefined, shareImage })
       setSaved({ id: row.id, name: row.name, shared: row.shared })
       if (params.get('design') !== row.id) setParams({ design: row.id }, { replace: true })
       return row
@@ -657,10 +670,8 @@ export default function Designer() {
             <>
               <p className="mt-2 text-sm text-ink-400">Anyone with this link can see the design and start their own copy. Changes you save show up on the link too.</p>
               <Input readOnly value={shareUrl} className="mt-4" onFocus={(e) => e.target.select()} />
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <Button onClick={() => navigator.clipboard?.writeText(shareUrl).then(() => toast.success('Link copied'), () => toast.error('Copy the link above'))}>Copy link</Button>
-                <a href={`https://wa.me/?text=${encodeURIComponent(`Check out my Smug Para tee: ${shareUrl}`)}`} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center rounded-full border border-black px-5 py-2.5 text-sm font-semibold hover:bg-black hover:text-white">WhatsApp</a>
-              </div>
+              <ShareButtons url={shareUrl} name={saved.name} />
+              <p className="mt-3 text-xs text-ink-400">The link shows up as a picture of your tee in WhatsApp, Facebook, Instagram messages and most other apps. Tap it to open the design.</p>
             </>
           ) : (
             <>

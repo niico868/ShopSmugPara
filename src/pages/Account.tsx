@@ -9,6 +9,8 @@ import { dateShort, money } from '../lib/format'
 import { toast } from '../components/Toast'
 import { Coin } from '../components/Doubloons'
 import { BOAT_REWARD, POINTS, usePoints, useShownPoints } from '../lib/points'
+import { makeShareCard } from '../lib/shareCard'
+import { colorName, fitName } from '../lib/constants'
 
 /** The account's Doubloons, always at the top of the page. */
 function Stash() {
@@ -41,7 +43,10 @@ export default function Account() {
 
   const share = async (d: SavedDesign) => {
     try {
-      if (!d.shared) await saveDesign({ id: d.id, name: d.name, design: d.design, preview: d.preview ?? '', shared: true })
+      if (!d.shared || !d.share_image) {
+        const shareImage = d.preview ? await makeShareCard([d.preview], d.name, `${fitName(d.design.fit)} · ${colorName(d.design.color)}`).catch(() => undefined) : undefined
+        await saveDesign({ id: d.id, name: d.name, design: d.design, preview: d.preview ?? '', shared: true, shareImage })
+      }
       const url = `${location.origin}/d/${d.id}`
       await navigator.clipboard?.writeText(url)
       toast.success('Share link copied')

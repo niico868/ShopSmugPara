@@ -239,22 +239,26 @@ export async function listMyDesigns(): Promise<SavedDesign[]> {
 }
 
 /** Saves (or updates, when `id` is given) a design to the signed-in customer's account. */
-export async function saveDesign(input: { id?: string; name: string; design: Design; preview: string; shared?: boolean }): Promise<SavedDesign> {
+export async function saveDesign(input: { id?: string; name: string; design: Design; preview: string; shared?: boolean; shareImage?: string }): Promise<SavedDesign> {
   const now = new Date().toISOString()
   const design = await persistDesign(input.design)
   const preview = await uploadMedia(input.preview, 'designs')
+  const share_image = input.shareImage ? await uploadMedia(input.shareImage, 'designs') : undefined
   if (DEMO) {
     const all = demoDesigns()
     const existing = all.find((d) => d.id === input.id)
-    const row = { id: existing?.id ?? uid(), owner: demoOwner(), name: input.name, design, preview, shared: input.shared ?? existing?.shared ?? false, created_at: existing?.created_at ?? now, updated_at: now }
+    const row = { id: existing?.id ?? uid(), owner: demoOwner(), name: input.name, design, preview, share_image: share_image ?? existing?.share_image, shared: input.shared ?? existing?.shared ?? false, created_at: existing?.created_at ?? now, updated_at: now }
     write(K.designs, [row, ...all.filter((d) => d.id !== row.id)])
     return row
   }
-  const row = { name: input.name, design, preview, updated_at: now, ...(input.shared !== undefined && { shared: input.shared }) }
-  const q = input.id
+  const base = { name: input.name, design, preview, updated_at: now, ...(input.shared !== undefined && { shared: input.shared }) }
+  const put = (row: typeof base & { share_image?: string }) => (input.id
     ? supabase!.from('saved_designs').update(row).eq('id', input.id)
-    : supabase!.from('saved_designs').insert(row)
-  return must(await q.select().single())
+    : supabase!.from('saved_designs').insert(row)).select().single()
+  let res = await put(share_image ? { ...base, share_image } : base)
+  // Before go-live/7-share-cards.sql has run there's no share_image column: save without the card.
+  if (res.error && share_image && res.error.message.includes('share_image')) res = await put(base)
+  return must(res)
 }
 
 /** A design you own, or one someone shared by link. */

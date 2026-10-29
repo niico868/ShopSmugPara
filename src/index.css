@@ -19,8 +19,16 @@ body { @apply font-sans antialiased; }
 ::selection { background: #5caedb; color: #ffffff; }
 input[type='number']::-webkit-inner-spin-button { opacity: .4; }
 
+/* Shared design links: "Design yours" blinks with a blue outline, tint and outer glow until it's used. */
+@keyframes beacon {
+  0%, 100% { box-shadow: 0 0 0 2px #5caedb, 0 0 4px 1px rgba(92, 174, 219, .35); background-color: rgba(92, 174, 219, .08); }
+  50% { box-shadow: 0 0 0 2px #5caedb, 0 0 26px 9px rgba(92, 174, 219, .9); background-color: rgba(92, 174, 219, .32); }
+}
+.beacon { border-radius: 9999px; color: #111111 !important; animation: beacon 1s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee { animation: none !important; }
+  .beacon { animation: none; box-shadow: 0 0 0 2px #5caedb, 0 0 18px 5px rgba(92, 174, 219, .6); background-color: rgba(92, 174, 219, .2); }
 }
 
 @media print {
