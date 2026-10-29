@@ -5,16 +5,20 @@
 --
 -- A custom tee is priced on the print length of every area together
 -- (front, back, sleeves, label), counted as a 22-inch-wide strip:
---   350 TTD covers up to 20 in (440 sq in), then 5 TTD per inch up to 30 in, then 6 TTD per inch.
+--   350 TTD up to 15 in (330 sq in, one full print), rising smoothly to 400 TTD at 21 in
+--   and 450 TTD at 30 in (full front + full back), then 5 TTD per inch; rounded to the nearest 5.
 -- Includes everything from 5-pricing.sql, so it works whether or not that one was run.
 -- Sleeve and neck-label prints no longer have a 50 TTD minimum each.
--- The Results panel should end with one row: 350, 20, 5, 30, 6.
+-- The Results panel should end with one row: 350, 15, 400, 21, 450, 30, 5.
 -- =====================================================================
 
-alter table public.settings add column if not exists price_tier_in numeric(6,2) not null default 30;
-alter table public.settings add column if not exists price_per_inch_after numeric(10,2) not null default 6;
-update public.settings set custom_base_price = 350, print_included_in = 20, price_per_inch = 5,
-  price_tier_in = 30, price_per_inch_after = 6
+alter table public.settings add column if not exists price_tier_in numeric(6,2) not null default 21;
+alter table public.settings add column if not exists price_at_tier numeric(10,2) not null default 400;
+alter table public.settings add column if not exists price_max_in numeric(6,2) not null default 30;
+alter table public.settings add column if not exists price_at_max numeric(10,2) not null default 450;
+alter table public.settings add column if not exists price_per_inch_after numeric(10,2) not null default 5;
+update public.settings set custom_base_price = 350, print_included_in = 15,
+  price_at_tier = 400, price_tier_in = 21, price_at_max = 450, price_max_in = 30, price_per_inch_after = 5
 where id = 1;
 
 create or replace function public.place_order(payload jsonb) returns text
@@ -31,8 +35,6 @@ declare
   v_ship numeric;
   v_area text;
   v_in numeric;
-  v_over numeric;
-  v_tier numeric;
   chars text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 begin
   select * into s from public.settings where id = 1;
@@ -67,8 +69,9 @@ begin
   for item in select * from jsonb_array_elements(payload->'items') loop
     v_qty := greatest(1, least(500, coalesce((item->>'qty')::int, 1)));
     if item->>'kind' = 'custom' then
-      -- Priced on the print length of all areas together: the base price covers print_included_in inches,
-      -- then price_per_inch per started inch up to price_tier_in, then price_per_inch_after.
+      -- Priced on the print length of all areas together, in straight lines between the price points
+      -- (print_included_in, custom_base_price), (price_tier_in, price_at_tier), (price_max_in, price_at_max),
+      -- then price_per_inch_after per inch beyond; rounded to the nearest 5.
       -- Keep in step with src/lib/pricing.ts.
       v_in := 0;
       foreach v_area in array array['front', 'back', 'sleeve_left', 'sleeve_right', 'label'] loop
@@ -76,9 +79,15 @@ begin
           v_in := v_in + least(greatest(coalesce((item->'design'->'print'->>v_area)::numeric, 0), 0), 100);
         end if;
       end loop;
-      v_over := greatest(0, ceil(round(v_in, 1) - s.print_included_in));
-      v_tier := least(v_over, greatest(0, s.price_tier_in - s.print_included_in));
-      v_price := s.custom_base_price + v_tier * s.price_per_inch + (v_over - v_tier) * s.price_per_inch_after;
+      v_in := round(v_in, 1);
+      if v_in > s.price_max_in then
+        v_price := s.price_at_max + (v_in - s.price_max_in) * s.price_per_inch_after;
+      elsif v_in > s.price_tier_in then
+        v_price := s.price_at_tier + (v_in - s.price_tier_in) / nullif(s.price_max_in - s.price_tier_in, 0) * (s.price_at_max - s.price_at_tier);
+      elsif v_in > s.print_included_in then
+        v_price := s.custom_base_price + (v_in - s.print_included_in) / nullif(s.price_tier_in - s.print_included_in, 0) * (s.price_at_tier - s.custom_base_price);
+      end if;
+      v_price := greatest(s.custom_base_price, round(round(coalesce(v_price, s.custom_base_price), 2) / 5) * 5);
       insert into public.order_items (order_id, kind, name, color, size, qty, unit_price, design, preview)
       values (v_order, 'custom', left(coalesce(nullif(trim(item->>'name'), ''), 'Custom Tee'), 80),
         coalesce(item->'design'->>'color', item->>'color'), item->>'size', v_qty, v_price, item->'design', item->>'preview');
@@ -105,4 +114,4 @@ $$;
 
 grant execute on function public.place_order(jsonb) to anon, authenticated;
 
-select custom_base_price, print_included_in, price_per_inch, price_tier_in, price_per_inch_after from public.settings where id = 1;
+select custom_base_price, print_included_in, price_at_tier, price_tier_in, price_at_max, price_max_in, price_per_inch_after from public.settings where id = 1;

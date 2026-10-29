@@ -602,10 +602,10 @@ export default function Designer() {
                   <span className="shrink-0">{measured.print_sq_in?.[l.area] ?? 0} sq in</span>
                 </div>
               ))}
-              {quote.tier + quote.after > 0 && (
+              {quote.price > settings.custom_base_price && (
                 <div className="flex justify-between text-[#9a6a00]">
-                  <span>Extra print area, {sqIn(quote.tier + quote.after)} sq in</span>
-                  <span className="shrink-0">+{money(quote.tier * settings.price_per_inch + quote.after * settings.price_per_inch_after)}</span>
+                  <span>Extra print area, {sqIn(quote.inches - settings.print_included_in)} sq in</span>
+                  <span className="shrink-0">+{money(quote.price - settings.custom_base_price)}</span>
                 </div>
               )}
               {team && <div className="flex justify-between text-ink-400"><span>Team order</span><span>{roster.length} tees</span></div>}
@@ -614,8 +614,9 @@ export default function Designer() {
               <Info size={14} className="mt-0.5 shrink-0 text-acid" />
               <span>
                 Your price depends on how much of the tee you print: front, back, sleeves and label added together.
-                {money(settings.custom_base_price)} covers up to {sqIn(settings.print_included_in)} sq in, enough for a big front print plus a sleeve and neck label.
-                Past that, every extra {PRICE_STRIP_IN} sq in (about a 4½-inch square) adds {money(settings.price_per_inch)}, or {money(settings.price_per_inch_after)} once you pass {sqIn(settings.price_tier_in)} sq in.
+                {money(settings.custom_base_price)} covers up to {sqIn(settings.print_included_in)} sq in, enough for one big front or back print.
+                More print adds a little at a time: {money(settings.price_at_tier)} at {sqIn(settings.price_tier_in)} sq in (like a full front and a medium back), {money(settings.price_at_max)} at {sqIn(settings.price_max_in)} sq in (a full front and full back),
+                then {money(settings.price_per_inch_after)} for every extra {PRICE_STRIP_IN} sq in.
               </span>
             </p>
             <div className="flex items-center gap-3">
