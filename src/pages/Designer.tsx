@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ArrowDown, ArrowUp, Download, Info, Link2, Minus, Plus, Redo2, RotateCcw, Save, Type, Undo2 } from 'lucide-react'
 import type { Area, Design, Layer, RosterRow } from '../lib/types'
-import { AREAS, CUSTOM_SIZES, sizeScale, PRICE_STRIP_IN, PRINT, TeeMockup, areaCentre, svgToPng, teeBounds, VIEW } from '../components/TeeMockup'
+import { AREAS, CUSTOM_SIZES, areaScale, PRICE_STRIP_IN, PRINT, TeeMockup, areaBounds, areaCentre, svgToPng, VIEW } from '../components/TeeMockup'
 import { Button, Field, Input, Swatch } from '../components/ui'
 import { FITS, TEE_COLORS, colorName, fitName } from '../lib/constants'
 import { cx, money, uid } from '../lib/format'
@@ -12,6 +12,7 @@ import { toast } from '../components/Toast'
 import { getDesign, getProduct, saveDesign } from '../lib/api'
 import { AREA_ORDER, areaLayers, customPrice, quoteCustom } from '../lib/pricing'
 import { checkImage, warmUpChecker } from '../lib/moderation'
+import { detectToneBase } from '../lib/tone'
 import { designForRow, fillRoster, hasArt, mainArea, measurePrints } from '../lib/design'
 import { AddPanel } from '../components/designer/AddPanel'
 import { LayerPanel, dpiNote } from '../components/designer/LayerPanel'
@@ -28,7 +29,8 @@ const loadDraft = (): Design => {
     const d = localStorage.getItem(DRAFT)
     if (d) {
       const draft = { ...blank(), ...JSON.parse(d) } as Design
-      // Drafts from before the colour list changed fall back to black.
+      // Grey became Charcoal, to match the blank's photo; other retired colours fall back to black.
+      if (draft.color === '#9b9ca1') draft.color = '#3d3d3d'
       if (!TEE_COLORS.some((c) => c.hex === draft.color)) draft.color = '#111111'
       return draft
     }
@@ -61,6 +63,27 @@ async function readImage(file: File): Promise<{ src: string; aspect: number; px?
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
+type Pt = { x: number; y: number }
+const dist = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, a.y - b.y)
+const angle = (a: Pt, b: Pt) => (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI
+/** -180..180, snapping to the nearest 45° when within 4° of it. */
+const tidyAngle = (deg: number) => {
+  let a = ((((deg + 180) % 360) + 360) % 360) - 180
+  const snapTo = Math.round(a / 45) * 45
+  if (Math.abs(a - snapTo) < 4) a = snapTo
+  return Math.round(a === -180 ? 180 : a)
+}
+/** What resizing changes: an image's width or the text's font size. */
+const sizeOf = (l: Layer) => (l.type === 'image' ? l.width ?? 100 : l.size ?? 40)
+const resized = (l: Layer, v: number): Partial<Layer> =>
+  l.type === 'image' ? { width: Math.round(clamp(v, 10, 520)) } : { size: Math.round(clamp(v, 6, 300)) }
+
+/** A drag on the canvas: moving a layer, pulling a resize or rotate handle, or a two-finger pinch and twist. */
+type Gesture =
+  | { kind: 'move'; id: string; dx: number; dy: number }
+  | { kind: 'scale'; id: string; d0: number; size0: number }
+  | { kind: 'rotate'; id: string; a0: number; rot0: number }
+  | { kind: 'pinch'; id: string; d0: number; a0: number; mid0: Pt; size0: number; rot0: number; x0: number; y0: number }
 const storedRules = () => { try { return localStorage.getItem(RULES_KEY) } catch { return null } }
 
 export default function Designer() {
@@ -86,7 +109,10 @@ export default function Designer() {
   const [name, setName] = useState('My Smug Para tee')
   const [snap, setSnap] = useState<{ x: boolean; y: boolean }>({ x: false, y: false })
   const [, setFontTick] = useState(0)
-  const drag = useRef<{ id: string; dx: number; dy: number } | null>(null)
+  const drag = useRef<Gesture | null>(null)
+  const pointers = useRef(new Map<number, Pt>())
+  // A press on empty canvas deselects when it lifts, unless a second finger turned it into a pinch.
+  const emptyPress = useRef(false)
 
   const acceptRules = (ok: boolean) => {
     const at = ok ? new Date().toISOString() : null
@@ -100,7 +126,7 @@ export default function Designer() {
   const selected = layers.find((l) => l.id === sel) ?? null
   const roster = design.roster ?? []
   // Layers are stored at size L scale; k converts them to this size's canvas (see sizeScale).
-  const k = sizeScale(fit, size)
+  const k = areaScale(area, fit, size)
   const canvasCentre = areaCentre(area, fit, size)
   const centre = { x: canvasCentre.x / k, y: canvasCentre.y / k }
   const zoom = VIEW.w / AREAS[area].view(fit).w
@@ -192,9 +218,12 @@ export default function Designer() {
     setLayers((ls) => [...ls, layer], true, a)
     setSel(layer.id)
   }
-  const addText = () => place({ type: 'text', text: small ? 'SP' : 'YOUR TEXT', font: 'Bebas Neue', fill: ink, size: small ? 18 : 48, weight: 400 })
-  const addImage = (src: string, aspect: number, extra: Partial<Layer> = {}) =>
-    place({ type: 'image', src, width: small ? 40 : 160, aspect, ...extra })
+  const addText = () => place({ type: 'text', text: small ? 'SP' : 'YOUR TEXT', font: 'Bebas Neue', fill: ink, size: area === 'label' ? 10 : small ? 18 : 48, weight: 400 })
+  // Art that is already white or black starts at that end of the brightness slider.
+  const addImage = async (src: string, aspect: number, extra: Partial<Layer> = {}) => {
+    const toneBase = (await detectToneBase(src)) || undefined
+    place({ type: 'image', src, width: area === 'label' ? 22 : small ? 40 : 160, aspect, toneBase, ...extra })
+  }
   const addRosterField = (field: 'name' | 'number') => {
     // Names and numbers go on the back, like a jersey; they can be moved anywhere after.
     const a: Area = 'back'
@@ -213,7 +242,7 @@ export default function Designer() {
       const img = await readImage(f)
       const verdict = await checkImage(img.src)
       if (verdict === 'block') return toast.error('This image looks like it contains nudity, which we can’t print. Please choose another.')
-      addImage(img.src, img.aspect, { px: img.px, flagged: verdict === 'flag' || undefined })
+      await addImage(img.src, img.aspect, { px: img.px, flagged: verdict === 'flag' || undefined })
       if (verdict === 'flag') toast.info('Added. Our team will take a closer look at this image before printing.')
     } catch {
       toast.error('Could not read that image.')
@@ -229,45 +258,107 @@ export default function Designer() {
   })
   const centreLayer = (l: Layer) => patch(l.id, small ? { x: centre.x, y: centre.y } : { x: centre.x })
 
-  // ---- Dragging on the canvas, snapping to the centre lines ----------------
+  // ---- Dragging on the canvas: move (snapping to the centre lines), resize, rotate, pinch -------------
   const toSvg = (e: React.PointerEvent) => {
     const svg = svgRef.current!
     const pt = svg.createSVGPoint()
     pt.x = e.clientX; pt.y = e.clientY
     return pt.matrixTransform(svg.getScreenCTM()!.inverse())
   }
+  /** A layer's centre on the canvas. */
+  const centreOf = (l: Layer): Pt => ({ x: PRINT.cx + l.x * k, y: PRINT.cy + l.y * k })
+  const startHistory = () => { setPast((ps) => [...ps.slice(-40), design]); setFuture([]) }
+  const startPinch = (l: Layer) => {
+    const [p, q] = [...pointers.current.values()]
+    drag.current = {
+      kind: 'pinch', id: l.id, d0: Math.max(1, dist(p, q)), a0: angle(p, q), mid0: { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 },
+      size0: sizeOf(l), rot0: l.rotation, x0: l.x, y0: l.y,
+    }
+  }
   const onDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    const del = (e.target as Element).closest('[data-delete]')
+    const p = toSvg(e)
+    pointers.current.set(e.pointerId, { x: p.x, y: p.y })
+    ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
+    // Second finger down: pinch to resize, twist to rotate.
+    if (pointers.current.size === 2) {
+      const l = layers.find((x) => x.id === (drag.current?.id ?? sel))
+      if (l) {
+        emptyPress.current = false
+        if (!drag.current) startHistory()
+        startPinch(l)
+        setSnap({ x: false, y: false })
+      }
+      return
+    }
+    if (pointers.current.size > 2) return
+    const target = e.target as Element
+    const del = target.closest('[data-delete]')
     if (del) return remove(del.getAttribute('data-delete')!)
-    const g = (e.target as Element).closest('[data-layer]')
-    if (!g) return setSel(null)
+    const g = target.closest('[data-layer]')
+    if (!g) { drag.current = null; emptyPress.current = true; return }
     const id = g.getAttribute('data-layer')!
     const l = layers.find((x) => x.id === id)
     if (!l) return
-    const p = toSvg(e)
     setSel(id)
-    setPast((ps) => [...ps.slice(-40), design])
-    setFuture([])
-    drag.current = { id, dx: p.x - (PRINT.cx + l.x * k), dy: p.y - (PRINT.cy + l.y * k) }
-    ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
+    startHistory()
+    const c = centreOf(l)
+    const handle = target.closest('[data-handle]')?.getAttribute('data-handle')
+    if (handle === 'scale') drag.current = { kind: 'scale', id, d0: Math.max(1, dist(p, c)), size0: sizeOf(l) }
+    else if (handle === 'rotate') drag.current = { kind: 'rotate', id, a0: angle(c, p), rot0: l.rotation }
+    else drag.current = { kind: 'move', id, dx: p.x - c.x, dy: p.y - c.y }
   }
   const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (!drag.current) return
+    if (!pointers.current.has(e.pointerId)) return
     const p = toSvg(e)
-    const { id, dx, dy } = drag.current
-    // Artwork can sit anywhere on the shirt; whatever falls past the edge is hidden.
-    const b = teeBounds(fit)
-    let x = clamp((p.x - dx - PRINT.cx) / k, b.left / k, b.right / k)
-    let y = clamp((p.y - dy - PRINT.cy) / k, b.top / k, b.bottom / k)
+    pointers.current.set(e.pointerId, { x: p.x, y: p.y })
+    const g = drag.current
+    if (!g) return
+    const l = layers.find((x) => x.id === g.id)
+    if (!l) return
+    const b = areaBounds(area, fit)
+    if (g.kind === 'pinch') {
+      const pts = [...pointers.current.values()]
+      if (pts.length < 2) return
+      const [a, c] = pts
+      const mid = { x: (a.x + c.x) / 2, y: (a.y + c.y) / 2 }
+      patch(g.id, {
+        ...resized(l, (g.size0 * dist(a, c)) / g.d0),
+        rotation: tidyAngle(g.rot0 + angle(a, c) - g.a0),
+        x: Math.round(clamp(g.x0 + (mid.x - g.mid0.x) / k, b.left / k, b.right / k) * 2) / 2,
+        y: Math.round(clamp(g.y0 + (mid.y - g.mid0.y) / k, b.top / k, b.bottom / k) * 2) / 2,
+      }, false)
+      return
+    }
+    if (g.kind === 'scale') return patch(g.id, resized(l, (g.size0 * dist(p, centreOf(l))) / g.d0), false)
+    if (g.kind === 'rotate') return patch(g.id, { rotation: tidyAngle(g.rot0 + angle(centreOf(l), p) - g.a0) }, false)
+    // Artwork can sit anywhere on the shirt; whatever falls past the edge is cut off.
+    let x = clamp((p.x - g.dx - PRINT.cx) / k, b.left / k, b.right / k)
+    let y = clamp((p.y - g.dy - PRINT.cy) / k, b.top / k, b.bottom / k)
     const tol = 6 / (zoom * k)
     const sx = Math.abs(x - centre.x) < tol
     const sy = Math.abs(y - centre.y) < tol
     if (sx) x = centre.x
     if (sy) y = centre.y
     if (sx !== snap.x || sy !== snap.y) setSnap({ x: sx, y: sy })
-    patch(id, { x: Math.round(x * 2) / 2, y: Math.round(y * 2) / 2 }, false)
+    patch(g.id, { x: Math.round(x * 2) / 2, y: Math.round(y * 2) / 2 }, false)
   }
-  const onUp = () => { drag.current = null; setSnap({ x: false, y: false }) }
+  const onUp = (e: React.PointerEvent<SVGSVGElement>) => {
+    pointers.current.delete(e.pointerId)
+    // Lifting one finger of a pinch carries on as a move with the other.
+    const g = drag.current
+    if (g?.kind === 'pinch' && pointers.current.size === 1) {
+      const l = layers.find((x) => x.id === g.id)
+      const [q] = [...pointers.current.values()]
+      if (l) { const c = centreOf(l); drag.current = { kind: 'move', id: g.id, dx: q.x - c.x, dy: q.y - c.y } }
+      return
+    }
+    if (pointers.current.size === 0) {
+      if (emptyPress.current) setSel(null)
+      emptyPress.current = false
+      drag.current = null
+      setSnap({ x: false, y: false })
+    }
+  }
 
   // ---- Keyboard shortcuts -----------------------------------------------
   useEffect(() => {
@@ -372,7 +463,7 @@ export default function Designer() {
           <h1 className="font-poster text-5xl">Design studio</h1>
           <p className="text-sm text-ink-400">
             {saved ? <>Editing <b className="text-black">{saved.name}</b>. </> : null}
-            Drag to move; it snaps to the centre. Arrow keys nudge.
+            Drag to move; it snaps to the centre. Pull a corner to resize and the top handle to rotate, or pinch and twist on a phone.
           </p>
         </div>
         <div className="flex flex-wrap gap-1">
@@ -457,6 +548,7 @@ export default function Designer() {
               onPointerDown={onDown}
               onPointerMove={onMove}
               onPointerUp={onUp}
+              onPointerCancel={onUp}
             >
               {snap.x && <line data-ui x1={PRINT.cx + canvasCentre.x} x2={PRINT.cx + canvasCentre.x} y1={0} y2={VIEW.y + VIEW.h} stroke="#e8467c" strokeWidth={1 / zoom} pointerEvents="none" />}
               {snap.y && <line data-ui y1={PRINT.cy + canvasCentre.y} y2={PRINT.cy + canvasCentre.y} x1={0} x2={VIEW.w} stroke="#e8467c" strokeWidth={1 / zoom} pointerEvents="none" />}

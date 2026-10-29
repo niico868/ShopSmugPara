@@ -57,6 +57,12 @@ export interface Layer {
   px?: number
   /** The automatic content check thought this might be explicit; staff should look closely. */
   flagged?: boolean
+  /** Colour wheel turn in degrees (-180..180). */
+  hue?: number
+  /** Brightness slider, white (-100) to black (100). */
+  tone?: number
+  /** Where the artwork sits on the brightness slider unchanged: 0, or an end for art that is already white or black. */
+  toneBase?: number
 }
 
 export interface RosterRow { name: string; number: string; size: string }

@@ -96,9 +96,36 @@ export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicat
           <DpiWarning layer={layer} fit={fit} />
           {layer.flagged && <p className="rounded-lg bg-ink-800 p-2.5 text-xs text-ink-400">Our team will take a closer look at this image before printing.</p>}
           <Toggle label="Drop shadow" checked={!!layer.shadow} onChange={(on) => onPatch({ shadow: on || undefined })} />
+          <ToneControls layer={layer} onPatch={onPatch} />
         </>
       )}
       <Range label="Rotation" min={-180} max={180} value={layer.rotation} onChange={(v) => onPatch({ rotation: v }, false)} suffix="°" />
+    </div>
+  )
+}
+
+// Hue turns the colour wheel; the strip shows where red lands at each point.
+const HUE_TRACK = `linear-gradient(to right, ${[-180, -120, -60, 0, 60, 120, 180].map((d) => `hsl(${d} 85% 55%)`).join(', ')})`
+const TONE_TRACK = 'linear-gradient(to right, #ffffff, #808080, #000000)'
+
+/** Hue and brightness for uploaded art. Brightness runs white to black; the art starts where its own tone sits. */
+function ToneControls({ layer, onPatch }: { layer: Layer; onPatch: (p: Partial<Layer>, record?: boolean) => void }) {
+  const base = layer.toneBase ?? 0
+  const tone = layer.tone ?? base
+  const hue = layer.hue ?? 0
+  const toneText = tone === base ? 'Original' : `${Math.round(Math.abs(tone - base) / (tone > base ? 100 - base : base + 100) * 100)}% ${tone > base ? 'darker' : 'lighter'}`
+  return (
+    <div className="space-y-3 border-t border-ink-800 pt-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-wider text-black">Colour</p>
+        {(hue !== 0 || tone !== base) && (
+          <button onClick={() => onPatch({ hue: undefined, tone: undefined })} className="text-xs font-semibold text-acid">Reset</button>
+        )}
+      </div>
+      <Range label="Hue" min={-180} max={180} step={2} value={hue} shown={hue ? `${hue > 0 ? '+' : ''}${hue}°` : 'Original'} track={HUE_TRACK}
+        onChange={(v) => onPatch({ hue: v || undefined }, false)} />
+      <Range label="Brightness" min={-100} max={100} value={tone} shown={toneText} track={TONE_TRACK}
+        onChange={(v) => onPatch({ tone: v === base ? undefined : v }, false)} />
     </div>
   )
 }
