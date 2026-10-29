@@ -21,6 +21,8 @@ const OrderDetail = lazy(() => import('./pages/admin/OrderDetail'))
 const Products = lazy(() => import('./pages/admin/Products'))
 const Designs = lazy(() => import('./pages/admin/Designs'))
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'))
+const Rewards = lazy(() => import('./pages/admin/Rewards'))
+const ContrabandAdmin = lazy(() => import('./pages/admin/Contraband'))
 
 function NotFound() {
   return (
@@ -53,6 +55,8 @@ export default function App() {
           <Route path="orders/:id" element={<OrderDetail />} />
           <Route path="products" element={<Products />} />
           <Route path="designs" element={<Designs />} />
+          <Route path="rewards" element={<Rewards />} />
+          <Route path="contraband" element={<ContrabandAdmin />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Routes>

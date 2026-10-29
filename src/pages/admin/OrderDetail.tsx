@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { AlertTriangle, ArrowLeft, Download, Link2, Mail, MessageCircle, Phone, Printer, Upload } from 'lucide-react'
 import { getOrder, sendProof, subscribeOrders, updateOrder } from '../../lib/api'
 import type { Area, Layer, Order, OrderItem, OrderStatus, PaymentStatus, ProofStatus } from '../../lib/types'
-import { STATUS_FLOW, STATUS_META, colorName, fitName, fontCss } from '../../lib/constants'
+import { STATUS_FLOW, STATUS_META, colorName, fitName, fontCss, statusLabel } from '../../lib/constants'
 import { Button, Card, Empty, PageLoader, StatusBadge, Textarea } from '../../components/ui'
 import { EventList } from '../../components/OrderTimeline'
 import { ItemThumb } from '../../components/ItemThumb'
@@ -67,16 +67,17 @@ export default function OrderDetail() {
                 <button key={s} disabled={busy || s === order.status} onClick={() => act({ status: s })}
                   className={cx('rounded-full border px-3 py-1.5 text-xs font-semibold transition disabled:cursor-default', s === order.status ? 'border-transparent' : 'border-ink-700 hover:border-white')}
                   style={s === order.status ? { background: STATUS_META[s].color, color: '#111111' } : undefined}>
-                  {STATUS_META[s].label}
+                  {statusLabel(s, order.fulfillment)}
                 </button>
               ))}
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
-              {next && order.status !== 'cancelled' && <Button size="sm" disabled={busy} onClick={() => act({ status: next })}>Advance to {STATUS_META[next].label}</Button>}
+              {next && order.status !== 'cancelled' && <Button size="sm" disabled={busy} onClick={() => act({ status: next })}>Advance to {statusLabel(next, order.fulfillment)}</Button>}
               {order.payment_status !== 'paid'
                 ? <Button size="sm" variant="outline" disabled={busy} onClick={() => act({ payment_status: 'paid' }, 'Payment received')}>Mark as paid</Button>
                 : <Button size="sm" variant="ghost" disabled={busy} onClick={() => act({ payment_status: 'refunded' }, 'Payment refunded')}>Mark refunded</Button>}
             </div>
+            <p className="mt-3 text-xs text-ink-400">When a paid order is marked {order.fulfillment === 'pickup' ? 'Collected' : 'Delivered'}, the customer&rsquo;s account earns its Paradise Points. Cancelling or refunding reverses them and returns any reward points spent on it.</p>
           </Card>
 
           <Card>
@@ -87,6 +88,7 @@ export default function OrderDetail() {
             <div className="mt-6 space-y-1 border-t border-ink-800 pt-4 text-sm">
               <div className="flex justify-between text-ink-400"><span>Subtotal</span><span>{money(order.subtotal)}</span></div>
               <div className="flex justify-between text-ink-400"><span>{order.fulfillment === 'pickup' ? 'Pickup' : 'Delivery'}</span><span>{money(order.shipping)}</span></div>
+              {!!order.discount && Number(order.discount) > 0 && <div className="flex justify-between text-ink-400"><span>Paradise Points credit</span><span>-{money(Number(order.discount))}</span></div>}
               <div className="flex justify-between text-lg font-bold"><span>Total</span><span>{money(order.total)}</span></div>
             </div>
           </Card>

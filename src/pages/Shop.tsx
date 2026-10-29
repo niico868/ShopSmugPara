@@ -5,6 +5,7 @@ import type { Product } from '../lib/types'
 import { ProductCard } from '../components/ProductCard'
 import { Empty, PageLoader, Select, inputCls } from '../components/ui'
 import { cx } from '../lib/format'
+import { huntSpot } from '../lib/contraband'
 
 export default function Shop() {
   const [products, setProducts] = useState<Product[] | null>(null)
@@ -24,10 +25,10 @@ export default function Shop() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12">
-      <h1 className="font-poster text-6xl">The shop</h1>
+      <h1 {...huntSpot('shop-title')} className="w-max max-w-full font-poster text-6xl">The shop</h1>
       <p className="mt-2 text-ink-400">{products?.length ?? 0} designs, printed to order.</p>
       <div className="mt-8 flex flex-col gap-3 md:flex-row md:items-center">
-        <div className="relative flex-1">
+        <div {...huntSpot('shop-search')} className="relative flex-1">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search designs" className={cx(inputCls, 'pl-10')} />
         </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, LogOut, Package, Palette, Settings, ShoppingCart, ExternalLink, Menu } from 'lucide-react'
+import { Coins, LayoutDashboard, LogOut, Map, Package, Palette, Settings, ShoppingCart, ExternalLink, Menu } from 'lucide-react'
 import { adminSignOut, isAdmin, subscribeOrders } from '../../lib/api'
 import { DEMO } from '../../lib/supabase'
 import { Logo } from '../../components/Layout'
@@ -14,6 +14,8 @@ const NAV = [
   { to: '/admin/orders', label: 'Orders', icon: ShoppingCart },
   { to: '/admin/products', label: 'Products', icon: Package },
   { to: '/admin/designs', label: 'Custom designs', icon: Palette },
+  { to: '/admin/rewards', label: 'Rewards', icon: Coins },
+  { to: '/admin/contraband', label: 'Contraband', icon: Map },
   { to: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 

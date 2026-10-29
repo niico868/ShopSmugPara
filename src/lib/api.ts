@@ -3,6 +3,7 @@ import type { CheckoutInput, Design, Order, OrderEvent, OrderStatus, PaymentStat
 import { AREA_ORDER } from './pricing'
 import { defaultSettings, seedOrders, seedProducts } from './seed'
 import { orderCode, uid } from './format'
+import { demoOrderChanged, demoSpendRewards } from './rewards'
 
 // ---------------------------------------------------------------------------
 // Demo backend: everything lives in localStorage so the app runs with zero setup.
@@ -82,7 +83,7 @@ const dataUrlToBlob = async (dataUrl: string) => (await fetch(dataUrl)).blob()
 // The same artwork often appears many times (team orders, re-saves), so upload each image once per visit.
 const uploaded = new Map<string, Promise<string>>()
 
-export function uploadMedia(dataUrl: string, folder: 'designs' | 'products' | 'proofs'): Promise<string> {
+export function uploadMedia(dataUrl: string, folder: 'designs' | 'products' | 'proofs' | 'submissions'): Promise<string> {
   if (DEMO || !dataUrl.startsWith('data:')) return Promise.resolve(dataUrl)
   const key = folder + dataUrl
   if (!uploaded.has(key)) uploaded.set(key, upload(dataUrl, folder).catch((e) => { uploaded.delete(key); throw e }))
@@ -122,11 +123,14 @@ export async function placeOrder(input: CheckoutInput, settings: Settings): Prom
     const freeShip = settings.free_shipping_over > 0 && subtotal >= settings.free_shipping_over
     const shipping = input.fulfillment === 'pickup' || freeShip ? 0 : settings.shipping_fee
     const created = new Date().toISOString()
+    const { use_credit, ...rest } = input
     const order: Order = {
-      ...input, items, id: uid(), code: orderCode(), created_at: created, status: 'pending',
+      ...rest, items, id: uid(), code: orderCode(), created_at: created, status: 'pending',
       payment_status: 'unpaid', subtotal, shipping, total: subtotal + shipping,
       events: [{ id: uid(), created_at: created, status: 'pending', note: 'Order placed' }],
     }
+    order.discount = demoSpendRewards(order, !!use_credit)
+    order.total -= order.discount
     write(K.orders, [order, ...demoOrders()])
     return { code: order.code }
   }
@@ -167,10 +171,14 @@ export async function updateOrder(
 ) {
   const event: OrderEvent = { id: uid(), created_at: new Date().toISOString(), status: patch.status ?? null, note }
   if (DEMO) {
+    const before = demoOrders().find((o) => o.id === id)
     const all = demoOrders().map((o) =>
       o.id === id ? { ...o, ...patch, events: patch.status || note ? [...o.events, event] : o.events } : o,
     )
-    return write(K.orders, all)
+    write(K.orders, all)
+    const after = all.find((o) => o.id === id)
+    if (before && after) demoOrderChanged(before, after)
+    return
   }
   if (Object.keys(patch).length) must(await supabase!.from('orders').update(patch).eq('id', id))
   if (patch.status || note)
@@ -311,5 +319,6 @@ export async function isAdmin(): Promise<boolean> {
 
 export function resetDemo() {
   Object.values(K).forEach((k) => localStorage.removeItem(k))
+  localStorage.removeItem('sp.rewards')
   location.reload()
 }

@@ -7,28 +7,9 @@ import type { Order, SavedDesign } from '../lib/types'
 import { Button, Card, Empty, PageLoader, StatusBadge } from '../components/ui'
 import { dateShort, money } from '../lib/format'
 import { toast } from '../components/Toast'
-import { Coin } from '../components/Doubloons'
-import { BOAT_REWARD, POINTS, usePoints, useShownPoints } from '../lib/points'
+import { PointsHistory, RewardsCard, ShareForm } from '../components/RewardsPanel'
 import { makeShareCard } from '../lib/shareCard'
 import { colorName, fitName } from '../lib/constants'
-
-/** The account's Doubloons, always at the top of the page. */
-function Stash() {
-  const loading = usePoints((s) => s.balance === null)
-  const shown = useShownPoints()
-  const claimed = usePoints((s) => s.claimed)
-  return (
-    <section aria-label={`Your ${POINTS.many}`} className="relative flex items-center gap-5 overflow-hidden bg-black p-5 text-white sm:p-6">
-      <Coin className="h-14 w-14 sm:h-16 sm:w-16" />
-      <div className="min-w-0">
-        <p className="text-xs font-semibold uppercase tracking-[.25em] text-acid">Your stash</p>
-        <p className="font-poster text-2xl leading-tight min-[400px]:text-3xl sm:text-4xl"><span className="tabular-nums">{loading ? '…' : shown}</span> {POINTS.many}</p>
-        {claimed > 0 && <p className="mt-1 text-sm font-semibold text-[#f6b21a]">+{claimed} claimed from your guest stash. Welcome aboard.</p>}
-        <p className="mt-1 text-sm text-white/60">Catch the pirogue as it sails across the screen: +{BOAT_REWARD} each time.</p>
-      </div>
-    </section>
-  )
-}
 
 export default function Account() {
   const { account } = useAccount()
@@ -62,7 +43,7 @@ export default function Account() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
-      <Stash />
+      <RewardsCard />
       <div className="mt-10 flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <h1 className="font-poster text-5xl">My account</h1>
@@ -115,6 +96,9 @@ export default function Account() {
           ))}
         </div>
       )}
+
+      <ShareForm />
+      <PointsHistory />
     </div>
   )
 }

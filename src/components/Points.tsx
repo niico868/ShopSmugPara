@@ -2,11 +2,12 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { brandMark } from '../lib/brand'
 import { cx } from '../lib/format'
-import { BOAT_REWARD, GUEST_CAP, POINTS, pointsLabel, usePoints, useShownPoints, type Flight } from '../lib/points'
+import { usePoints, useCurrency, useShownPoints, type Flight } from '../lib/points'
+import { CURRENCY, fmtPts } from '../lib/rewards'
 
 export const BIN_ID = 'points-bin'
 
-/** A gold doubloon stamped with the SP monogram. */
+/** A gold coin stamped with the SP monogram: the points coin. */
 export function Coin({ className }: { className?: string }) {
   return (
     <span aria-hidden className={cx('relative inline-grid shrink-0 place-items-center rounded-full border-2 border-[#b07812] bg-[radial-gradient(circle_at_35%_30%,#ffe58a,#f6b21a_55%,#d18f12)] shadow-[inset_0_0_0_2px_rgba(255,240,180,.6)]', className)}>
@@ -31,12 +32,14 @@ function Chest({ className }: { className?: string }) {
 }
 
 /**
- * The points counter in the header. Signed in, it shows the account's Doubloons and links to the account.
- * For guests it is a chest that fills as they catch the boat, and opens to an invitation to sign up and claim.
+ * The points counter in the header. Signed in, it shows the member's balance (EP or PP) and links to the account.
+ * For guests it is a chest that fills with Engagement Points as they catch the boat, and opens to an invitation to sign up and claim.
  */
 export function PointsBin() {
   const signedIn = usePoints((s) => s.signedIn)
-  const loading = usePoints((s) => s.signedIn && s.balance === null)
+  const loading = usePoints((s) => s.signedIn && s.rewards === null)
+  const rules = usePoints((s) => s.rules)
+  const cur = useCurrency()
   const shown = useShownPoints()
   const landed = usePoints((s) => s.landed)
   const [open, setOpen] = useState(false)
@@ -53,10 +56,11 @@ export function PointsBin() {
 
   if (signedIn) {
     return (
-      <Link to="/account" id={BIN_ID} title={`Your ${POINTS.many}`} aria-label={loading ? POINTS.many : pointsLabel(shown)}
+      <Link to="/account" id={BIN_ID} title={`Your ${CURRENCY[cur].many}`} aria-label={loading ? CURRENCY[cur].many : `${fmtPts(shown)} ${CURRENCY[cur].many}`}
         className="flex items-center gap-1.5 rounded-full border border-black/10 py-1 pl-1 pr-2.5 text-sm font-bold tabular-nums hover:border-acid">
         <span key={landed} className={cx('inline-flex', bump)}><Coin className="h-6 w-6" /></span>
-        {loading ? '…' : shown}
+        {loading ? '…' : fmtPts(shown)}
+        <span className="text-[10px] font-semibold tracking-wider text-ink-400">{cur}</span>
       </Link>
     )
   }
@@ -64,7 +68,7 @@ export function PointsBin() {
   return (
     // On phones the panel spans the header (the nearest positioned box); from sm up it hangs under the chest.
     <div ref={box} className="sm:relative">
-      <button id={BIN_ID} onClick={() => setOpen(!open)} aria-expanded={open} aria-label={`Your ${POINTS.many} stash: ${shown}`}
+      <button id={BIN_ID} onClick={() => setOpen(!open)} aria-expanded={open} aria-label={`Your ${CURRENCY.EP.many} stash: ${shown}`}
         className="relative rounded-full p-1.5 hover:bg-ink-800 sm:p-2">
         <span key={landed} className={cx('block', bump)}><Chest className="h-6 w-6" /></span>
         {shown > 0 && (
@@ -75,12 +79,12 @@ export function PointsBin() {
         <div className="absolute inset-x-4 top-full z-50 mt-2 animate-rise sm:inset-x-auto sm:right-0 sm:w-72 border border-black/10 bg-white p-4 text-sm shadow-xl">
           <div className="flex items-center gap-3">
             <Coin className="h-10 w-10" />
-            <p className="font-poster text-lg leading-tight">{pointsLabel(shown)}</p>
+            <p className="font-poster text-lg leading-tight">{fmtPts(shown)} {CURRENCY.EP.many}</p>
           </div>
           {shown > 0 ? (
-            <p className="mt-3 text-ink-400">You&rsquo;ve stashed {pointsLabel(shown)} in this browser. Sign up to claim them and keep earning on your account.</p>
+            <p className="mt-3 text-ink-400">You&rsquo;ve stashed {fmtPts(shown)} EP in this browser. Sign up to claim them, plus a {rules.welcome_ep} EP welcome bonus, and keep earning toward a free tee at {fmtPts(rules.free_tee_ep)} EP.</p>
           ) : (
-            <p className="mt-3 text-ink-400">Catch the pirogue as it sails across the screen to earn {BOAT_REWARD} {POINTS.many}. Stash up to {GUEST_CAP}, then sign up to claim them.</p>
+            <p className="mt-3 text-ink-400">Catch the pirogue as it sails across the screen to earn {rules.boat_ep} {CURRENCY.EP.many}. Stash up to {rules.guest_cap_ep}, then sign up to claim them and a {rules.welcome_ep} EP welcome bonus.</p>
           )}
           <Link to="/signin?next=/account&claim=1" onClick={() => setOpen(false)}
             className="mt-4 flex items-center justify-center rounded-full bg-black px-5 py-2.5 font-semibold text-white hover:bg-acid">
@@ -105,6 +109,18 @@ function FlightFx({ f }: { f: Flight }) {
   const land = usePoints((s) => s.land)
 
   useLayoutEffect(() => {
+    if (!f.amount) {
+      // Nothing to bank (e.g. the hold is full): just the words, floating up and away.
+      const a = label.current?.animate([
+        { opacity: 0, transform: 'translate(-50%, -50%) scale(.6)' },
+        { opacity: 1, transform: 'translate(-50%, -140%) scale(1)', offset: 0.2 },
+        { opacity: 1, transform: 'translate(-50%, -160%) scale(1)', offset: 0.75 },
+        { opacity: 0, transform: 'translate(-50%, -220%) scale(.95)' },
+      ], { duration: 2200, easing: 'ease-out', fill: 'forwards' })
+      if (!a) { land(f.id); return }
+      a.onfinish = () => land(f.id)
+      return () => a.cancel()
+    }
     const bin = document.getElementById(BIN_ID)?.getBoundingClientRect()
     const tx = bin ? bin.left + bin.width / 2 : f.x, ty = bin ? bin.top + bin.height / 2 : f.y
     const total = POP_MS + ZIP_MS
@@ -145,13 +161,21 @@ function FlightFx({ f }: { f: Flight }) {
     return () => anims.forEach((a) => a?.cancel())
   }, [f, land])
 
+  if (!f.amount) {
+    return (
+      <span ref={label} className="absolute whitespace-nowrap rounded-full bg-black px-3 py-1 font-poster text-lg uppercase tracking-wide text-[#f6b21a]" style={{ left: f.x, top: f.y }}>
+        {f.label}
+      </span>
+    )
+  }
+
   return (
     <>
       {Array.from({ length: 8 }, (_, i) => (
         <span key={`s${i}`} ref={(el) => { sparks.current[i] = el }} className="absolute h-2 w-2 rounded-full bg-[#f6b21a] shadow-[0_0_8px_#ffd75e]" style={{ left: f.x, top: f.y }} />
       ))}
       <span ref={label} className="absolute whitespace-nowrap font-poster text-3xl text-[#f6b21a] [text-shadow:0_2px_0_#0d1b2a,0_0_12px_rgba(255,215,94,.8)]" style={{ left: f.x, top: f.y }}>
-        +{f.amount}
+        +{fmtPts(f.amount)} <span className="text-xl">{f.currency}</span>
       </span>
       {[0, 1, 2].map((i) => (
         <span key={`c${i}`} ref={(el) => { coins.current[i] = el }} className="absolute left-0 top-0 opacity-0" style={{ filter: i ? `opacity(${0.5 - i * 0.18})` : undefined }}>
@@ -162,7 +186,7 @@ function FlightFx({ f }: { f: Flight }) {
   )
 }
 
-/** Draws every Doubloon currently in flight, above the page. */
+/** Draws every point coin currently in flight, above the page. */
 export function PointsFx() {
   const flights = usePoints((s) => s.flights)
   if (!flights.length) return null

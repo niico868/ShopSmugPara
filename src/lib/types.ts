@@ -1,3 +1,5 @@
+import type { RewardId } from './rewards'
+
 export type OrderStatus =
   | 'pending'
   | 'confirmed'
@@ -24,6 +26,8 @@ export interface Product {
   images?: string[]
   featured: boolean
   active: boolean
+  /** Premium drops (like Sovereignty) can never be a free reward tee. */
+  premium?: boolean
   created_at: string
 }
 
@@ -111,6 +115,8 @@ export interface OrderItem {
   image_url: string
   design?: Design | null
   preview?: string | null
+  /** Set when a reward pays for this tee (see src/lib/rewards.ts). */
+  reward?: RewardId | null
 }
 
 export interface OrderEvent {
@@ -135,6 +141,8 @@ export interface Order {
   payment_method: string
   subtotal: number
   shipping: number
+  /** Taken off by a reward, e.g. 50 TTD for 300 Paradise Points. */
+  discount?: number
   total: number
   proof_url?: string | null
   proof_status?: ProofStatus
@@ -174,4 +182,6 @@ export interface CheckoutInput {
   notes: string
   payment_method: string
   items: OrderItem[]
+  /** Spend Paradise Points on the credit off this order. */
+  use_credit?: boolean
 }

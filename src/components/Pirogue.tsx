@@ -6,7 +6,7 @@ import { usePoints } from '../lib/points'
 // shadow falls away) and drops it back, pushing the water out from the hull. The outboard throws a
 // spray that re-forms several times a second, and a foam wake trails behind and fades.
 // The boat is SVG; the water is drawn on a canvas underneath it.
-// Catching it (a click or tap) earns Doubloons, once per crossing, and makes it leap.
+// Catching it (a click or tap) earns points, once per crossing, and makes it leap (even when the day's hold is full).
 
 const FIRST_RUN_MS = 4000
 const EVERY_MS = 60_000

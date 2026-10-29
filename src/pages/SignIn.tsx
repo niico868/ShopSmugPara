@@ -5,7 +5,8 @@ import { AUTH_ERROR, signInWithEmail, signInWithGoogle, useAccount } from '../li
 import { DEMO } from '../lib/supabase'
 import { Button, Field, Input, PageLoader } from '../components/ui'
 import { toast } from '../components/Toast'
-import { POINTS, pointsLabel, usePoints } from '../lib/points'
+import { usePoints } from '../lib/points'
+import { CURRENCY, fmtPts } from '../lib/rewards'
 
 function GoogleIcon() {
   return (
@@ -26,6 +27,7 @@ export default function SignIn() {
   const [sent, setSent] = useState(false)
   const [busy, setBusy] = useState(false)
   const stash = usePoints((s) => s.guest)
+  const welcome = usePoints((s) => s.rules.welcome_ep)
   const claim = params.get('claim') === '1'
 
   if (!ready) return <PageLoader />
@@ -45,10 +47,10 @@ export default function SignIn() {
     <div className="mx-auto max-w-sm px-4 py-16">
       {claim ? (
         <>
-          <p className="text-xs font-semibold uppercase tracking-[.3em] text-acid">{POINTS.many}</p>
+          <p className="text-xs font-semibold uppercase tracking-[.3em] text-acid">Smuggler&rsquo;s Paradise Rewards</p>
           <h1 className="mt-2 font-poster text-4xl uppercase leading-none">{stash > 0 ? 'Claim your stash' : 'Join the crew'}</h1>
           <p className="mt-3 text-sm text-ink-400">
-            {stash > 0 ? `Sign up and your ${pointsLabel(stash)} move to your account.` : `Sign up to keep the ${POINTS.many} you earn.`} Your designs and orders are saved there too. No password needed.
+            {stash > 0 ? `Sign up and your ${fmtPts(stash)} ${CURRENCY.EP.many} move to your account, plus a ${welcome} EP welcome bonus.` : `Sign up for a ${welcome} EP welcome bonus and keep the ${CURRENCY.EP.many} you earn.`} Your designs and orders are saved there too. No password needed.
           </p>
         </>
       ) : (
