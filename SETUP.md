@@ -121,4 +121,5 @@ Customers must sign in before they can open the designer. Email links work with 
    2. APIs & Services > Credentials > Create credentials > OAuth client ID > Web application.
    3. Under **Authorized redirect URIs**, paste the callback URL shown in Supabase > Authentication > Providers > Google (it ends in `/auth/v1/callback`).
    4. Copy the Client ID and Client secret into that Supabase Google provider page and switch it on.
+   5. The staff login at `/admin` has the same **Continue with Google** button. To use it, sign in with Google once, then make that account an admin by running the `insert into public.admins` query from Step 2 with your Google email.
 3. The built-in Supabase email sender only allows a few emails an hour. Before launch, connect a free sender such as Resend under Authentication > Emails > SMTP settings.
