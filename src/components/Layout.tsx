@@ -10,7 +10,7 @@ import { CartDrawer } from './CartDrawer'
 import { Pirogue } from './Pirogue'
 import { Intro, SoundToggle } from './Intro'
 import { WhatsAppIcon } from './icons'
-import { INSTAGRAM, TAGLINE, WHATSAPP } from '../lib/brand'
+import { BRAND_LINE, INSTAGRAM, TAGLINE, WHATSAPP } from '../lib/brand'
 
 const links = [
   { to: '/shop', label: 'Shop' },
@@ -42,7 +42,7 @@ export default function Layout() {
       <div className="overflow-hidden bg-black py-2 text-[11px] font-semibold uppercase tracking-[.25em] text-white">
         <div className="flex w-max animate-marquee gap-12 whitespace-nowrap">
           {Array.from({ length: 8 }).map((_, i) => (
-            <span key={i} className="flex items-center gap-2"><Sparkles size={12} className="text-acid" />{settings.announcement || TAGLINE}</span>
+            <span key={i} className="flex items-center gap-2"><Sparkles size={12} className="text-acid" />{i % 2 ? BRAND_LINE : settings.announcement || TAGLINE}</span>
           ))}
         </div>
       </div>
