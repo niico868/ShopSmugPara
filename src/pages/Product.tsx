@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Minus, Plus, Ruler, ShieldCheck, Truck } from 'lucide-react'
 import { getProduct, listProducts } from '../lib/api'
@@ -11,6 +11,12 @@ import { useCart } from '../store/cart'
 import { toast } from '../components/Toast'
 
 const GUIDE = [['S', '91', '71'], ['M', '97', '74'], ['L', '104', '76'], ['XL', '112', '79'], ['2XL', '120', '81'], ['3XL', '128', '84']]
+
+/** Shrinks the title with its column so the longest word (e.g. SOVEREIGNTY) fits on one line. The poster font runs about 0.9em per letter. */
+const titleSize = (name: string): CSSProperties => {
+  const longest = Math.max(4, ...name.split(/\s+/).map((w) => w.length))
+  return { fontSize: `min(3.75rem, ${(100 / longest).toFixed(2)}cqi)` }
+}
 
 export default function Product() {
   const { slug = '' } = useParams()
@@ -62,9 +68,9 @@ export default function Product() {
             </div>
           )}
         </div>
-        <div>
+        <div className="[container-type:inline-size]">
           <p className="text-sm font-semibold uppercase tracking-widest text-acid">{p.category}</p>
-          <h1 className="mt-2 break-words font-poster text-5xl leading-none sm:text-6xl">{p.name}</h1>
+          <h1 className="mt-2 break-words font-poster leading-none [hyphens:none]" style={titleSize(p.name)}>{p.name}</h1>
           <p className="mt-3 text-2xl font-semibold">{money(p.price)}</p>
           <p className="mt-5 whitespace-pre-line text-ink-200">{p.description}</p>
 
