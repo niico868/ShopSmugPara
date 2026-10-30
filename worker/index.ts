@@ -1,28 +1,15 @@
-// Cloudflare Worker in front of the static site. It only runs for shared design links (/d/<id>) and
-// music (/music/*, see run_worker_first in wrangler.jsonc).
-// Shared designs: it looks the design up in Supabase and writes its name and picture into the page's
-// Open Graph tags, so WhatsApp, Facebook, Instagram DMs, iMessage and the like unfurl the link into a
-// tappable photo card. People still get the normal app; crawlers that don't run JavaScript get the tags.
-// Music: songs come from the R2 bucket bound as MUSIC (when it's set up) or from public/music.
-// Everything else is served straight from ./dist.
-
-interface R2Object {
-  key: string
-  size: number
-  httpEtag: string
-  range?: { offset?: number; length?: number; suffix?: number }
-  writeHttpMetadata(h: Headers): void
-  body?: ReadableStream
-}
-interface R2Bucket {
-  get(key: string, o: { range: Headers; onlyIf: Headers }): Promise<R2Object | null>
-  head(key: string): Promise<R2Object | null>
-  list(o: { cursor?: string; limit?: number }): Promise<{ objects: R2Object[]; truncated: boolean; cursor?: string }>
-}
+// Cloudflare Worker in front of the static site. It only runs for the paths in run_worker_first
+// (wrangler.jsonc); everything else is served straight from ./dist.
+// - Shared design links (/d/<id>): it looks the design up in Supabase and writes its name and
+//   picture into the page's Open Graph tags, so WhatsApp, Facebook, Instagram DMs, iMessage and the
+//   like unfurl the link into a tappable photo card. People still get the normal app; crawlers that
+//   don't run JavaScript get the tags.
+// - AI art (POST /api/ai-art): draws artwork from a customer's prompt with Workers AI (FLUX schnell).
+//   Supabase's claim_ai_art() checks the customer is signed in and under the daily limit first.
 
 interface Env {
   ASSETS: { fetch: (req: Request | string) => Promise<Response> }
-  MUSIC?: R2Bucket
+  AI: { run: (model: string, input: Record<string, unknown>) => Promise<{ image?: string }> }
 }
 
 interface ShareConfig { url: string; key: string }
@@ -51,55 +38,67 @@ async function findDesign(cfg: ShareConfig, id: string): Promise<DesignRow | nul
   return rows[0] ?? null
 }
 
-const AUDIO = /\.(mp3|m4a|aac|ogg|oga|opus|wav|flac|webm)$/i
-const TYPES: Record<string, string> = { mp3: 'audio/mpeg', m4a: 'audio/mp4', aac: 'audio/aac', ogg: 'audio/ogg', oga: 'audio/ogg', opus: 'audio/ogg', wav: 'audio/wav', flac: 'audio/flac', webm: 'audio/webm' }
-const byName = new Intl.Collator('en', { numeric: true }).compare
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } })
 
-/** /music/tracks.json lists every song (the site's own plus the bucket's); /music/<song> plays one. */
-async function music(req: Request, env: Env, url: URL): Promise<Response> {
-  const key = decodeURIComponent(url.pathname.slice('/music/'.length))
-  if (key === 'tracks.json') {
-    const songs = new Set<string>(await env.ASSETS.fetch(new Request(url.href)).then((r) => (r.ok ? r.json() as Promise<string[]> : [])).catch(() => []))
-    let cursor: string | undefined
-    if (env.MUSIC) do {
-      const page = await env.MUSIC.list({ cursor, limit: 1000 })
-      for (const o of page.objects) if (AUDIO.test(o.key)) songs.add(o.key)
-      cursor = page.truncated ? page.cursor : undefined
-    } while (cursor)
-    return Response.json([...songs].sort(byName), { headers: { 'Cache-Control': 'public, max-age=60' } })
-  }
+// Every drawing asks for the subject alone on plain white, which the designer then erases. The look is
+// left to the customer's words, or to the style they tapped.
+const BACKDROP = 'The subject alone, isolated on a plain pure white background. No t-shirt, no mockup, no frame, no border, no watermark.'
+const ART_STYLES: Record<string, string> = {
+  any: '',
+  graphic: 'Bold t-shirt graphic, clean vector lines, flat colours.',
+  illustration: 'Detailed digital illustration, rich colour and shading.',
+  realistic: 'Photorealistic, highly detailed, studio lighting.',
+  vintage: 'Vintage distressed screen-print style, retro colours.',
+  lineart: 'Black ink line art, fine detailed linework, no colour fill.',
+}
 
-  if (env.MUSIC && (req.method === 'GET' || req.method === 'HEAD')) {
-    const obj = req.method === 'HEAD' ? await env.MUSIC.head(key) : await env.MUSIC.get(key, { range: req.headers, onlyIf: req.headers })
-    if (obj) {
-      const headers = new Headers()
-      obj.writeHttpMetadata(headers)
-      if (!headers.get('Content-Type')) headers.set('Content-Type', TYPES[key.split('.').pop()!.toLowerCase()] ?? 'application/octet-stream')
-      headers.set('ETag', obj.httpEtag)
-      headers.set('Accept-Ranges', 'bytes')
-      headers.set('Cache-Control', 'public, max-age=86400')
-      if (req.method === 'HEAD') { headers.set('Content-Length', String(obj.size)); return new Response(null, { headers }) }
-      if (!obj.body) return new Response(null, { status: 304, headers }) // the browser's copy is still current
-      // Browsers fetch songs in pieces (Range requests) so they can start playing and skip ahead.
-      const r = obj.range
-      if (r && req.headers.has('Range')) {
-        const start = r.suffix !== undefined ? obj.size - r.suffix : r.offset ?? 0
-        const len = r.suffix !== undefined ? r.suffix : r.length ?? obj.size - start
-        headers.set('Content-Range', `bytes ${start}-${start + len - 1}/${obj.size}`)
-        headers.set('Content-Length', String(len))
-        return new Response(obj.body, { status: 206, headers })
-      }
-      headers.set('Content-Length', String(obj.size))
-      return new Response(obj.body, { headers })
-    }
+// Supabase error text from claim_ai_art(), and what to tell the customer.
+const LIMITS: Record<string, [number, string]> = {
+  sign_in: [401, 'Sign in to create AI art.'],
+  empty_prompt: [400, 'Describe the art you want first.'],
+  daily_limit: [429, 'You’ve used all 10 AI drawings for today. More tomorrow!'],
+  site_limit: [429, 'AI art is very busy today. Please try again tomorrow.'],
+}
+
+async function aiArt(req: Request, env: Env, origin: string): Promise<Response> {
+  const cfg = await loadConfig(env, origin)
+  const auth = req.headers.get('Authorization')
+  if (!cfg) return json({ error: 'AI art isn’t available on this site yet.' }, 503)
+  if (!auth?.startsWith('Bearer ')) return json({ error: LIMITS.sign_in[1] }, 401)
+  const body = await req.json().catch(() => null) as { prompt?: unknown; style?: unknown } | null
+  const prompt = typeof body?.prompt === 'string' ? body.prompt.trim().slice(0, 500) : ''
+  const style = typeof body?.style === 'string' && Object.hasOwn(ART_STYLES, body.style) ? ART_STYLES[body.style] : ''
+  if (!prompt) return json({ error: LIMITS.empty_prompt[1] }, 400)
+
+  // Called as the customer (their sign-in token), so Supabase knows who they are.
+  const claim = await fetch(`${cfg.url}/rest/v1/rpc/claim_ai_art`, {
+    method: 'POST',
+    headers: { apikey: cfg.key, Authorization: auth, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_prompt: prompt }),
+  })
+  if (!claim.ok) {
+    const err = await claim.json().catch(() => ({})) as { message?: string }
+    const [status, error] = LIMITS[err.message ?? ''] ?? (claim.status === 401 ? LIMITS.sign_in : [502, 'AI art isn’t working right now. Please try again later.'])
+    return json({ error }, status)
   }
-  return env.ASSETS.fetch(req) // a song bundled with the site
+  const left = await claim.json() as number
+
+  try {
+    const out = await env.AI.run('@cf/black-forest-labs/flux-1-schnell', { prompt: [`${prompt.replace(/[.\s]+$/, '')}.`, style, BACKDROP].filter(Boolean).join(' '), steps: 6 })
+    if (!out.image) throw new Error('no image')
+    return json({ image: `data:image/jpeg;base64,${out.image}`, left })
+  } catch {
+    return json({ error: 'The AI couldn’t draw that one. Try wording it differently.', left }, 502)
+  }
 }
 
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url)
-    if (url.pathname.startsWith('/music/')) return music(req, env, url)
+    if (url.pathname === '/api/ai-art') {
+      return req.method === 'POST' ? aiArt(req, env, url.origin) : json({ error: 'Use POST.' }, 405)
+    }
     const page = await env.ASSETS.fetch(new Request(`${url.origin}/`, req))
     const id = url.pathname.match(/^\/d\/([0-9a-f-]{36})\/?$/i)?.[1]
     if (!id || req.method !== 'GET') return page
