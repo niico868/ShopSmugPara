@@ -237,12 +237,12 @@ grant execute on function public.is_admin() to anon, authenticated;
 -- Design studio features (added 27 Oct 2026)
 -- =====================================================================
 -- ---------- Size-based print pricing ----------------------------------
-alter table public.settings add column if not exists print_included_in numeric(6,2) not null default 15;
+alter table public.settings add column if not exists print_included_in numeric(6,2) not null default 22.3;
 alter table public.settings add column if not exists extra_included_in numeric(6,2) not null default 10;
 alter table public.settings add column if not exists price_per_inch numeric(10,2) not null default 5;
-alter table public.settings add column if not exists price_tier_in numeric(6,2) not null default 21;
+alter table public.settings add column if not exists price_tier_in numeric(6,2) not null default 26.07;
 alter table public.settings add column if not exists price_at_tier numeric(10,2) not null default 400;
-alter table public.settings add column if not exists price_max_in numeric(6,2) not null default 30;
+alter table public.settings add column if not exists price_max_in numeric(6,2) not null default 41;
 alter table public.settings add column if not exists price_at_max numeric(10,2) not null default 450;
 alter table public.settings add column if not exists price_per_inch_after numeric(10,2) not null default 5;
 

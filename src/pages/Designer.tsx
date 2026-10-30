@@ -697,7 +697,7 @@ export default function Designer() {
               <span>
                 Your price depends on how much of the tee you print: front, back, sleeves and label added together.
                 {money(settings.custom_base_price)} covers up to {sqIn(settings.print_included_in)} sq in, enough for one big front or back print.
-                More print adds a little at a time: {money(settings.price_at_tier)} at {sqIn(settings.price_tier_in)} sq in (like a full front and a medium back), {money(settings.price_at_max)} at {sqIn(settings.price_max_in)} sq in (a full front and full back),
+                More print adds a little at a time: {money(settings.price_at_tier)} at {sqIn(settings.price_tier_in)} sq in and {money(settings.price_at_max)} at {sqIn(settings.price_max_in)} sq in,
                 then {money(settings.price_per_inch_after)} for every extra {PRICE_STRIP_IN} sq in.
               </span>
             </p>
