@@ -7,7 +7,7 @@ const SEEN = 'sp.passage'
 const seen = () => { try { return sessionStorage.getItem(SEEN) === '1' } catch { return false } }
 const markSeen = () => { try { sessionStorage.setItem(SEEN, '1') } catch { /* private mode: show it again next time */ } }
 
-/** "Choose your passage": a full-screen welcome, once per visit, that asks whether to play the soundtrack. */
+/** "Choose your passage": a full-screen welcome, once per visit, that asks whether to open Smug Para Radio. */
 export function Intro() {
   const [open, setOpen] = useState(() => !seen())
   const play = useSound((s) => s.play)
@@ -30,18 +30,18 @@ export function Intro() {
             <VolumeX size={20} /> Run silent
           </button>
         </div>
-        <p className="mt-6 max-w-sm text-sm text-white/60">We recommend full audio for the intended atmosphere. Adjust anytime in the top corner.</p>
+        <p className="mt-6 max-w-sm text-sm text-white/60">We recommend full audio for the intended atmosphere. Sail loud opens Smug Para Radio in the corner: press play on it. Turn it off anytime with the speaker up top.</p>
         <p className="mt-10 font-pirate text-3xl text-acid">{TAGLINE}</p>
       </div>
     </div>
   )
 }
 
-/** The header's speaker button: pause or resume the soundtrack (and bring back the mini player). */
+/** The header's speaker button: open or close Smug Para Radio. */
 export function SoundToggle({ className }: { className?: string }) {
   const { on, play, stop } = useSound()
   return (
-    <button onClick={() => (on ? stop() : play())} className={className} aria-label={on ? 'Turn sound off' : 'Turn sound on'} title={on ? 'Sound on' : 'Sound off'}>
+    <button onClick={() => (on ? stop() : play())} className={className} aria-label={on ? 'Close Smug Para Radio' : 'Open Smug Para Radio'} title={on ? 'Radio on' : 'Radio off'}>
       {on ? <Volume2 size={20} /> : <VolumeX size={20} />}
     </button>
   )
