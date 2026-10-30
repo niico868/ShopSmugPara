@@ -1,11 +1,15 @@
-// Cloudflare Worker in front of the static site. It only runs for shared design links (/d/<id>, see
-// run_worker_first in wrangler.jsonc): it looks the design up in Supabase and writes its name and
-// picture into the page's Open Graph tags, so WhatsApp, Facebook, Instagram DMs, iMessage and the
-// like unfurl the link into a tappable photo card. People still get the normal app; crawlers that
-// don't run JavaScript get the tags. Everything else is served straight from ./dist.
+// Cloudflare Worker in front of the static site. It only runs for the paths in run_worker_first
+// (wrangler.jsonc); everything else is served straight from ./dist.
+// - Shared design links (/d/<id>): it looks the design up in Supabase and writes its name and
+//   picture into the page's Open Graph tags, so WhatsApp, Facebook, Instagram DMs, iMessage and the
+//   like unfurl the link into a tappable photo card. People still get the normal app; crawlers that
+//   don't run JavaScript get the tags.
+// - AI art (POST /api/ai-art): draws artwork from a customer's prompt with Workers AI (FLUX schnell).
+//   Supabase's claim_ai_art() checks the customer is signed in and under the daily limit first.
 
 interface Env {
   ASSETS: { fetch: (req: Request | string) => Promise<Response> }
+  AI: { run: (model: string, input: Record<string, unknown>) => Promise<{ image?: string }> }
 }
 
 interface ShareConfig { url: string; key: string }
@@ -34,9 +38,58 @@ async function findDesign(cfg: ShareConfig, id: string): Promise<DesignRow | nul
   return rows[0] ?? null
 }
 
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } })
+
+// Steers every prompt towards a clean print graphic on plain white, which the designer then erases.
+const ART_STYLE = 'Print-ready t-shirt graphic: bold, clean artwork, centred, isolated on a plain pure white background. ' +
+  'No t-shirt, no mockup, no frame, no border, no watermark.'
+
+// Supabase error text from claim_ai_art(), and what to tell the customer.
+const LIMITS: Record<string, [number, string]> = {
+  sign_in: [401, 'Sign in to create AI art.'],
+  empty_prompt: [400, 'Describe the art you want first.'],
+  daily_limit: [429, 'You’ve used all 10 AI drawings for today. More tomorrow!'],
+  site_limit: [429, 'AI art is very busy today. Please try again tomorrow.'],
+}
+
+async function aiArt(req: Request, env: Env, origin: string): Promise<Response> {
+  const cfg = await loadConfig(env, origin)
+  const auth = req.headers.get('Authorization')
+  if (!cfg) return json({ error: 'AI art isn’t available on this site yet.' }, 503)
+  if (!auth?.startsWith('Bearer ')) return json({ error: LIMITS.sign_in[1] }, 401)
+  const body = await req.json().catch(() => null) as { prompt?: unknown } | null
+  const prompt = typeof body?.prompt === 'string' ? body.prompt.trim().slice(0, 500) : ''
+  if (!prompt) return json({ error: LIMITS.empty_prompt[1] }, 400)
+
+  // Called as the customer (their sign-in token), so Supabase knows who they are.
+  const claim = await fetch(`${cfg.url}/rest/v1/rpc/claim_ai_art`, {
+    method: 'POST',
+    headers: { apikey: cfg.key, Authorization: auth, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_prompt: prompt }),
+  })
+  if (!claim.ok) {
+    const err = await claim.json().catch(() => ({})) as { message?: string }
+    const [status, error] = LIMITS[err.message ?? ''] ?? (claim.status === 401 ? LIMITS.sign_in : [502, 'AI art isn’t working right now. Please try again later.'])
+    return json({ error }, status)
+  }
+  const left = await claim.json() as number
+
+  try {
+    const out = await env.AI.run('@cf/black-forest-labs/flux-1-schnell', { prompt: `${prompt}. ${ART_STYLE}`, steps: 6 })
+    if (!out.image) throw new Error('no image')
+    return json({ image: `data:image/jpeg;base64,${out.image}`, left })
+  } catch {
+    return json({ error: 'The AI couldn’t draw that one. Try wording it differently.', left }, 502)
+  }
+}
+
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url)
+    if (url.pathname === '/api/ai-art') {
+      return req.method === 'POST' ? aiArt(req, env, url.origin) : json({ error: 'Use POST.' }, 405)
+    }
     const page = await env.ASSETS.fetch(new Request(`${url.origin}/`, req))
     const id = url.pathname.match(/^\/d\/([0-9a-f-]{36})\/?$/i)?.[1]
     if (!id || req.method !== 'GET') return page

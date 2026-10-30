@@ -262,6 +262,27 @@ export default function Designer() {
     } finally { setChecking(false) }
   }
   /**
+   * AI art arrives as a JPEG on plain white (the Worker asks for that). Erase the white and crop to
+   * the art so it sits on any tee colour, then run the same content check as uploads.
+   */
+  const onAiArt = async (jpeg: string) => {
+    setChecking(true)
+    try {
+      const verdict = await checkImage(jpeg)
+      if (verdict === 'block') return toast.error('That drawing came out looking explicit, so we can’t print it. Try another prompt.')
+      const cut = await erasePlainBackground(jpeg).catch(() => null)
+      const t = cut ? await trimTransparent(cut) : null
+      const src = t?.src ?? cut ?? jpeg
+      const img = new Image()
+      img.src = src
+      await img.decode()
+      await addImage(src, img.naturalHeight / img.naturalWidth || 1, { px: img.naturalWidth, flagged: verdict === 'flag' || undefined })
+      toast.success(cut ? 'Your AI art is on the tee. Not quite right? Press undo and try again.' : 'Your AI art is on the tee. Use Photo (AI) in Layers to clear its background.')
+    } catch {
+      toast.error('Could not add that drawing. Please try again.')
+    } finally { setChecking(false) }
+  }
+  /**
    * Swaps in the cut-out art, cropped to what's left so the cleared space isn't priced as print.
    * Without its backdrop it may now read as all white or all black, so brightness starts over.
    */
@@ -550,6 +571,8 @@ export default function Designer() {
               onUpload={pickFile}
               onDropFile={(f) => (rulesAt ? onFile(f) : setDialog('rules'))}
               onAddImage={(src, aspect) => addImage(src, aspect)}
+              canStartAi={() => { if (rulesAt) return true; setDialog('rules'); return false }}
+              onAiArt={onAiArt}
             />
           )}
           {panel === 'layers' && (

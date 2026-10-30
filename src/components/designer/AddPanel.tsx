@@ -2,12 +2,15 @@ import { useState } from 'react'
 import { Image as ImageIcon, Palmtree, Shapes, ShieldAlert, Type } from 'lucide-react'
 import { PACK_SIZE, STICKERS, stickerData, type Sticker } from '../../lib/stickers'
 import { RULES, RULES_FOOTNOTE } from './Controls'
+import { AiArtBox } from './AiArtBox'
 
-export function AddPanel({ onAddText, onUpload, onDropFile, onAddImage }: {
+export function AddPanel({ onAddText, onUpload, onDropFile, onAddImage, canStartAi, onAiArt }: {
   onAddText: () => void
   onUpload: () => void
   onDropFile: (f?: File) => void
   onAddImage: (src: string, aspect: number) => void
+  canStartAi: () => boolean
+  onAiArt: (src: string) => Promise<void>
 }) {
   const [more, setMore] = useState(false)
   const pick = (s: Sticker) => stickerData(s).then((src) => onAddImage(src, s.aspect)).catch(() => {})
@@ -24,6 +27,7 @@ export function AddPanel({ onAddText, onUpload, onDropFile, onAddImage }: {
       >
         <ImageIcon className="text-acid" /><span><b className="block text-sm">Upload artwork</b><span className="text-xs text-ink-400">PNG, JPG or SVG. Drop it here.</span></span>
       </button>
+      <AiArtBox canStart={canStartAi} onArt={onAiArt} />
 
       <div className="rounded-2xl border border-ink-800 bg-ink-900 p-4">
         <p className="mb-1 flex items-center gap-2 text-sm font-semibold"><Palmtree size={16} className="text-acid" /> Smug Para pack</p>

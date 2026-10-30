@@ -2,6 +2,7 @@
 // Unknown paths (e.g. /design, /order/SP-ABC123) serve index.html and the app's router takes over.
 // Shared design links (/d/<id>) go through worker/index.ts first, which adds the design's picture
 // and name to the page's preview tags so the link unfurls as a photo card in WhatsApp, Facebook, etc.
+// /api/* also goes to the Worker: /api/ai-art draws designer artwork with Workers AI (the "ai" binding).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "shop-smug-para",
@@ -11,8 +12,9 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/d/*"]
+    "run_worker_first": ["/d/*", "/api/*"]
   },
+  "ai": { "binding": "AI" },
   // Pull requests build a preview with `wrangler preview`, which needs this block (it can stay empty).
   "previews": {}
 }
