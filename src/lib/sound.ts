@@ -1,27 +1,14 @@
 import { create } from 'zustand'
 
-// The site soundtrack. It plays once through when a visitor chooses "Sail loud", and the
-// speaker button in the header pauses or resumes it.
-const TRACK = '/audio/ayetian-caricom.mp3'
-let audio: HTMLAudioElement | null = null
-const track = () => {
-  if (!audio) {
-    audio = new Audio(TRACK)
-    audio.volume = 0.6
-    audio.addEventListener('ended', () => useSound.setState({ on: false }))
-  }
-  return audio
-}
+// The site soundtrack is Smug Para Radio, a playlist on Audiomack shown through Audiomack's own
+// embedded player. Audiomack licenses the songs, and its player has to stay visible and unchanged.
+// Browsers (and the embed) only start sound after a tap, so "Sail loud" or the header speaker opens
+// the radio and the visitor presses play on it. Closing the radio removes the player, which stops it.
+export const RADIO_URL = 'https://audiomack.com/smugglersparadisehq/playlist/smug-para-radio'
+export const RADIO_EMBED = 'https://audiomack.com/embed/playlist/smugglersparadisehq/smug-para-radio'
 
 export const useSound = create<{ on: boolean; play: () => void; stop: () => void }>()((set) => ({
   on: false,
-  play: () => {
-    const a = track()
-    if (a.ended) a.currentTime = 0
-    a.play().then(() => set({ on: true })).catch(() => set({ on: false }))
-  },
-  stop: () => {
-    audio?.pause()
-    set({ on: false })
-  },
+  play: () => set({ on: true }),
+  stop: () => set({ on: false }),
 }))
