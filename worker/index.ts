@@ -1,11 +1,28 @@
-// Cloudflare Worker in front of the static site. It only runs for shared design links (/d/<id>, see
-// run_worker_first in wrangler.jsonc): it looks the design up in Supabase and writes its name and
-// picture into the page's Open Graph tags, so WhatsApp, Facebook, Instagram DMs, iMessage and the
-// like unfurl the link into a tappable photo card. People still get the normal app; crawlers that
-// don't run JavaScript get the tags. Everything else is served straight from ./dist.
+// Cloudflare Worker in front of the static site. It only runs for shared design links (/d/<id>) and
+// music (/music/*, see run_worker_first in wrangler.jsonc).
+// Shared designs: it looks the design up in Supabase and writes its name and picture into the page's
+// Open Graph tags, so WhatsApp, Facebook, Instagram DMs, iMessage and the like unfurl the link into a
+// tappable photo card. People still get the normal app; crawlers that don't run JavaScript get the tags.
+// Music: songs come from the R2 bucket bound as MUSIC (when it's set up) or from public/music.
+// Everything else is served straight from ./dist.
+
+interface R2Object {
+  key: string
+  size: number
+  httpEtag: string
+  range?: { offset?: number; length?: number; suffix?: number }
+  writeHttpMetadata(h: Headers): void
+  body?: ReadableStream
+}
+interface R2Bucket {
+  get(key: string, o: { range: Headers; onlyIf: Headers }): Promise<R2Object | null>
+  head(key: string): Promise<R2Object | null>
+  list(o: { cursor?: string; limit?: number }): Promise<{ objects: R2Object[]; truncated: boolean; cursor?: string }>
+}
 
 interface Env {
   ASSETS: { fetch: (req: Request | string) => Promise<Response> }
+  MUSIC?: R2Bucket
 }
 
 interface ShareConfig { url: string; key: string }
@@ -34,9 +51,55 @@ async function findDesign(cfg: ShareConfig, id: string): Promise<DesignRow | nul
   return rows[0] ?? null
 }
 
+const AUDIO = /\.(mp3|m4a|aac|ogg|oga|opus|wav|flac|webm)$/i
+const TYPES: Record<string, string> = { mp3: 'audio/mpeg', m4a: 'audio/mp4', aac: 'audio/aac', ogg: 'audio/ogg', oga: 'audio/ogg', opus: 'audio/ogg', wav: 'audio/wav', flac: 'audio/flac', webm: 'audio/webm' }
+const byName = new Intl.Collator('en', { numeric: true }).compare
+
+/** /music/tracks.json lists every song (the site's own plus the bucket's); /music/<song> plays one. */
+async function music(req: Request, env: Env, url: URL): Promise<Response> {
+  const key = decodeURIComponent(url.pathname.slice('/music/'.length))
+  if (key === 'tracks.json') {
+    const songs = new Set<string>(await env.ASSETS.fetch(new Request(url.href)).then((r) => (r.ok ? r.json() as Promise<string[]> : [])).catch(() => []))
+    let cursor: string | undefined
+    if (env.MUSIC) do {
+      const page = await env.MUSIC.list({ cursor, limit: 1000 })
+      for (const o of page.objects) if (AUDIO.test(o.key)) songs.add(o.key)
+      cursor = page.truncated ? page.cursor : undefined
+    } while (cursor)
+    return Response.json([...songs].sort(byName), { headers: { 'Cache-Control': 'public, max-age=60' } })
+  }
+
+  if (env.MUSIC && (req.method === 'GET' || req.method === 'HEAD')) {
+    const obj = req.method === 'HEAD' ? await env.MUSIC.head(key) : await env.MUSIC.get(key, { range: req.headers, onlyIf: req.headers })
+    if (obj) {
+      const headers = new Headers()
+      obj.writeHttpMetadata(headers)
+      if (!headers.get('Content-Type')) headers.set('Content-Type', TYPES[key.split('.').pop()!.toLowerCase()] ?? 'application/octet-stream')
+      headers.set('ETag', obj.httpEtag)
+      headers.set('Accept-Ranges', 'bytes')
+      headers.set('Cache-Control', 'public, max-age=86400')
+      if (req.method === 'HEAD') { headers.set('Content-Length', String(obj.size)); return new Response(null, { headers }) }
+      if (!obj.body) return new Response(null, { status: 304, headers }) // the browser's copy is still current
+      // Browsers fetch songs in pieces (Range requests) so they can start playing and skip ahead.
+      const r = obj.range
+      if (r && req.headers.has('Range')) {
+        const start = r.suffix !== undefined ? obj.size - r.suffix : r.offset ?? 0
+        const len = r.suffix !== undefined ? r.suffix : r.length ?? obj.size - start
+        headers.set('Content-Range', `bytes ${start}-${start + len - 1}/${obj.size}`)
+        headers.set('Content-Length', String(len))
+        return new Response(obj.body, { status: 206, headers })
+      }
+      headers.set('Content-Length', String(obj.size))
+      return new Response(obj.body, { headers })
+    }
+  }
+  return env.ASSETS.fetch(req) // a song bundled with the site
+}
+
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url)
+    if (url.pathname.startsWith('/music/')) return music(req, env, url)
     const page = await env.ASSETS.fetch(new Request(`${url.origin}/`, req))
     const id = url.pathname.match(/^\/d\/([0-9a-f-]{36})\/?$/i)?.[1]
     if (!id || req.method !== 'GET') return page
