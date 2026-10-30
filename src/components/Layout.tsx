@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { ArrowUp, Instagram, Menu, ShoppingBag, X, Sparkles, User } from 'lucide-react'
 import { useAccount } from '../lib/auth'
 import { useCart, cartCount } from '../store/cart'
@@ -16,6 +16,7 @@ import { Intro, SoundToggle } from './Intro'
 import { MusicPlayer } from './MusicPlayer'
 import { WhatsAppIcon } from './icons'
 import { BRAND_LINE, INSTAGRAM, TAGLINE, WHATSAPP } from '../lib/brand'
+import { RouteProgress, SfxToggle, Tick, TopProgress } from './Feedback'
 
 const links = [
   { to: '/shop', label: 'Shop' },
@@ -99,7 +100,7 @@ export default function Layout() {
             <button onClick={() => setOpen(true)} className="relative rounded-full p-2 sm:p-2.5 hover:bg-ink-800" aria-label="Open cart">
               <ShoppingBag size={20} />
               {count > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-acid px-1 text-[11px] font-bold text-white">{count}</span>
+                <Tick value={count} className="absolute -right-0.5 -top-0.5"><span className="grid h-5 min-w-5 place-items-center rounded-full bg-acid px-1 text-[11px] font-bold text-white">{count}</span></Tick>
               )}
             </button>
             <span className="relative md:hidden">
@@ -119,7 +120,8 @@ export default function Layout() {
         )}
       </header>
 
-      <main className="relative flex-1"><Outlet /></main>
+      <TopProgress />
+      <main key={loc.pathname} className="relative flex-1 animate-page"><Suspense fallback={<RouteProgress />}><Outlet /></Suspense></main>
       <Pirogue />
       <PointsFx />
       <HuntCoin />
@@ -143,6 +145,7 @@ export default function Layout() {
             <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid">Get in touch</p>
             <a {...huntSpot('footer-whatsapp')} className="flex w-max items-center gap-2 text-white/60 hover:text-white" href={WHATSAPP} target="_blank" rel="noreferrer"><WhatsAppIcon size={16} /> WhatsApp us</a>
             <a {...huntSpot('footer-instagram')} className="mt-3 flex w-max items-center gap-2 text-white/60 hover:text-white" href={INSTAGRAM} target="_blank" rel="noreferrer"><Instagram size={16} /> @smugglerparadise</a>
+            <SfxToggle className="mt-3 text-white/60 hover:text-white" />
             <p className="mt-4"><Link to="/admin" className="text-white/30 hover:text-white/60">Staff login</Link></p>
           </div>
         </div>

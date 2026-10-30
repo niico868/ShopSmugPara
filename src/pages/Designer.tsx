@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ArrowDown, ArrowUp, Download, Info, Link2, Minus, Plus, Redo2, RotateCcw, Save, Type, Undo2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, Check, Download, Info, Link2, Loader2, Minus, Plus, Redo2, RotateCcw, Save, Type, Undo2 } from 'lucide-react'
 import type { Area, Design, Layer, RosterRow } from '../lib/types'
 import { AREAS, CUSTOM_SIZES, areaScale, PRICE_STRIP_IN, PRINT, TeeMockup, areaBounds, areaCentre, svgToPng, VIEW } from '../components/TeeMockup'
 import { Button, Field, Input, Swatch } from '../components/ui'
@@ -22,6 +22,8 @@ import { TeamPanel } from '../components/designer/TeamPanel'
 import { Dialog, RulesDialog } from '../components/designer/Controls'
 import { makeShareCard } from '../lib/shareCard'
 import { ShareButtons } from '../components/ShareButtons'
+import { Tick, useProgress } from '../components/Feedback'
+import { sfx } from '../lib/feedback'
 
 const DRAFT = 'sp.designer.draft'
 const RULES_KEY = 'sp.designer.rules'
@@ -113,7 +115,10 @@ export default function Designer() {
   const [size, setSize] = useState('L')
   const [qty, setQty] = useState(1)
   const [busy, setBusy] = useState(false)
-  const [checking, setChecking] = useState(false)
+  // What an upload or AI drawing is doing right now, shown over the tee: [step label, step number, of].
+  const [stage, setStage] = useState<[string, number, number] | null>(null)
+  const [added, setAdded] = useState(false)
+  useEffect(() => { if (!added) return; const t = setTimeout(() => setAdded(false), 2000); return () => clearTimeout(t) }, [added])
   const [cutting, setCutting] = useState<{ id: string; progress: number } | null>(null)
   const [panel, setPanel] = useState<'add' | 'layers' | 'team'>('add')
   const [rulesAt, setRulesAt] = useState<string | null>(storedRules)
@@ -126,6 +131,7 @@ export default function Designer() {
   const pointers = useRef(new Map<number, Pt>())
   // A press on empty canvas deselects when it lifts, unless a second finger turned it into a pinch.
   const emptyPress = useRef(false)
+  useProgress(busy || !!stage || !!cutting)
 
   const acceptRules = (ok: boolean) => {
     const at = ok ? new Date().toISOString() : null
@@ -205,12 +211,14 @@ export default function Designer() {
 
   const undo = () => {
     if (!past.length) return
+    sfx('tap')
     setFuture((f) => [design, ...f])
     setDesign(past[past.length - 1])
     setPast((p) => p.slice(0, -1))
   }
   const redo = () => {
     if (!future.length) return
+    sfx('tap')
     setPast((p) => [...p, design])
     setDesign(future[0])
     setFuture((f) => f.slice(1))
@@ -230,6 +238,7 @@ export default function Designer() {
     const layer: Layer = { id: uid(), x: c.x, y: c.y + dy, rotation: 0, ...l }
     setLayers((ls) => [...ls, layer], true, a)
     setSel(layer.id)
+    sfx('tap')
   }
   const addText = () => place({ type: 'text', text: small ? 'SP' : 'YOUR TEXT', font: 'Bebas Neue', fill: ink, size: area === 'label' ? 10 : small ? 18 : 48, weight: 400 })
   // Art that is already white or black starts at that end of the brightness slider.
@@ -250,29 +259,33 @@ export default function Designer() {
     if (!f) return
     if (!f.type.startsWith('image/')) return toast.error('Please choose an image file (PNG, JPG, SVG).')
     if (f.size > 15 * 1024 * 1024) return toast.error('That image is over 15 MB.')
-    setChecking(true)
+    setStage(['Reading your image', 1, 3])
     try {
       const img = await readImage(f)
+      setStage(['Checking it’s printable', 2, 3])
       const verdict = await checkImage(img.src)
       if (verdict === 'block') return toast.error('This image looks like it contains nudity, which we can’t print. Please choose another.')
+      setStage(['Placing it on the tee', 3, 3])
       await addImage(img.src, img.aspect, { px: img.px, flagged: verdict === 'flag' || undefined })
       if (verdict === 'flag') toast.info('Added. Our team will take a closer look at this image before printing.')
     } catch {
       toast.error('Could not read that image.')
-    } finally { setChecking(false) }
+    } finally { setStage(null) }
   }
   /**
    * AI art arrives as a JPEG on plain white (the Worker asks for that). Erase the white and crop to
    * the art so it sits on any tee colour, then run the same content check as uploads.
    */
   const onAiArt = async (jpeg: string) => {
-    setChecking(true)
+    setStage(['Checking the drawing', 1, 3])
     try {
       const verdict = await checkImage(jpeg)
       if (verdict === 'block') return toast.error('That drawing came out looking explicit, so we can’t print it. Try another prompt.')
+      setStage(['Clearing the background', 2, 3])
       const cut = await erasePlainBackground(jpeg).catch(() => null)
       const t = cut ? await trimTransparent(cut) : null
       const src = t?.src ?? cut ?? jpeg
+      setStage(['Placing it on the tee', 3, 3])
       const img = new Image()
       img.src = src
       await img.decode()
@@ -280,7 +293,7 @@ export default function Designer() {
       toast.success(cut ? 'Your AI art is on the tee. Not quite right? Press undo and try again.' : 'Your AI art is on the tee. Use Photo (AI) in Layers to clear its background.')
     } catch {
       toast.error('Could not add that drawing. Please try again.')
-    } finally { setChecking(false) }
+    } finally { setStage(null) }
   }
   /**
    * Swaps in the cut-out art, cropped to what's left so the cleared space isn't priced as print.
@@ -316,8 +329,8 @@ export default function Designer() {
       toast.error('Could not remove the background on this device. Try again on Wi-Fi, or upload a PNG that already has no background.')
     } finally { setCutting(null) }
   }
-  const remove = (id: string) => { setLayers((ls) => ls.filter((l) => l.id !== id)); setSel(null) }
-  const duplicate = (l: Layer) => { const c = { ...l, id: uid(), x: l.x + 12, y: l.y + 12 }; setLayers((ls) => [...ls, c]); setSel(c.id) }
+  const remove = (id: string) => { sfx('remove'); setLayers((ls) => ls.filter((l) => l.id !== id)); setSel(null) }
+  const duplicate = (l: Layer) => { sfx('tap'); const c = { ...l, id: uid(), x: l.x + 12, y: l.y + 12 }; setLayers((ls) => [...ls, c]); setSel(c.id) }
   const move = (id: string, dir: 1 | -1) => setLayers((ls) => {
     const i = ls.findIndex((l) => l.id === id), j = i + dir
     if (j < 0 || j >= ls.length) return ls
@@ -496,6 +509,7 @@ export default function Designer() {
         add({ ...base, id: uid(), name: title, size, qty, unit_price: unit, design: { ...structuredClone(measured), rules_accepted_at: rulesAt } })
         toast.success('Your custom tee is in the bag')
       }
+      setAdded(true)
     } catch {
       toast.error('Something went wrong creating the preview.')
     } finally { setBusy(false) }
@@ -560,7 +574,7 @@ export default function Designer() {
         <aside className="order-2 space-y-4 lg:order-1">
           <div className="flex rounded-full bg-ink-900 p-1">
             {(['add', 'layers', 'team'] as const).map((p) => (
-              <button key={p} onClick={() => setPanel(p)} className={cx('flex-1 rounded-full py-2 text-sm font-semibold', panel === p ? 'bg-ink-700' : 'text-ink-400')}>
+              <button key={p} onClick={() => { if (p !== panel) sfx('select'); setPanel(p) }} aria-pressed={panel === p} className={cx('flex-1 rounded-full py-2 text-sm font-semibold transition-colors duration-200', panel === p ? 'bg-ink-700' : 'text-ink-400')}>
                 {p === 'add' ? 'Add' : p === 'layers' ? `Layers (${layers.length})` : `Team${team ? ` (${roster.length})` : ''}`}
               </button>
             ))}
@@ -608,14 +622,26 @@ export default function Designer() {
             {AREA_ORDER.map((a) => {
               const n = areaLayers(design, a).length
               return (
-                <button key={a} onClick={() => { setArea(a); setSel(null) }} className={cx('shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider', area === a ? 'bg-black text-white' : 'text-ink-400 hover:text-black')}>
-                  {AREAS[a].name}{n > 0 && ` · ${n}`}
+                <button key={a} onClick={() => { if (a !== area) sfx('select'); setArea(a); setSel(null) }} aria-pressed={area === a} className={cx('shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors duration-200', area === a ? 'bg-black text-white' : 'text-ink-400 hover:text-black')}>
+                  {AREAS[a].name}{n > 0 && <> · <Tick value={n} /></>}
                 </button>
               )
             })}
           </div>
           <div className="relative rounded-3xl border border-ink-800 bg-[radial-gradient(circle_at_50%_30%,#ffffff,#ececea_75%)] p-4 sm:p-8">
-            {checking && <p className="absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full bg-black px-4 py-1.5 text-xs font-semibold text-white">Checking image…</p>}
+            {stage && (
+              <div role="status" className="absolute left-1/2 top-4 z-10 w-56 -translate-x-1/2 animate-rise rounded-2xl bg-black px-4 py-2.5 text-white shadow-xl">
+                <p className="flex items-center gap-2 text-xs font-semibold"><Loader2 size={13} className="animate-spin text-acid" /> {stage[0]}…</p>
+                <div className="mt-2 flex gap-1">
+                  {Array.from({ length: stage[2] }, (_, i) => (
+                    <span key={i} className={cx('h-1 flex-1 overflow-hidden rounded-full', i < stage[1] - 1 ? 'bg-acid' : 'bg-white/20')}>
+                      {i === stage[1] - 1 && <span className="block h-full w-1/2 animate-shimmer rounded-full bg-acid" />}
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-1 text-[10px] text-white/50">Step {stage[1]} of {stage[2]}</p>
+              </div>
+            )}
             <TeeMockup
               ref={svgRef}
               color={design.color}
@@ -637,7 +663,7 @@ export default function Designer() {
           </div>
           <div className="mx-auto mt-4 grid max-w-sm grid-cols-2 gap-2">
             {FITS.map((f) => (
-              <button key={f.id} onClick={() => commit((d) => ({ ...d, fit: f.id }))} className={cx('rounded-xl border px-3 py-2 text-left transition', fit === f.id ? 'border-black bg-black text-white' : 'border-ink-700 hover:border-ink-400')}>
+              <button key={f.id} onClick={() => { if (fit !== f.id) sfx('select'); commit((d) => ({ ...d, fit: f.id })) }} aria-pressed={fit === f.id} className={cx('rounded-xl border px-3 py-2 text-left transition active:scale-[.98]', fit === f.id ? 'border-black bg-black text-white' : 'border-ink-700 hover:border-ink-400')}>
                 <b className="block text-sm">{f.name}</b>
                 <span className={cx('text-xs', fit === f.id ? 'text-ink-600' : 'text-ink-400')}>{f.blurb}</span>
               </button>
@@ -672,7 +698,7 @@ export default function Designer() {
             <div role="group" aria-labelledby="size-label">
               <p id="size-label" className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-400">{team ? 'Preview size' : 'Size'}</p>
               <div className="flex flex-wrap gap-1.5">
-                {CUSTOM_SIZES.map((s) => <button key={s} onClick={() => setSize(s)} className={cx('h-9 min-w-10 rounded-lg border px-2 text-xs font-bold', s === size ? 'border-black bg-black text-white' : 'border-ink-700')}>{s}</button>)}
+                {CUSTOM_SIZES.map((s) => <button key={s} onClick={() => { if (s !== size) sfx('select'); setSize(s) }} aria-pressed={s === size} className={cx('h-9 min-w-10 rounded-lg border px-2 text-xs font-bold transition active:scale-95', s === size ? 'border-black bg-black text-white' : 'border-ink-700')}>{s}</button>)}
               </div>
               <p className="mt-1 text-xs text-ink-400">True to the size chart: the same print looks smaller on a bigger tee.</p>
             </div>
@@ -704,18 +730,20 @@ export default function Designer() {
             <div className="flex items-center gap-3">
               {!team && (
                 <div className="flex items-center rounded-full border border-ink-700">
-                  <button className="p-2" onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Decrease"><Minus size={14} /></button>
-                  <span className="w-6 text-center text-sm font-semibold">{qty}</span>
-                  <button className="p-2" onClick={() => setQty(qty + 1)} aria-label="Increase"><Plus size={14} /></button>
+                  <button className="rounded-full p-2 transition active:scale-90 disabled:opacity-30" disabled={qty <= 1} onClick={() => { sfx('tap'); setQty(Math.max(1, qty - 1)) }} aria-label="Decrease"><Minus size={14} /></button>
+                  <Tick value={qty} className="w-6 text-center text-sm font-semibold" />
+                  <button className="rounded-full p-2 transition active:scale-90" onClick={() => { sfx('tap'); setQty(qty + 1) }} aria-label="Increase"><Plus size={14} /></button>
                 </div>
               )}
-              <p className="flex-1 text-right text-xl font-bold">{money(total)}</p>
+              <p className="flex-1 text-right text-xl font-bold"><Tick value={total}>{money(total)}</Tick></p>
             </div>
             <label className="flex items-start gap-2 text-xs text-ink-400">
               <input type="checkbox" checked={!!rulesAt} onChange={(e) => acceptRules(e.target.checked)} className="mt-0.5 accent-[#5caedb]" />
               <span>I agree to the design rules. I understand Smug Para reviews every design and may decline it.</span>
             </label>
-            <Button size="lg" className="w-full" onClick={addToBag} disabled={busy || !rulesAt}>{busy ? 'Preparing…' : team ? `Add ${roster.length} tees to bag` : 'Add to bag'}</Button>
+            <Button size="lg" className={cx('w-full', added && '!bg-acid')} onClick={addToBag} disabled={busy || !rulesAt}>
+              {busy ? <><Loader2 size={16} className="animate-spin" /> Preparing your tee…</> : added ? <><Check size={18} className="animate-pop-check" /> In the bag</> : team ? `Add ${roster.length} tees to bag` : 'Add to bag'}
+            </Button>
             <p className="text-center text-xs text-ink-400">Final print size and price is confirmed by our team before printing.</p>
           </div>
         </aside>

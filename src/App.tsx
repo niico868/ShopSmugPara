@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
-import { PageLoader } from './components/ui'
+import { RouteProgress } from './components/Feedback'
 import { RequireAccount } from './components/RequireAccount'
 import Home from './pages/Home'
 
@@ -34,7 +34,7 @@ function NotFound() {
 
 export default function App() {
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={<RouteProgress />}>
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Home />} />

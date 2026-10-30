@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Lock, MapPin, Store } from 'lucide-react'
+import { Check, Loader2, Lock, MapPin, Store } from 'lucide-react'
 import { useCart, cartSubtotal } from '../store/cart'
 import { useSettings } from '../lib/settings'
 import { listProducts, placeOrder } from '../lib/api'
@@ -12,6 +12,8 @@ import { cx, money } from '../lib/format'
 import { Button, Card, Empty, Field, Input, Select, Textarea } from '../components/ui'
 import { ItemThumb } from '../components/ItemThumb'
 import { toast } from '../components/Toast'
+import { Tick, useProgress } from '../components/Feedback'
+import { nudge, sfx } from '../lib/feedback'
 
 export default function Checkout() {
   const { items, clear } = useCart()
@@ -24,6 +26,7 @@ export default function Checkout() {
   const rules = usePoints((s) => s.rules)
   const refreshPoints = usePoints((s) => s.refresh)
   useEffect(() => { listProducts().then(setProducts).catch(() => {}) }, [])
+  useProgress(busy)
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value })
 
   const sub = cartSubtotal(items)
@@ -31,14 +34,23 @@ export default function Checkout() {
   const discount = credit ? Math.min(rules.credit_ttd, sub) : 0
   const total = sub + shipping - discount
 
+  // How far through the form they are, shown as steps above it.
+  const steps = [
+    { name: 'Contact', done: !!(f.customer_name.trim() && /\S+@\S+\.\S+/.test(f.email) && f.phone.trim()) },
+    { name: 'Delivery', done: f.fulfillment === 'pickup' || !!f.address.trim() },
+    { name: 'Payment', done: !!f.payment_method },
+  ]
+  const ready = steps.filter((s) => s.done).length
+
   if (!items.length) return <div className="mx-auto max-w-xl px-4 py-20"><Empty title="Your bag is empty"><Link to="/shop" className="text-acid">Go shopping</Link></Empty></div>
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (f.fulfillment === 'delivery' && !f.address.trim()) return toast.error('Please add a delivery address.')
+    if (f.fulfillment === 'delivery' && !f.address.trim()) { nudge(document.getElementById('checkout-address')); return toast.error('Please add a delivery address.') }
     setBusy(true)
     try {
       const { code } = await placeOrder({ ...f, email: f.email.trim().toLowerCase(), items, use_credit: credit }, settings)
+      sfx('success')
       clear()
       refreshPoints()
       try { localStorage.removeItem('sp.designer.draft') } catch { /* ignore */ }
@@ -49,9 +61,20 @@ export default function Checkout() {
   }
 
   return (
-    <form onSubmit={submit} className="mx-auto grid max-w-6xl gap-8 px-4 py-12 lg:grid-cols-[1fr_400px]">
+    <form onSubmit={submit} onInvalidCapture={(e) => { sfx('error'); nudge(e.target, false) }} className="mx-auto grid max-w-6xl gap-8 px-4 py-12 lg:grid-cols-[1fr_400px]">
       <div className="space-y-6">
         <h1 className="font-poster text-5xl">Checkout</h1>
+        <ol className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider" aria-label={`${ready} of ${steps.length} sections complete`}>
+          {steps.map((s, i) => (
+            <li key={s.name} className="flex flex-1 items-center gap-2">
+              <span className={cx('grid h-6 w-6 shrink-0 place-items-center rounded-full border-2 transition duration-300', s.done ? 'border-acid bg-acid text-white' : 'border-ink-700 text-ink-400')}>
+                {s.done ? <Check size={13} strokeWidth={3} className="animate-pop-check" /> : i + 1}
+              </span>
+              <span className={cx('transition-colors', s.done ? 'text-black' : 'text-ink-400')}>{s.name}</span>
+              {i < steps.length - 1 && <span className="h-0.5 flex-1 overflow-hidden rounded-full bg-ink-800"><span className={cx('block h-full origin-left bg-acid transition-transform duration-500', s.done ? 'scale-x-100' : 'scale-x-0')} /></span>}
+            </li>
+          ))}
+        </ol>
         <Card className="space-y-4">
           <h2 className="font-display text-lg font-bold">Contact</h2>
           <Field label="Full name"><Input required value={f.customer_name} onChange={set('customer_name')} autoComplete="name" /></Field>
@@ -64,13 +87,13 @@ export default function Checkout() {
           <h2 className="font-display text-lg font-bold">Delivery</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {([['delivery', MapPin, 'Deliver to me', money(settings.shipping_fee)], ['pickup', Store, 'I will collect', 'Free']] as const).map(([v, Icon, t, d]) => (
-              <button type="button" key={v} onClick={() => setF({ ...f, fulfillment: v })} className={cx('flex items-center gap-3 rounded-xl border p-4 text-left transition', f.fulfillment === v ? 'border-acid bg-acid/10' : 'border-ink-700 hover:border-ink-400')}>
+              <button type="button" key={v} aria-pressed={f.fulfillment === v} onClick={() => { if (f.fulfillment !== v) sfx('select'); setF({ ...f, fulfillment: v }) }} className={cx('flex items-center gap-3 rounded-xl border p-4 text-left transition active:scale-[.98]', f.fulfillment === v ? 'border-acid bg-acid/10' : 'border-ink-700 hover:border-ink-400')}>
                 <Icon className={f.fulfillment === v ? 'text-acid' : 'text-ink-400'} />
                 <span><b className="block text-sm">{t}</b><span className="text-xs text-ink-400">{d}</span></span>
               </button>
             ))}
           </div>
-          {f.fulfillment === 'delivery' && <Field label="Delivery address"><Textarea value={f.address} onChange={set('address')} autoComplete="street-address" /></Field>}
+          {f.fulfillment === 'delivery' && <Field label="Delivery address"><Textarea id="checkout-address" value={f.address} onChange={set('address')} autoComplete="street-address" /></Field>}
           <Field label="Notes (optional)"><Textarea value={f.notes} onChange={set('notes')} placeholder="Deadline, event date, special requests…" /></Field>
         </Card>
         <CheckoutRewards items={items} products={products} credit={credit} setCredit={setCredit} />
@@ -105,11 +128,11 @@ export default function Checkout() {
           </ul>
           <div className="mt-5 space-y-2 border-t border-ink-800 pt-4 text-sm">
             <div className="flex justify-between"><span className="text-ink-400">Subtotal</span><span>{money(sub)}</span></div>
-            <div className="flex justify-between"><span className="text-ink-400">Delivery</span><span>{shipping ? money(shipping) : 'Free'}</span></div>
+            <div className="flex justify-between"><span className="text-ink-400">Delivery</span><Tick value={shipping}>{shipping ? money(shipping) : 'Free'}</Tick></div>
             {discount > 0 && <div className="flex justify-between text-acid"><span>Paradise Points credit</span><span>-{money(discount)}</span></div>}
-            <div className="flex justify-between pt-2 text-lg font-bold"><span>Total</span><span>{money(total)}</span></div>
+            <div className="flex justify-between pt-2 text-lg font-bold"><span>Total</span><Tick value={total}>{money(total)}</Tick></div>
           </div>
-          <Button size="lg" type="submit" className="mt-5 w-full" disabled={busy}><Lock size={16} /> {busy ? 'Placing order…' : 'Place order'}</Button>
+          <Button size="lg" type="submit" className="mt-5 w-full" disabled={busy}>{busy ? <><Loader2 size={16} className="animate-spin" /> Placing order…</> : <><Lock size={16} /> Place order</>}</Button>
         </Card>
       </aside>
     </form>

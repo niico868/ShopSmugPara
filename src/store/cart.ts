@@ -3,10 +3,13 @@ import { persist } from 'zustand/middleware'
 import type { OrderItem } from '../lib/types'
 import type { RewardId } from '../lib/rewards'
 import { uid } from '../lib/format'
+import { sfx } from '../lib/feedback'
 
 interface CartState {
   items: OrderItem[]
   open: boolean
+  /** The line most recently added, so the bag can light it up. */
+  lastAdded: string | null
   add: (item: OrderItem) => void
   setQty: (id: string, qty: number) => void
   remove: (id: string) => void
@@ -27,16 +30,20 @@ export const useCart = create<CartState>()(
     (set) => ({
       items: [],
       open: false,
-      add: (item) =>
+      lastAdded: null,
+      add: (item) => {
+        sfx('add')
         set((s) => {
           const existing = s.items.find((i) => sameLine(i, item))
           return {
             open: true,
+            lastAdded: existing?.id ?? item.id,
             items: existing
               ? s.items.map((i) => (i === existing ? { ...i, qty: i.qty + item.qty } : i))
               : [...s.items, item],
           }
-        }),
+        })
+      },
       setQty: (id, qty) => set((s) => ({ items: s.items.map((i) => (i.id === id && !i.reward ? { ...i, qty: Math.max(1, qty) } : i)) })),
       setReward: (id, reward, price = 0) => set((s) => {
         const line = s.items.find((i) => i.id === id) as Line | undefined
@@ -52,7 +59,7 @@ export const useCart = create<CartState>()(
         const rest = cleared.flatMap((i) => (i.id !== id ? [i] : i.qty > 1 ? [{ ...i, qty: i.qty - 1 }] : []))
         return { items: [...rest, free] }
       }),
-      remove: (id) => set((s) => ({ items: s.items.filter((i) => i.id !== id) })),
+      remove: (id) => { sfx('remove'); set((s) => ({ items: s.items.filter((i) => i.id !== id) })) },
       clear: () => set({ items: [] }),
       setOpen: (open) => set({ open }),
     }),

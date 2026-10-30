@@ -26,8 +26,12 @@ input[type='number']::-webkit-inner-spin-button { opacity: .4; }
 }
 .beacon { border-radius: 9999px; color: #111111 !important; animation: beacon 1s ease-in-out infinite; }
 
+/* Every pressable thing shows a clear focus ring for keyboard users. */
+:where(button, a, [role='radio'], input[type='checkbox']):focus-visible { outline: 2px solid #5caedb; outline-offset: 2px; }
+
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee { animation: none !important; }
+  .animate-tick, .animate-shake, .animate-page, .animate-pop-check, .animate-shimmer { animation: none !important; }
   .beacon { animation: none; box-shadow: 0 0 0 2px #5caedb, 0 0 18px 5px rgba(92, 174, 219, .6); background-color: rgba(92, 174, 219, .2); }
 }
 

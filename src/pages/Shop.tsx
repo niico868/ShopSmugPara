@@ -6,6 +6,7 @@ import { ProductCard } from '../components/ProductCard'
 import { Empty, PageLoader, Select, inputCls } from '../components/ui'
 import { cx } from '../lib/format'
 import { huntSpot } from '../lib/contraband'
+import { sfx } from '../lib/feedback'
 
 export default function Shop() {
   const [products, setProducts] = useState<Product[] | null>(null)
@@ -34,7 +35,7 @@ export default function Shop() {
         </div>
         <div className="flex gap-2 overflow-x-auto">
           {cats.map((c) => (
-            <button key={c} onClick={() => setCat(c)} className={cx('whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition', c === cat ? 'bg-black text-white' : 'bg-ink-800 text-ink-200 hover:bg-ink-700')}>{c}</button>
+            <button key={c} onClick={() => { if (c !== cat) sfx('select'); setCat(c) }} aria-pressed={c === cat} className={cx('whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition active:scale-95', c === cat ? 'bg-black text-white' : 'bg-ink-800 text-ink-200 hover:bg-ink-700')}>{c}</button>
           ))}
         </div>
         <Select value={sort} onChange={(e) => setSort(e.target.value)} className="md:w-48">
@@ -47,7 +48,7 @@ export default function Shop() {
       <div className="mt-10">
         {!products ? <PageLoader /> : shown.length === 0 ? <Empty title="No designs match">Try another search or category.</Empty> : (
           <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
-            {shown.map((p) => <ProductCard key={p.id} product={p} />)}
+            {shown.map((p, i) => <ProductCard key={p.id} product={p} delay={i} />)}
           </div>
         )}
       </div>
