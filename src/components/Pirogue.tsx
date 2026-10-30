@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { usePoints } from '../lib/points'
 
-// A pirogue, seen from above, that crosses the screen once a minute on a random straight line in any
+// A pirogue, seen from above, that crosses the screen at irregular times on a random straight line in any
 // direction, turned to face where it is going. Each hop lifts it toward the viewer (it grows and its
 // shadow falls away) and drops it back, pushing the water out from the hull. The outboard throws a
 // spray that re-forms several times a second, and a foam wake trails behind and fades.
@@ -9,7 +9,7 @@ import { usePoints } from '../lib/points'
 // Catching it (a click or tap) earns points, once per crossing, and makes it leap (even when the day's hold is full).
 
 const FIRST_RUN_MS = 4000
-const EVERY_MS = 60_000
+const RETRY_MS = 5000
 // Boat-local points, in boat lengths from the middle of the drawing (bow toward +x, starboard +y).
 const STERN = -0.43
 const ENGINE = -0.49
@@ -18,6 +18,17 @@ const HALF_BEAM = 0.09
 const PUSH_MS = 600
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a)
+
+/**
+ * How long until the next boat sets off, from when this one did. Usually about a minute or two, now and then
+ * three or four. Never shorter than the gap between rewarded catches, so every crossing can still earn points.
+ */
+function nextGap(): number {
+  const min = Math.max(55, usePoints.getState().rules.boat_gap_s + 5) * 1000
+  const r = Math.random()
+  const ms = r < 0.55 ? rand(55_000, 100_000) : r < 0.85 ? rand(100_000, 160_000) : rand(160_000, 240_000)
+  return Math.max(min, ms)
+}
 
 interface Route { x0: number; y0: number; x1: number; y1: number; a: number }
 interface Foam { x: number; y: number; vx: number; vy: number; r: number; grow: number; born: number; life: number }
@@ -192,8 +203,11 @@ export function Pirogue() {
       else { ctx.clearRect(0, 0, cv.width, cv.height); raf = 0 }
     }
 
+    let timer = 0
     const go = () => {
-      if (run || document.hidden) return
+      // A boat still out there, or nobody looking: try again shortly rather than skip the turn.
+      if (run || document.hidden) { timer = window.setTimeout(go, RETRY_MS); return }
+      timer = window.setTimeout(go, nextGap())
       const vw = window.innerWidth, vh = window.innerHeight
       const L = Math.max(39, Math.min(75, vw * 0.051))
       const r = pickRoute(vw, vh, L)
@@ -222,12 +236,10 @@ export function Pirogue() {
     }
     hitEl.addEventListener('pointerdown', onCatch)
 
-    const first = window.setTimeout(go, FIRST_RUN_MS)
-    const every = window.setInterval(go, EVERY_MS)
+    timer = window.setTimeout(go, FIRST_RUN_MS)
     window.addEventListener('resize', fit)
     return () => {
-      window.clearTimeout(first)
-      window.clearInterval(every)
+      window.clearTimeout(timer)
       window.removeEventListener('resize', fit)
       hitEl.removeEventListener('pointerdown', onCatch)
       cancelAnimationFrame(raf)
