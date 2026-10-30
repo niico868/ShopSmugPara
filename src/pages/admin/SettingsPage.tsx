@@ -34,11 +34,11 @@ export default function SettingsPage() {
       <Card className="grid gap-4 sm:grid-cols-2">
         <p className="text-sm text-ink-400 sm:col-span-2">Custom tees are priced on the print length of every area together (front, back, sleeves and label), counted as a 22-inch-wide strip (1 running inch = 22 sq in). The price runs smoothly between the three price points below, rounded to the nearest 5.</p>
         <Field label="Custom tee price"><Input type="number" step="0.01" value={s.custom_base_price} onChange={set('custom_base_price', true)} /></Field>
-        <Field label="Covers up to (running inches)"><Input type="number" step="0.5" value={s.print_included_in} onChange={set('print_included_in', true)} /></Field>
+        <Field label="Covers up to (running inches)" hint={`= ${Math.round(s.print_included_in * 22)} sq in`}><Input type="number" step="0.01" value={s.print_included_in} onChange={set('print_included_in', true)} /></Field>
         <Field label="Second price"><Input type="number" step="0.01" value={s.price_at_tier} onChange={set('price_at_tier', true)} /></Field>
-        <Field label="At (running inches)"><Input type="number" step="0.5" value={s.price_tier_in} onChange={set('price_tier_in', true)} /></Field>
+        <Field label="At (running inches)" hint={`= ${Math.round(s.price_tier_in * 22)} sq in`}><Input type="number" step="0.01" value={s.price_tier_in} onChange={set('price_tier_in', true)} /></Field>
         <Field label="Third price"><Input type="number" step="0.01" value={s.price_at_max} onChange={set('price_at_max', true)} /></Field>
-        <Field label="At (running inches)"><Input type="number" step="0.5" value={s.price_max_in} onChange={set('price_max_in', true)} /></Field>
+        <Field label="At (running inches)" hint={`= ${Math.round(s.price_max_in * 22)} sq in`}><Input type="number" step="0.01" value={s.price_max_in} onChange={set('price_max_in', true)} /></Field>
         <Field label="Per running inch beyond that"><Input type="number" step="0.01" value={s.price_per_inch_after} onChange={set('price_per_inch_after', true)} /></Field>
         <span className="hidden sm:block" />
         <Field label="Delivery fee"><Input type="number" step="0.01" value={s.shipping_fee} onChange={set('shipping_fee', true)} /></Field>
