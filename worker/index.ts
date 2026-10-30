@@ -41,9 +41,17 @@ async function findDesign(cfg: ShareConfig, id: string): Promise<DesignRow | nul
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } })
 
-// Steers every prompt towards a clean print graphic on plain white, which the designer then erases.
-const ART_STYLE = 'Print-ready t-shirt graphic: bold, clean artwork, centred, isolated on a plain pure white background. ' +
-  'No t-shirt, no mockup, no frame, no border, no watermark.'
+// Every drawing asks for the subject alone on plain white, which the designer then erases. The look is
+// left to the customer's words, or to the style they tapped.
+const BACKDROP = 'The subject alone, isolated on a plain pure white background. No t-shirt, no mockup, no frame, no border, no watermark.'
+const ART_STYLES: Record<string, string> = {
+  any: '',
+  graphic: 'Bold t-shirt graphic, clean vector lines, flat colours.',
+  illustration: 'Detailed digital illustration, rich colour and shading.',
+  realistic: 'Photorealistic, highly detailed, studio lighting.',
+  vintage: 'Vintage distressed screen-print style, retro colours.',
+  lineart: 'Black ink line art, fine detailed linework, no colour fill.',
+}
 
 // Supabase error text from claim_ai_art(), and what to tell the customer.
 const LIMITS: Record<string, [number, string]> = {
@@ -58,8 +66,9 @@ async function aiArt(req: Request, env: Env, origin: string): Promise<Response> 
   const auth = req.headers.get('Authorization')
   if (!cfg) return json({ error: 'AI art isn’t available on this site yet.' }, 503)
   if (!auth?.startsWith('Bearer ')) return json({ error: LIMITS.sign_in[1] }, 401)
-  const body = await req.json().catch(() => null) as { prompt?: unknown } | null
+  const body = await req.json().catch(() => null) as { prompt?: unknown; style?: unknown } | null
   const prompt = typeof body?.prompt === 'string' ? body.prompt.trim().slice(0, 500) : ''
+  const style = typeof body?.style === 'string' && Object.hasOwn(ART_STYLES, body.style) ? ART_STYLES[body.style] : ''
   if (!prompt) return json({ error: LIMITS.empty_prompt[1] }, 400)
 
   // Called as the customer (their sign-in token), so Supabase knows who they are.
@@ -76,7 +85,7 @@ async function aiArt(req: Request, env: Env, origin: string): Promise<Response> 
   const left = await claim.json() as number
 
   try {
-    const out = await env.AI.run('@cf/black-forest-labs/flux-1-schnell', { prompt: `${prompt}. ${ART_STYLE}`, steps: 6 })
+    const out = await env.AI.run('@cf/black-forest-labs/flux-1-schnell', { prompt: [`${prompt.replace(/[.\s]+$/, '')}.`, style, BACKDROP].filter(Boolean).join(' '), steps: 6 })
     if (!out.image) throw new Error('no image')
     return json({ image: `data:image/jpeg;base64,${out.image}`, left })
   } catch {
