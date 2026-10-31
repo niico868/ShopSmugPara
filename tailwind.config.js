@@ -39,8 +39,15 @@ export default {
         'pop-in': { from: { opacity: '0', transform: 'translateY(-8px) scale(.85)' }, to: { opacity: '1', transform: 'none' } },
         // The hidden Contraband coin bobs and glints so a sharp eye spots it.
         bob: { '0%, 100%': { transform: 'translateY(0) rotate(-6deg)' }, '50%': { transform: 'translateY(-4px) rotate(6deg)' } },
+        // Feedback: a changed number bumps, a missed field shakes, a new page fades up, a new bag line glows.
+        tick: { '0%': { transform: 'scale(1)' }, '35%': { transform: 'scale(1.25)' }, '100%': { transform: 'scale(1)' } },
+        shake: { '0%, 100%': { transform: 'none' }, '20%, 60%': { transform: 'translateX(-5px)' }, '40%, 80%': { transform: 'translateX(5px)' } },
+        page: { from: { opacity: '0', transform: 'translateY(6px)' }, to: { opacity: '1', transform: 'none' } },
+        glow: { '0%': { backgroundColor: 'rgba(92, 174, 219, .22)' }, '100%': { backgroundColor: 'rgba(92, 174, 219, 0)' } },
+        'pop-check': { '0%': { transform: 'scale(0) rotate(-45deg)', opacity: '0' }, '60%': { transform: 'scale(1.2) rotate(8deg)', opacity: '1' }, '100%': { transform: 'none', opacity: '1' } },
+        shimmer: { from: { transform: 'translateX(-100%)' }, to: { transform: 'translateX(250%)' } },
       },
-      animation: { marquee: 'marquee 30s linear infinite', rise: 'rise .5s ease both', 'float-away': 'float-away 7s cubic-bezier(.4,0,.2,1) both', 'bin-bump': 'bin-bump .45s ease-out', 'pop-in': 'pop-in .45s cubic-bezier(.3,1.5,.6,1) .5s both', bob: 'bob 2.4s ease-in-out infinite' },
+      animation: { marquee: 'marquee 30s linear infinite', rise: 'rise .5s ease both', 'float-away': 'float-away 7s cubic-bezier(.4,0,.2,1) both', 'bin-bump': 'bin-bump .45s ease-out', 'pop-in': 'pop-in .45s cubic-bezier(.3,1.5,.6,1) .5s both', bob: 'bob 2.4s ease-in-out infinite', tick: 'tick .3s ease-out', shake: 'shake .4s ease-in-out', page: 'page .3s ease-out both', glow: 'glow 1.6s ease-out', 'pop-check': 'pop-check .45s cubic-bezier(.3,1.5,.6,1) both', shimmer: 'shimmer 1.2s ease-in-out infinite' },
     },
   },
   plugins: [],

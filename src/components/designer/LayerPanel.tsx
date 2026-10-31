@@ -129,6 +129,13 @@ function RemoveBgButtons({ onErase, onAi, progress }: { onErase: () => void; onA
           {!busy ? 'Photo (AI)' : progress < 1 ? `Getting ready ${Math.round(progress * 100)}%` : 'Working…'}
         </button>
       </div>
+      {busy && (
+        <div className="mt-2 h-1 overflow-hidden rounded-full bg-ink-800" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress < 1 ? Math.round(progress * 100) : undefined}>
+          {progress < 1
+            ? <div className="h-full rounded-full bg-acid transition-[width] duration-300" style={{ width: `${Math.max(4, progress * 100)}%` }} />
+            : <div className="h-full w-2/5 animate-shimmer rounded-full bg-acid" />}
+        </div>
+      )}
       <p className="mt-1.5 text-xs text-ink-400">
         {busy && progress < 1
           ? 'First time only: the AI downloads a one-off 44 MB helper. Wi-Fi is best.'

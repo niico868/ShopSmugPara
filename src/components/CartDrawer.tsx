@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Minus, Plus, Trash2, X } from 'lucide-react'
 import { useCart, cartSubtotal } from '../store/cart'
@@ -6,9 +7,19 @@ import { colorName, READY_NOTE } from '../lib/constants'
 import { useSettings } from '../lib/settings'
 import { Button } from './ui'
 import { ItemThumb } from './ItemThumb'
+import { Tick } from './Feedback'
+import { lessMotion, sfx } from '../lib/feedback'
 
 export function CartDrawer() {
-  const { items, open, setOpen, setQty, remove } = useCart()
+  const { items, open, setOpen, setQty, remove, lastAdded } = useCart()
+  const [leaving, setLeaving] = useState<string | null>(null)
+  // The line slides out before it goes.
+  const drop = (id: string) => {
+    if (lessMotion()) return remove(id)
+    setLeaving(id)
+    setTimeout(() => { remove(id); setLeaving(null) }, 200)
+  }
+  const step = (id: string, qty: number) => { sfx('tap'); setQty(id, qty) }
   const { settings } = useSettings()
   const nav = useNavigate()
   const sub = cartSubtotal(items)
@@ -39,28 +50,28 @@ export function CartDrawer() {
             )}
             <ul className="flex-1 divide-y divide-ink-800 overflow-y-auto">
               {items.map((it) => (
-                <li key={it.id} className="flex gap-4 p-5">
+                <li key={it.id} className={cx('flex gap-4 p-5 transition duration-200', it.id === lastAdded && 'animate-glow', leaving === it.id && 'translate-x-8 opacity-0')}>
                   <ItemThumb item={it} className="h-24 w-20 shrink-0" />
                   <div className="flex flex-1 flex-col">
                     <div className="flex justify-between gap-2">
                       <p className="font-semibold">{it.name}</p>
-                      <p className="font-semibold">{money(it.unit_price * it.qty)}</p>
+                      <Tick value={it.unit_price * it.qty} className="font-semibold">{money(it.unit_price * it.qty)}</Tick>
                     </div>
                     <p className="text-xs text-ink-400">{colorName(it.color)} · {it.size}{it.kind === 'custom' && ' · Custom print'}{it.reward && <span className="font-semibold text-acid"> · Reward tee</span>}</p>
                     <div className="mt-auto flex items-center justify-between pt-3">
                       {it.reward ? <span className="text-xs text-ink-400">One reward tee</span> : <div className="flex items-center rounded-full border border-ink-700">
-                        <button className="p-1.5" onClick={() => setQty(it.id, it.qty - 1)} aria-label="Decrease"><Minus size={14} /></button>
-                        <span className="w-8 text-center text-sm">{it.qty}</span>
-                        <button className="p-1.5" onClick={() => setQty(it.id, it.qty + 1)} aria-label="Increase"><Plus size={14} /></button>
+                        <button className="rounded-full p-1.5 transition hover:bg-ink-800 active:scale-90 disabled:opacity-30" disabled={it.qty <= 1} onClick={() => step(it.id, it.qty - 1)} aria-label="Decrease"><Minus size={14} /></button>
+                        <Tick value={it.qty} className="w-8 text-center text-sm" />
+                        <button className="rounded-full p-1.5 transition hover:bg-ink-800 active:scale-90" onClick={() => step(it.id, it.qty + 1)} aria-label="Increase"><Plus size={14} /></button>
                       </div>}
-                      <button onClick={() => remove(it.id)} className="text-ink-400 hover:text-flame" aria-label="Remove"><Trash2 size={16} /></button>
+                      <button onClick={() => drop(it.id)} className="text-ink-400 transition hover:text-flame active:scale-90" aria-label="Remove"><Trash2 size={16} /></button>
                     </div>
                   </div>
                 </li>
               ))}
             </ul>
             <div className="border-t border-ink-800 p-5">
-              <div className="mb-4 flex justify-between text-lg font-bold"><span>Subtotal</span><span>{money(sub)}</span></div>
+              <div className="mb-4 flex justify-between text-lg font-bold"><span>Subtotal</span><Tick value={sub}>{money(sub)}</Tick></div>
               <Button size="lg" className="w-full" onClick={() => { setOpen(false); nav('/checkout') }}>Checkout</Button>
               <p className="mt-3 text-center text-xs text-ink-400">{READY_NOTE}</p>
             </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Minus, Plus, Ruler, ShieldCheck, Truck } from 'lucide-react'
+import { ArrowLeft, Check, Minus, Plus, Ruler, ShieldCheck, Truck } from 'lucide-react'
 import { getProduct, listProducts } from '../lib/api'
 import type { Product as P } from '../lib/types'
 import { Button, Empty, PageLoader, Swatch } from '../components/ui'
@@ -10,6 +10,8 @@ import { cx, money, uid } from '../lib/format'
 import { useCart } from '../store/cart'
 import { toast } from '../components/Toast'
 import { huntSpot } from '../lib/contraband'
+import { sfx } from '../lib/feedback'
+import { Tick } from '../components/Feedback'
 
 const GUIDE = [['S', '91', '71'], ['M', '97', '74'], ['L', '104', '76'], ['XL', '112', '79'], ['2XL', '120', '81'], ['3XL', '128', '84']]
 
@@ -30,6 +32,8 @@ export default function Product() {
   const [qty, setQty] = useState(1)
   const [guide, setGuide] = useState(false)
   const [shot, setShot] = useState(0)
+  const [added, setAdded] = useState(false)
+  useEffect(() => { if (!added) return; const t = setTimeout(() => setAdded(false), 1800); return () => clearTimeout(t) }, [added])
 
   useEffect(() => {
     setP(undefined)
@@ -49,6 +53,7 @@ export default function Product() {
   const addToBag = () => {
     add({ id: uid(), kind: 'catalog', product_id: p.id, name: p.name, color, size, qty, unit_price: p.price, image_url: p.image_url })
     toast.success(`${p.name} added to your bag`)
+    setAdded(true)
   }
 
   return (
@@ -62,7 +67,7 @@ export default function Product() {
           {photos.length > 1 && (
             <div className="mt-3 flex gap-3">
               {photos.map((src, i) => (
-                <button key={src} onClick={() => setShot(i)} className={cx('h-20 w-20 border bg-white p-1 transition', i === shot ? 'border-black' : 'border-transparent hover:border-ink-600')} aria-label={`Photo ${i + 1}`}>
+                <button key={src} onClick={() => setShot(i)} className={cx('h-20 w-20 border bg-white p-1 transition active:scale-95', i === shot ? 'border-black' : 'border-transparent hover:border-ink-600')} aria-label={`Photo ${i + 1}`}>
                   <img src={src} alt="" className="h-full w-full object-contain" />
                 </button>
               ))}
@@ -88,7 +93,7 @@ export default function Product() {
             </div>
             <div className="flex flex-wrap gap-2">
               {p.sizes.map((s) => (
-                <button key={s} onClick={() => setSize(s)} className={cx('h-11 min-w-12 rounded-xl border px-3 text-sm font-semibold transition', s === size ? 'border-black bg-black text-white' : 'border-ink-700 hover:border-ink-400')}>{s}</button>
+                <button key={s} onClick={() => { if (s !== size) sfx('select'); setSize(s) }} aria-pressed={s === size} className={cx('h-11 min-w-12 rounded-xl border px-3 text-sm font-semibold transition active:scale-95', s === size ? 'border-black bg-black text-white' : 'border-ink-700 hover:border-ink-400')}>{s}</button>
               ))}
             </div>
             {guide && (
@@ -101,11 +106,13 @@ export default function Product() {
 
           <div className="mt-8 flex gap-3">
             <div className="flex items-center rounded-full border border-ink-700">
-              <button className="p-3" onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Decrease"><Minus size={16} /></button>
-              <span className="w-8 text-center font-semibold">{qty}</span>
-              <button className="p-3" onClick={() => setQty(qty + 1)} aria-label="Increase"><Plus size={16} /></button>
+              <button className="rounded-full p-3 transition active:scale-90 disabled:opacity-30" disabled={qty <= 1} onClick={() => { sfx('tap'); setQty(Math.max(1, qty - 1)) }} aria-label="Decrease"><Minus size={16} /></button>
+              <Tick value={qty} className="w-8 text-center font-semibold" />
+              <button className="rounded-full p-3 transition active:scale-90" onClick={() => { sfx('tap'); setQty(qty + 1) }} aria-label="Increase"><Plus size={16} /></button>
             </div>
-            <Button size="lg" className="flex-1" onClick={addToBag}>Add to bag · {money(p.price * qty)}</Button>
+            <Button size="lg" className={cx('flex-1', added && '!bg-acid')} onClick={addToBag}>
+              {added ? <><Check size={18} className="animate-pop-check" /> Added to bag</> : <>Add to bag · <Tick value={p.price * qty}>{money(p.price * qty)}</Tick></>}
+            </Button>
           </div>
 
           <div className="mt-8 grid gap-3 text-sm text-ink-400 sm:grid-cols-2">

@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
 import { cx } from '../lib/format'
+import { sfx } from '../lib/feedback'
 import { STATUS_META } from '../lib/constants'
 import type { OrderStatus } from '../lib/types'
 
@@ -9,7 +10,7 @@ export function Button({ variant = 'primary', size = 'md', className, ...p }: Bt
     <button
       {...p}
       className={cx(
-        'inline-flex items-center justify-center gap-2 rounded-full font-semibold transition active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50',
+        'inline-flex items-center justify-center gap-2 rounded-full font-semibold transition duration-150 hover:-translate-y-px active:translate-y-0 active:scale-[.96] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 motion-reduce:hover:translate-y-0',
         size === 'sm' && 'px-3 py-1.5 text-xs',
         size === 'md' && 'px-5 py-2.5 text-sm',
         size === 'lg' && 'px-7 py-3.5 text-base',
@@ -59,8 +60,9 @@ export function Swatch({ hex, active, onClick, title }: { hex: string; active?: 
       type="button"
       title={title}
       aria-label={title}
-      onClick={onClick}
-      className={cx('h-8 w-8 rounded-full border-2 transition', active ? 'scale-110 border-acid' : 'border-ink-700 hover:border-ink-400')}
+      aria-pressed={active}
+      onClick={() => { if (!active) sfx('select'); onClick?.() }}
+      className={cx('h-8 w-8 rounded-full border-2 transition duration-200 active:scale-90', active ? 'scale-110 border-acid ring-4 ring-acid/20' : 'border-ink-700 hover:scale-105 hover:border-ink-400')}
       style={{ background: hex }}
     />
   )
