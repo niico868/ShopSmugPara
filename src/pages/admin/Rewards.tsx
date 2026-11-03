@@ -54,7 +54,7 @@ function Queue() {
   }
   return (
     <div className="space-y-3">
-      <label className="flex items-center gap-2 text-sm text-ink-400"><input type="checkbox" checked={all} onChange={(e) => setAll(e.target.checked)} className="accent-[#5caedb]" /> Show reviewed posts too</label>
+      <label className="flex items-center gap-2 text-sm text-ink-400"><input type="checkbox" checked={all} onChange={(e) => setAll(e.target.checked)} className="accent-[#b3261e]" /> Show reviewed posts too</label>
       {shown.length === 0 ? <Empty title={all ? 'No submissions yet' : 'Nothing waiting for review'} /> : shown.map((x) => (
         <Card key={x.id} className="flex flex-wrap items-start gap-4">
           {x.screenshot && <a href={x.screenshot} target="_blank" rel="noreferrer"><img src={x.screenshot} alt="Screenshot" className="h-24 w-24 rounded-xl border border-ink-800 object-cover" /></a>}

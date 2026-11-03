@@ -1,15 +1,16 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { ArrowRight, Brush, Instagram } from 'lucide-react'
+import { ArrowRight, Instagram } from 'lucide-react'
 import { listProducts } from '../lib/api'
 import type { Product } from '../lib/types'
-import { ProductCard } from '../components/ProductCard'
 import { TeeMockup } from '../components/TeeMockup'
-import { Button } from '../components/ui'
-import { useSettings } from '../lib/settings'
 import { INSTAGRAM, brandMark } from '../lib/brand'
 import { huntSpot } from '../lib/contraband'
-import { TreasureMap } from '../components/Contraband'
+import { liveCampaign } from '../lib/campaigns'
+import { CampaignHero } from '../components/home/CampaignHero'
+import { StickyCollection } from '../components/home/StickyCollection'
+import { SpinCarousel } from '../components/home/SpinCarousel'
+import { FallText, Reveal } from '../components/motion'
 
 const STEPS = [
   { t: 'Pick a tee', d: 'Shop a drop, or choose a regular or oversized blank.' },
@@ -21,121 +22,92 @@ const STEPS = [
 const CODES = [
   { t: 'Sovereignty', d: 'No handouts. No masters. No outside control.\nWe answer to who we rely on.' },
   { t: 'Risk', d: 'Risk is the tax on freedom.\nWe pay it willingly. Every time.' },
-  { t: 'Purpose', d: 'Every move answers to something.\nOurs isn\u2019t random.' },
+  { t: 'Purpose', d: 'Every move answers to something.\nOurs isn’t random.' },
 ]
 
 export default function Home() {
-  const { settings } = useSettings()
   const [products, setProducts] = useState<Product[]>([])
   useEffect(() => { listProducts().then(setProducts).catch(() => {}) }, [])
   const featured = products.filter((p) => p.featured)
-  const shown = (featured.length ? featured : products).slice(0, 8)
-  const lead = shown[0]
+  const shown = (featured.length ? featured : products).slice(0, 9)
 
   return (
     <>
-      <section className="relative overflow-hidden bg-black text-white">
-        {/* The brand emblem, faint behind the hero */}
-        <span aria-hidden className="pointer-events-none absolute -right-24 top-1/2 hidden h-[520px] w-[860px] -translate-y-1/2 opacity-[.07] md:block" style={brandMark('/brand/emblem.svg', '#ffffff')} />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 md:grid-cols-[1.1fr_1fr] md:py-24">
-          <div className="animate-rise">
-            <p className="mb-5 text-xs font-semibold uppercase tracking-[.3em] text-acid">Smuggler&rsquo;s Paradise &middot; Trinidad &amp; Tobago</p>
-            <p className="mb-1 text-sm font-semibold uppercase tracking-[.35em] text-white/60">Made for</p>
-            <h1 {...huntSpot('home-headline')} className="font-pirate text-[13vw] leading-[.95] sm:text-7xl lg:text-8xl">
-              The Brave<br /><span className="text-acid">The Risk Takers</span><br />The Streets
-            </h1>
-            <p className="mt-6 max-w-md text-base text-white/70">
-              Some move with the crowd. We move with intent. Heavyweight tees born on the beaches of Trinidad and Tobago, and a studio to print your own.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link to={lead ? `/shop/${lead.slug}` : '/shop'}><Button size="lg" className="!bg-white !text-black hover:!bg-acid hover:!text-white">{lead ? `Shop ${lead.name}` : 'Shop now'} <ArrowRight size={18} /></Button></Link>
-              <Link to="/design"><Button size="lg" variant="outline" className="!border-white !text-white hover:!bg-white hover:!text-black"><Brush size={18} /> Design your own</Button></Link>
-            </div>
-            <TreasureMap className="mt-6" />
-          </div>
-          <div className="relative mx-auto w-full max-w-md">
-            {lead ? (
-              <Link {...huntSpot('home-drop')} to={`/shop/${lead.slug}`} className="group block bg-white p-4 text-black transition hover:-translate-y-1">
-                <img src={lead.image_url} alt={lead.name} className="aspect-square w-full object-contain" />
-                <span className="mt-3 flex items-baseline justify-between border-t border-black pt-3">
-                  <span className="text-[11px] font-semibold uppercase tracking-[.25em] text-acid">New drop</span>
-                  <span className="font-pirate text-2xl">{lead.name}</span>
-                </span>
-              </Link>
-            ) : (
-              <span role="img" aria-label={settings.store_name} className="block aspect-[1/.62] w-full" style={brandMark('/brand/emblem.svg', '#ffffff')} />
-            )}
-          </div>
+      <CampaignHero />
+
+      <StickyCollection
+        year={liveCampaign.year}
+        title={liveCampaign.title}
+        line={liveCampaign.line}
+        to={`/campaigns/${liveCampaign.slug}`}
+        products={shown}
+      />
+
+      <section className="relative z-10 bg-coal px-4 py-24 text-white sm:px-8 md:py-36">
+        <p className="mb-5 text-xs font-semibold uppercase tracking-[.3em] text-white/70">Made for</p>
+        <FallText {...huntSpot('home-headline')} as="h2" text={'The Brave\nThe Risk Takers\nThe Streets'} className="font-pirate text-[15vw] leading-[.98] md:text-[10vw]" />
+        <p className="mt-8 max-w-md text-white/75">Some move with the crowd. We move with intent. Heavyweight tees born on the beaches of Trinidad and Tobago, and a studio to print your own.</p>
+      </section>
+
+      <section className="relative z-10 overflow-hidden bg-coal pb-20 text-white">
+        <div className="flex items-end justify-between gap-4 px-4 pb-4 sm:px-8">
+          <FallText text="The world" className="font-poster text-2xl uppercase sm:text-4xl" />
+          <p className="text-xs uppercase tracking-[.2em] text-white/60">Hold &amp; drag</p>
+        </div>
+        <SpinCarousel />
+      </section>
+
+      <section className="relative z-10 grid gap-px bg-coal md:grid-cols-3">
+        {CODES.map((c, i) => (
+          <Reveal key={c.t} delay={i * 110} className="bg-paper px-6 py-14 sm:px-8 md:min-h-[320px]">
+            <p className="font-poster text-xs text-ink-400">0{i + 1}</p>
+            <p {...huntSpot(`home-code-${i + 1}`)} className="mt-14 w-max max-w-full font-pirate text-5xl lg:text-6xl">{c.t}</p>
+            <p className="mt-4 whitespace-pre-line text-sm text-ink-400">{c.d}</p>
+          </Reveal>
+        ))}
+      </section>
+
+      <section className="relative z-10 grid gap-10 bg-paper px-4 py-24 sm:px-8 md:grid-cols-3">
+        <div>
+          <span aria-hidden className="block h-16 w-16" style={brandMark('/brand/sp-monogram.svg', '#0b0b0b')} />
+          <FallText {...huntSpot('home-who')} text="Who are we" className="mt-6 font-pirate text-5xl lg:text-6xl" />
+        </div>
+        <Reveal className="md:col-span-2 md:max-w-3xl">
+          <p className="text-xl leading-relaxed lg:text-3xl lg:leading-snug">
+            Smuggler&rsquo;s Paradise wasn&rsquo;t born as a brand. It began on the beaches of Trinidad and Tobago, in the places the system forgot,
+            where we moved in the gaps, built in the margins and carved our own road. It&rsquo;s for those who treat freedom, wealth and risk
+            as part of the same language.
+          </p>
+          <p {...huntSpot('home-way-of-life')} className="mt-6 w-max max-w-full font-pirate text-3xl">That&rsquo;s not a brand story. That&rsquo;s a way of life.</p>
+          <a href={INSTAGRAM} target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 border border-coal px-6 py-3 text-xs font-semibold uppercase tracking-[.2em] transition hover:bg-coal hover:text-white">
+            <Instagram size={16} /> Follow @smugglerparadise
+          </a>
+        </Reveal>
+      </section>
+
+      <section {...huntSpot('home-studio')} className="relative z-10 grid items-center overflow-hidden bg-coal text-white md:grid-cols-2">
+        <div className="px-4 py-16 sm:px-8 md:py-24">
+          <p className="text-xs font-semibold uppercase tracking-[.3em] text-white/70">Design studio</p>
+          <FallText text={'Got an idea?\nPrint it.'} className="mt-3 font-poster text-4xl uppercase leading-none sm:text-6xl" />
+          <p className="mt-5 max-w-md text-white/70">Pick a regular or oversized Shaka Wear tee in black, white, cream or grey. Upload your artwork, add text, or use the Smug Para pack of official marks and quotes. Preview it live and order in minutes.</p>
+          <Link to="/design" className="mt-7 inline-flex h-12 items-center gap-2 bg-white px-6 font-poster text-xs uppercase tracking-widest text-black transition hover:bg-acid hover:text-white">Open the designer <ArrowRight size={16} /></Link>
+        </div>
+        <div className="flex justify-center gap-2 bg-paper px-6 py-10">
+          <TeeMockup color="#111111" fit="oversized" className="w-1/2 max-w-[300px]" />
+          <TeeMockup color="#efe6d2" fit="regular" className="w-1/2 max-w-[300px]" />
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pt-16">
-        <div className="mb-8 flex items-end justify-between border-b border-black pb-3">
-          <h2 {...huntSpot('home-arrivals')} className="font-poster text-2xl uppercase tracking-wide">New arrivals</h2>
-          <Link to="/shop" className="text-xs font-semibold uppercase tracking-[.2em] hover:text-acid">View all</Link>
-        </div>
-        {shown.length ? (
-          <div className="grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-4">
-            {shown.map((p) => <ProductCard key={p.id} product={p} />)}
-          </div>
-        ) : (
-          <p className="py-10 text-center text-sm text-ink-400">New pieces are on the way.</p>
-        )}
-      </section>
-
-      <section className="mt-24 bg-black text-white">
-        <div className="mx-auto max-w-7xl px-4 py-16">
-          <p className="text-center text-xs font-semibold uppercase tracking-[.3em] text-acid">Brand codes</p>
-          <div className="mt-10 grid gap-10 text-center md:grid-cols-3">
-            {CODES.map((c, i) => (
-              <div key={c.t}>
-                <p {...huntSpot(`home-code-${i + 1}`)} className="mx-auto w-max font-pirate text-5xl">{c.t}</p>
-                <p className="mx-auto mt-3 max-w-xs whitespace-pre-line text-sm text-white/65">{c.d}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-2xl px-4 pt-20 text-center">
-        <span aria-hidden className="mx-auto block h-20 w-20" style={brandMark('/brand/sp-monogram.svg', '#5caedb')} />
-        <h2 {...huntSpot('home-who')} className="mx-auto mt-6 w-max font-pirate text-5xl">Who are we</h2>
-        <p className="mt-5 text-ink-400">
-          Smuggler&rsquo;s Paradise wasn&rsquo;t born as a brand. It began on the beaches of Trinidad and Tobago, in the places the system forgot,
-          where we moved in the gaps, built in the margins and carved our own road. It&rsquo;s for those who treat freedom, wealth and risk
-          as part of the same language.
-        </p>
-        <p {...huntSpot('home-way-of-life')} className="mt-5 font-pirate text-3xl">That&rsquo;s not a brand story. That&rsquo;s a way of life.</p>
-        <a href={INSTAGRAM} target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 border border-black px-6 py-3 text-xs font-semibold uppercase tracking-[.2em] transition hover:bg-black hover:text-white">
-          <Instagram size={16} /> Follow @smugglerparadise
-        </a>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 pt-24">
-        <div {...huntSpot('home-studio')} className="grid items-center gap-8 overflow-hidden bg-ink-900 md:grid-cols-2">
-          <div className="p-8 md:p-14">
-            <p className="text-xs font-semibold uppercase tracking-[.3em] text-acid">Design studio</p>
-            <h2 className="mt-3 font-poster text-4xl uppercase leading-none sm:text-5xl">Got an idea?<br />Print it.</h2>
-            <p className="mt-4 max-w-md text-ink-400">Pick a regular or oversized Shaka Wear tee in black, white, cream or grey. Upload your artwork, add text, or use the Smug Para pack of official marks and quotes. Preview it live and order in minutes.</p>
-            <Link to="/design"><Button size="lg" className="mt-6">Open the designer <ArrowRight size={18} /></Button></Link>
-          </div>
-          <div className="flex justify-center gap-2 px-6 pb-8 md:pb-0">
-            <TeeMockup color="#111111" fit="oversized" className="w-1/2 max-w-[260px]" />
-            <TeeMockup color="#efe6d2" fit="regular" className="w-1/2 max-w-[260px]" />
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 pt-20">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {STEPS.map((s, i) => (
-            <div key={s.t} {...(i === 2 ? huntSpot('home-step-3') : {})} className="border-t border-black pt-4">
-              <p className="font-poster text-sm text-acid">0{i + 1}</p>
-              <p className="mt-2 font-semibold uppercase tracking-wide">{s.t}</p>
+      <section className="relative z-10 grid gap-8 bg-paper px-4 py-20 sm:grid-cols-2 sm:px-8 lg:grid-cols-4">
+        {STEPS.map((s, i) => (
+          <Reveal key={s.t} delay={i * 80}>
+            <div {...(i === 2 ? huntSpot('home-step-3') : {})} className="border-t border-coal pt-4">
+              <p className="font-poster text-xs text-ink-400">0{i + 1}</p>
+              <p className="mt-2 font-bold uppercase tracking-wide">{s.t}</p>
               <p className="mt-1 text-sm text-ink-400">{s.d}</p>
             </div>
-          ))}
-        </div>
+          </Reveal>
+        ))}
       </section>
     </>
   )

@@ -7,7 +7,7 @@ import { canRemoveBackground } from '../../lib/bgRemoval'
 import { Field, Select, Textarea } from '../ui'
 import { Range, Toggle } from './Controls'
 
-const INK = ['#111111', '#ffffff', '#5caedb', '#d4a537', '#ff5c39', '#ffd23d', '#b48cff', '#5ee6c1', '#e8467c']
+const INK = ['#111111', '#ffffff', '#b3261e', '#d4a537', '#ff5c39', '#ffd23d', '#b48cff', '#5ee6c1', '#e8467c']
 
 /** Print-quality verdict for an uploaded image at its current size. */
 export function dpiNote(l: Layer, fit?: Fit): { level: 'bad' | 'soft'; text: string } | null {

@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Suspense, useEffect, useState } from 'react'
-import { ArrowUp, Check, Copy, Instagram, Menu, ShoppingBag, X, Sparkles, User } from 'lucide-react'
+import { ArrowUp, Check, Copy, Instagram, Menu, ShoppingBag, X, User } from 'lucide-react'
 import { useAccount } from '../lib/auth'
 import { useCart, cartCount } from '../store/cart'
 import { useSettings } from '../lib/settings'
@@ -16,12 +16,35 @@ import { Intro, SoundToggle } from './Intro'
 import { WhatsAppIcon } from './icons'
 import { BRAND_LINE, INSTAGRAM, TAGLINE, WHATSAPP } from '../lib/brand'
 import { RouteProgress, SfxToggle, Tick, TopProgress } from './Feedback'
+import { MembersPopup } from './MembersPopup'
+import { listProducts } from '../lib/api'
+import type { Product } from '../lib/types'
+import { visibleCategories } from '../lib/catalog'
+import { CAMPAIGN_LINKS, CUSTOM_LINKS, SHOP_LINKS, SUPPORT_LINKS, WORLD_LINKS, shown, type MapLink } from '../lib/siteMap'
 
-const links = [
-  { to: '/shop', label: 'Shop' },
-  { to: '/design', label: 'Design yours' },
-  { to: '/track', label: 'Track order' },
-]
+const navCls = 'text-xs font-semibold uppercase tracking-[.16em] transition hover:text-acid'
+
+function MenuGroup({ title, links, big }: { title: string; links: MapLink[]; big?: boolean }) {
+  return (
+    <div>
+      <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-ink-400">{title}</p>
+      <ul className={big ? 'space-y-2 font-poster text-lg uppercase' : 'space-y-2 text-sm font-semibold'}>
+        {links.map((l) => <li key={l.to}><Link to={l.to} className="transition hover:text-acid">{l.label}</Link></li>)}
+      </ul>
+    </div>
+  )
+}
+
+function FooterGroup({ title, links }: { title: string; links: MapLink[] }) {
+  return (
+    <div className="text-sm">
+      <p className="mb-4 text-xs font-semibold uppercase tracking-[.2em] text-white">{title}</p>
+      <ul className="space-y-2 text-white/60">
+        {links.map((l) => <li key={l.to}><Link className="transition hover:text-white" to={l.to}>{l.label}</Link></li>)}
+      </ul>
+    </div>
+  )
+}
 
 export function Logo({ className }: { className?: string }) {
   const { settings } = useSettings()
@@ -34,12 +57,12 @@ export function Logo({ className }: { className?: string }) {
 }
 
 /** On a shared design, a callout under the glowing "Design yours" link (or the phone menu button) that invites people to make their own. */
-function DesignTip({ onClose, align }: { onClose: () => void; align: 'center' | 'right' }) {
+function DesignTip({ onClose, align }: { onClose: () => void; align: 'center' | 'left' }) {
   const centre = align === 'center'
   return (
-    <div role="note" className={cx('absolute top-full z-50 mt-8 w-60 animate-pop-in rounded-2xl bg-black p-4 pr-9 text-left text-white shadow-[0_10px_40px_rgba(92,174,219,.45)] ring-2 ring-acid', centre ? 'left-1/2 -ml-[7.5rem]' : '-right-1')}>
-      <span aria-hidden className={cx('absolute -top-2 h-4 w-4 rotate-45 bg-black ring-2 ring-acid [clip-path:polygon(0_0,100%_0,0_100%)]', centre ? 'left-1/2 -ml-2' : 'right-4')} />
-      <ArrowUp aria-hidden size={18} className={cx('absolute -top-7 animate-bounce text-acid', centre ? 'left-1/2 -ml-[9px]' : 'right-[15px]')} />
+    <div role="note" className={cx('absolute top-full z-50 mt-8 w-60 animate-pop-in bg-black p-4 pr-9 text-left text-white shadow-[0_10px_40px_rgba(179,38,30,.45)] ring-2 ring-acid', centre ? 'left-1/2 -ml-[7.5rem]' : '-left-1')}>
+      <span aria-hidden className={cx('absolute -top-2 h-4 w-4 rotate-45 bg-black ring-2 ring-acid [clip-path:polygon(0_0,100%_0,0_100%)]', centre ? 'left-1/2 -ml-2' : 'left-4')} />
+      <ArrowUp aria-hidden size={18} className={cx('absolute -top-7 animate-bounce text-acid', centre ? 'left-1/2 -ml-[9px]' : 'left-[15px]')} />
       <p className="font-poster text-sm uppercase tracking-wider">Like this tee?</p>
       <p className="mt-1 text-sm text-white/70">Make one that&rsquo;s all yours with <b className="text-acid">Design yours</b>.</p>
       <button onClick={onClose} className="absolute right-2 top-2 rounded-full p-1 text-white/60 hover:bg-white/10 hover:text-white" aria-label="Hide tip"><X size={16} /></button>
@@ -51,9 +74,13 @@ export default function Layout() {
   const { items, setOpen } = useCart()
   const { settings } = useSettings()
   const [menu, setMenu] = useState(false)
+  const [mega, setMega] = useState(false)
+  const [products, setProducts] = useState<Product[]>([])
+  useEffect(() => { listProducts().then(setProducts).catch(() => {}) }, [])
+  const cats: MapLink[] = visibleCategories(products).map((c) => ({ to: `/collections/${c.handle}`, label: c.label }))
   const loc = useLocation()
   const [tipOff, setTipOff] = useState(false)
-  useEffect(() => { setMenu(false); setTipOff(false); window.scrollTo(0, 0) }, [loc.pathname])
+  useEffect(() => { setMenu(false); setMega(false); setTipOff(false); window.scrollTo(0, 0) }, [loc.pathname])
   // Someone opened a shared design link: light up "Design yours" until they use it or close the tip.
   const beacon = loc.pathname.startsWith('/d/') && !tipOff
   const count = cartCount(items)
@@ -62,59 +89,69 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <div className="overflow-hidden bg-black py-2 text-[11px] font-semibold uppercase tracking-[.25em] text-white">
-        <div className="flex w-max animate-marquee gap-12 whitespace-nowrap">
+      <div className="overflow-hidden bg-coal py-2 text-[11px] font-semibold uppercase tracking-[.25em] text-white">
+        <div className="flex w-max animate-marquee gap-16 whitespace-nowrap">
           {Array.from({ length: 8 }).map((_, i) => (
-            <span key={i} className="flex items-center gap-2"><Sparkles size={12} className="text-acid" />{i % 2 ? BRAND_LINE : settings.announcement || TAGLINE}</span>
+            <span key={i}>{i % 2 ? BRAND_LINE : settings.announcement || TAGLINE}</span>
           ))}
         </div>
       </div>
-      <header className="sticky top-0 z-40 border-b border-black/10 bg-white/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4">
-          <Logo />
-          <nav className="hidden items-center gap-1 md:flex">
-            {links.map((l) => {
-              const lit = beacon && l.to === '/design'
-              return (
-                <span key={l.to} className="relative">
-                  <NavLink to={l.to} className={({ isActive }) => cx('block px-4 py-2 text-xs font-semibold uppercase tracking-[.18em] transition', isActive ? 'text-acid' : 'text-black hover:text-acid', lit && 'beacon')}>
-                    {l.label}
-                  </NavLink>
-                  {lit && <DesignTip onClose={() => setTipOff(true)} align="center" />}
-                </span>
-              )
-            })}
+      <header className="sticky top-0 z-40 border-b border-black/10 bg-paper" onMouseLeave={() => setMega(false)}>
+        <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 sm:px-8">
+          <nav className="hidden items-center gap-6 lg:flex" aria-label="Main">
+            <button onMouseEnter={() => setMega(true)} onClick={() => setMega(!mega)} aria-expanded={mega} className={cx(navCls, mega && 'text-acid')}>Shop</button>
+            <NavLink to="/campaigns" className={({ isActive }) => cx(navCls, isActive && 'text-acid')} onMouseEnter={() => setMega(false)}>Campaigns</NavLink>
+            <NavLink to="/world" className={({ isActive }) => cx(navCls, isActive && 'text-acid')} onMouseEnter={() => setMega(false)}>World</NavLink>
+            <span className="relative">
+              <NavLink to="/design" className={({ isActive }) => cx(navCls, 'block', isActive && 'text-acid', beacon && 'beacon px-2 py-1')} onMouseEnter={() => setMega(false)}>Design yours</NavLink>
+              {beacon && <DesignTip onClose={() => setTipOff(true)} align="center" />}
+            </span>
           </nav>
-          <div className="flex items-center gap-1 sm:gap-2">
+          <span className="relative lg:hidden">
+            <button className={cx('p-2', beacon && !menu && 'beacon')} onClick={() => setMenu(!menu)} aria-expanded={menu} aria-label="Menu">
+              {menu ? <X size={22} /> : <Menu size={22} />}
+            </button>
+            {beacon && !menu && <DesignTip onClose={() => setTipOff(true)} align="left" />}
+          </span>
+          <Logo />
+          <div className="flex items-center justify-end gap-0.5 sm:gap-1.5">
             {/* Signed in, the points counter links to the account too, so phones skip the account icon. */}
             <PointsBin />
             {account ? (
-              <Link to="/account" className="hidden rounded-full p-2 hover:bg-ink-800 sm:block sm:p-2.5" title={`My account (${account.email})`} aria-label="My account">
-                <User size={20} />
-              </Link>
+              <Link to="/account" className="hidden p-2 hover:text-acid sm:block" title={`My account (${account.email})`} aria-label="My account"><User size={20} /></Link>
             ) : (
-              <Link to="/signin" className="hidden px-2 text-xs font-semibold uppercase tracking-[.18em] hover:text-acid sm:block">Sign in</Link>
+              <Link to="/signin" className={cx(navCls, 'hidden px-2 sm:block')}>Sign in</Link>
             )}
-            <SoundToggle className="rounded-full p-2 sm:p-2.5 hover:bg-ink-800" />
-            <button onClick={() => setOpen(true)} className="relative rounded-full p-2 sm:p-2.5 hover:bg-ink-800" aria-label="Open cart">
+            <SoundToggle className="p-2 hover:text-acid" />
+            <button onClick={() => setOpen(true)} className="relative p-2 hover:text-acid" aria-label="Open cart">
               <ShoppingBag size={20} />
               {count > 0 && (
-                <Tick value={count} className="absolute -right-0.5 -top-0.5"><span className="grid h-5 min-w-5 place-items-center rounded-full bg-acid px-1 text-[11px] font-bold text-white">{count}</span></Tick>
+                <Tick value={count} className="absolute -right-0.5 -top-0.5"><span className="grid h-5 min-w-5 place-items-center bg-acid px-1 text-[11px] font-bold text-white">{count}</span></Tick>
               )}
             </button>
-            <span className="relative md:hidden">
-              <button className={cx('rounded-full p-2 sm:p-2.5 hover:bg-ink-800', beacon && !menu && 'beacon')} onClick={() => setMenu(!menu)} aria-label="Menu">
-                {menu ? <X size={20} /> : <Menu size={20} />}
-              </button>
-              {beacon && !menu && <DesignTip onClose={() => setTipOff(true)} align="right" />}
-            </span>
           </div>
         </div>
+
+        {/* Shop menu: every group comes from lib/siteMap.ts, and categories appear once they have products. */}
+        {mega && (
+          <div className="absolute inset-x-0 top-full hidden animate-rise border-b border-black/10 bg-paper lg:block">
+            <div className="grid grid-cols-4 gap-8 px-8 py-10">
+              <MenuGroup title="Shop" links={[...shown(SHOP_LINKS), ...cats]} />
+              <MenuGroup title="Make your own" links={shown(CUSTOM_LINKS)} />
+              <MenuGroup title="Campaigns" links={shown(CAMPAIGN_LINKS)} />
+              <MenuGroup title="Help" links={shown(SUPPORT_LINKS)} />
+            </div>
+          </div>
+        )}
+
         {menu && (
-          <nav className="border-t border-ink-800 px-4 py-3 md:hidden">
-            {links.map((l) => (
-              <NavLink key={l.to} to={l.to} className={cx('block rounded-xl px-3 py-3 font-medium hover:bg-ink-800', beacon && l.to === '/design' && 'beacon')}>{l.label}</NavLink>
-            ))}
+          <nav className="fixed inset-x-0 bottom-0 top-16 z-40 animate-rise overflow-y-auto bg-paper px-4 py-6 lg:hidden" aria-label="Phone menu">
+            <div className="grid gap-8">
+              <MenuGroup title="Shop" big links={[...shown(SHOP_LINKS), ...cats, ...shown(CUSTOM_LINKS)]} />
+              <MenuGroup title="Campaigns" big links={shown(CAMPAIGN_LINKS)} />
+              <MenuGroup title="World" big links={shown(WORLD_LINKS)} />
+              <MenuGroup title="Help" big links={[...shown(SUPPORT_LINKS), account ? { to: '/account', label: 'My Account' } : { to: '/signin', label: 'Sign In' }]} />
+            </div>
           </nav>
         )}
       </header>
@@ -125,29 +162,27 @@ export default function Layout() {
       <PointsFx />
       <HuntCoin />
       <Intro />
+      <MembersPopup />
 
-      <footer className="mt-24 bg-black text-white">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-3">
-          <div>
+      <footer className="bg-coal text-white">
+        <div className="grid gap-10 px-4 py-14 sm:grid-cols-2 sm:px-8 lg:grid-cols-5">
+          <div className="sm:col-span-2 lg:col-span-1">
             <Logo />
             <p className="mt-3 max-w-xs text-sm text-white/60">Streetwear for the bold, from Smuggler&rsquo;s Paradise in Trinidad and Tobago. Custom designs made to order, ready 2&ndash;5 work days after payment is made.</p>
-            <p {...huntSpot('footer-tagline')} className="mt-4 w-max max-w-full font-pirate text-2xl text-white">{TAGLINE}</p>
           </div>
+          <FooterGroup title="Shop" links={[...shown(SHOP_LINKS), ...cats, ...shown(CUSTOM_LINKS)]} />
+          <FooterGroup title="World" links={[...shown(CAMPAIGN_LINKS), ...shown(WORLD_LINKS)]} />
+          <FooterGroup title="Help" links={shown(SUPPORT_LINKS)} />
           <div className="text-sm">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid">Shop</p>
-            <ul className="space-y-2 text-white/60">
-              {links.map((l) => <li key={l.to}><Link className="hover:text-white" to={l.to}>{l.label}</Link></li>)}
-            </ul>
-          </div>
-          <div className="text-sm">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid">Get in touch</p>
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[.2em] text-white">Get in touch</p>
             <a {...huntSpot('footer-whatsapp')} className="flex w-max items-center gap-2 text-white/60 hover:text-white" href={WHATSAPP} target="_blank" rel="noreferrer"><WhatsAppIcon size={16} /> WhatsApp us</a>
             <a {...huntSpot('footer-instagram')} className="mt-3 flex w-max items-center gap-2 text-white/60 hover:text-white" href={INSTAGRAM} target="_blank" rel="noreferrer"><Instagram size={16} /> @smugglerparadise</a>
             <SfxToggle className="mt-3 text-white/60 hover:text-white" />
             <p className="mt-4"><Link to="/admin" className="text-white/30 hover:text-white/60">Staff login</Link></p>
           </div>
         </div>
-        <FooterCopyLink />
+        <p {...huntSpot('footer-tagline')} className="overflow-hidden whitespace-nowrap px-4 text-center font-pirate text-[10.5vw] leading-[1.1] text-white sm:px-8">{TAGLINE}</p>
+        <div className="mt-6"><FooterCopyLink /></div>
         <p className="border-t border-white/10 py-5 text-center text-xs text-white/40">© {new Date().getFullYear()} {settings.store_name}. All rights reserved.{DEMO && ' · Demo mode: data stays in this browser'}</p>
       </footer>
 

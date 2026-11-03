@@ -79,7 +79,7 @@ export async function makeShareCard(views: string[], name: string, sub: string):
   ctx.font = '22px "Akira Expanded", "Archivo Black", Impact, sans-serif'
   ctx.fillText('SMUG PARA', left + (logo ? 88 : 0), 94)
 
-  ctx.fillStyle = '#5caedb'
+  ctx.fillStyle = '#b3261e'
   ctx.font = '700 22px "Creato Display", Inter, sans-serif'
   ctx.fillText('SHARED DESIGN', left, 190)
 
@@ -94,7 +94,7 @@ export async function makeShareCard(views: string[], name: string, sub: string):
 
   // Call to action pill
   const pillY = 500
-  ctx.fillStyle = '#5caedb'
+  ctx.fillStyle = '#b3261e'
   ctx.beginPath()
   ctx.roundRect(left, pillY, width, 70, 35)
   ctx.fill()

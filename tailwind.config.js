@@ -5,9 +5,11 @@ export default {
     extend: {
       colors: {
         // Light theme: the ink scale runs from page background (950) to strong text (200).
-        ink: { 950: '#ffffff', 900: '#f6f6f4', 800: '#ebebe8', 700: '#dcdcd8', 600: '#b9b9b4', 400: '#6b6b6b', 200: '#2b2b2b' },
-        // Brand blue ("Caribbean electric"). Kept under the old name so existing classes pick it up.
-        acid: { DEFAULT: '#5caedb', dark: '#3a8fc0' },
+        ink: { 950: '#eeece7', 900: '#e5e2db', 800: '#d8d5cd', 700: '#c5c1b7', 600: '#9f9b91', 400: '#5f5c55', 200: '#262624' },
+        // Brand red, from the T&T flag. Kept under the old name so existing classes pick it up.
+        acid: { DEFAULT: '#b3261e', dark: '#8a1b15' },
+        paper: '#eeece7',
+        coal: '#0b0b0b',
         flame: '#e5484d',
       },
       fontFamily: {
@@ -18,7 +20,7 @@ export default {
         // Smuggler's Paradise blackletter, for brand lines and captions.
         pirate: ['"Jack Pirate"', '"Pirata One"', 'serif'],
       },
-      borderRadius: { xl: '6px', '2xl': '8px', '3xl': '10px' },
+      borderRadius: { lg: '0px', xl: '0px', '2xl': '0px', '3xl': '0px' },
       keyframes: {
         marquee: { from: { transform: 'translateX(0)' }, to: { transform: 'translateX(-50%)' } },
         rise: { from: { opacity: '0', transform: 'translateY(12px)' }, to: { opacity: '1', transform: 'none' } },

@@ -4,8 +4,8 @@ import { useSound } from '../lib/sound'
 import { TAGLINE } from '../lib/brand'
 
 const SEEN = 'sp.passage'
-const seen = () => { try { return sessionStorage.getItem(SEEN) === '1' } catch { return false } }
-const markSeen = () => { try { sessionStorage.setItem(SEEN, '1') } catch { /* private mode: show it again next time */ } }
+export const seen = () => { try { return sessionStorage.getItem(SEEN) === '1' } catch { return false } }
+const markSeen = () => { try { sessionStorage.setItem(SEEN, '1') } catch { /* private mode: show it again next time */ } window.dispatchEvent(new Event('sp:passage')) }
 
 /** "Choose your passage": a full-screen welcome, once per visit, that asks whether to play the soundtrack. */
 export function Intro() {
@@ -23,10 +23,10 @@ export function Intro() {
         <img src="/stickers/classiclogowhite.png" alt="Smuggler's Paradise" className="w-64 max-w-full sm:w-80" />
         <h2 id="passage-title" className="mt-8 font-pirate text-5xl sm:text-6xl">Choose your passage</h2>
         <div className="mt-8 flex flex-wrap justify-center gap-4">
-          <button onClick={() => choose(true)} className="flex min-w-40 items-center justify-center gap-3 rounded-full bg-white px-7 py-4 font-poster text-xs uppercase tracking-wider text-black transition hover:bg-acid hover:text-white">
+          <button onClick={() => choose(true)} className="flex min-w-40 items-center justify-center gap-3 bg-white px-7 py-4 font-poster text-xs uppercase tracking-wider text-black transition hover:bg-acid hover:text-white">
             <Volume2 size={20} /> Sail loud
           </button>
-          <button onClick={() => choose(false)} className="flex min-w-40 items-center justify-center gap-3 rounded-full border border-white px-7 py-4 font-poster text-xs uppercase tracking-wider transition hover:bg-white hover:text-black">
+          <button onClick={() => choose(false)} className="flex min-w-40 items-center justify-center gap-3 border border-white px-7 py-4 font-poster text-xs uppercase tracking-wider transition hover:bg-white hover:text-black">
             <VolumeX size={20} /> Run silent
           </button>
         </div>

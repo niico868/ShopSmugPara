@@ -738,7 +738,7 @@ export default function Designer() {
               <p className="flex-1 text-right text-xl font-bold"><Tick value={total}>{money(total)}</Tick></p>
             </div>
             <label className="flex items-start gap-2 text-xs text-ink-400">
-              <input type="checkbox" checked={!!rulesAt} onChange={(e) => acceptRules(e.target.checked)} className="mt-0.5 accent-[#5caedb]" />
+              <input type="checkbox" checked={!!rulesAt} onChange={(e) => acceptRules(e.target.checked)} className="mt-0.5 accent-[#b3261e]" />
               <span>I agree to the design rules. I understand Smug Para reviews every design and may decline it.</span>
             </label>
             <Button size="lg" className={cx('w-full', added && '!bg-acid')} onClick={addToBag} disabled={busy || !rulesAt}>

@@ -10,11 +10,11 @@ export function Button({ variant = 'primary', size = 'md', className, ...p }: Bt
     <button
       {...p}
       className={cx(
-        'inline-flex items-center justify-center gap-2 rounded-full font-semibold transition duration-150 hover:-translate-y-px active:translate-y-0 active:scale-[.96] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 motion-reduce:hover:translate-y-0',
+        'inline-flex items-center justify-center gap-2 font-semibold uppercase tracking-[.08em] transition duration-150 hover:-translate-y-px active:translate-y-0 active:scale-[.96] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 motion-reduce:hover:translate-y-0',
         size === 'sm' && 'px-3 py-1.5 text-xs',
         size === 'md' && 'px-5 py-2.5 text-sm',
         size === 'lg' && 'px-7 py-3.5 text-base',
-        variant === 'primary' && 'bg-black text-white hover:bg-acid',
+        variant === 'primary' && 'bg-coal text-white hover:bg-acid',
         variant === 'ghost' && 'text-ink-200 hover:bg-ink-800 hover:text-black',
         variant === 'outline' && 'border border-black text-black hover:bg-black hover:text-white',
         variant === 'danger' && 'bg-flame/15 text-flame hover:bg-flame hover:text-white',
@@ -25,7 +25,7 @@ export function Button({ variant = 'primary', size = 'md', className, ...p }: Bt
 }
 
 export const inputCls =
-  'w-full rounded-xl border border-ink-700 bg-ink-900 px-3.5 py-2.5 text-sm text-black placeholder:text-ink-400 outline-none transition focus:border-acid focus:ring-2 focus:ring-acid/20'
+  'w-full border border-ink-700 bg-white/60 px-3.5 py-2.5 text-sm text-black placeholder:text-ink-400 outline-none transition focus:border-acid focus:ring-2 focus:ring-acid/20'
 
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (

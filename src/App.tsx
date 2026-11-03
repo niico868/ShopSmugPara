@@ -14,6 +14,13 @@ const SharedDesign = lazy(() => import('./pages/SharedDesign'))
 const Checkout = lazy(() => import('./pages/Checkout'))
 const Track = lazy(() => import('./pages/Track'))
 const OrderStatus = lazy(() => import('./pages/OrderStatus'))
+const Campaigns = lazy(() => import('./pages/Campaigns'))
+const CampaignPage = lazy(() => import('./pages/CampaignPage'))
+const World = lazy(() => import('./pages/World'))
+const Members = lazy(() => import('./pages/Members'))
+const Support = lazy(() => import('./pages/Support'))
+const Privacy = lazy(() => import('./pages/Privacy'))
+const MembersAdmin = lazy(() => import('./pages/admin/Members'))
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'))
 const Dashboard = lazy(() => import('./pages/admin/Dashboard'))
 const Orders = lazy(() => import('./pages/admin/Orders'))
@@ -40,6 +47,13 @@ export default function App() {
           <Route index element={<Home />} />
           <Route path="shop" element={<Shop />} />
           <Route path="shop/:slug" element={<Product />} />
+          <Route path="collections/:handle" element={<Shop />} />
+          <Route path="campaigns" element={<Campaigns />} />
+          <Route path="campaigns/:slug" element={<CampaignPage />} />
+          <Route path="world" element={<World />} />
+          <Route path="members" element={<Members />} />
+          <Route path="support" element={<Support />} />
+          <Route path="privacy" element={<Privacy />} />
           <Route path="design" element={<RequireAccount><Designer /></RequireAccount>} />
           <Route path="signin" element={<SignIn />} />
           <Route path="account" element={<RequireAccount><Account /></RequireAccount>} />
@@ -55,6 +69,7 @@ export default function App() {
           <Route path="orders/:id" element={<OrderDetail />} />
           <Route path="products" element={<Products />} />
           <Route path="designs" element={<Designs />} />
+          <Route path="members" element={<MembersAdmin />} />
           <Route path="rewards" element={<Rewards />} />
           <Route path="contraband" element={<ContrabandAdmin />} />
           <Route path="settings" element={<SettingsPage />} />

@@ -18,7 +18,7 @@ const GUIDE = [['S', '91', '71'], ['M', '97', '74'], ['L', '104', '76'], ['XL', 
 /** Shrinks the title with its column so the longest word (e.g. SOVEREIGNTY) fits on one line. The poster font runs about 0.9em per letter. */
 const titleSize = (name: string): CSSProperties => {
   const longest = Math.max(4, ...name.split(/\s+/).map((w) => w.length))
-  return { fontSize: `min(3.75rem, ${(100 / longest).toFixed(2)}cqi)` }
+  return { fontSize: `min(2.5rem, ${(100 / longest).toFixed(2)}cqi)` }
 }
 
 export default function Product() {
@@ -31,13 +31,11 @@ export default function Product() {
   const [size, setSize] = useState('')
   const [qty, setQty] = useState(1)
   const [guide, setGuide] = useState(false)
-  const [shot, setShot] = useState(0)
   const [added, setAdded] = useState(false)
   useEffect(() => { if (!added) return; const t = setTimeout(() => setAdded(false), 1800); return () => clearTimeout(t) }, [added])
 
   useEffect(() => {
     setP(undefined)
-    setShot(0)
     getProduct(slug).then((x) => {
       setP(x)
       if (x) { setColor(x.colors[0]); setSize(x.sizes.includes('M') ? 'M' : x.sizes[0]) }
@@ -57,27 +55,20 @@ export default function Product() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10">
+    <div className="px-4 pb-20 pt-6 sm:px-8">
       <button onClick={() => nav(-1)} className="mb-6 inline-flex items-center gap-2 text-sm text-ink-400 hover:text-black"><ArrowLeft size={16} /> Back</button>
-      <div className="grid gap-10 md:grid-cols-2 [&>*]:min-w-0">
-        <div>
-          <div {...huntSpot('product-photo')} className="aspect-square border border-ink-800 bg-white">
-            <img src={photos[shot]} alt={p.name} className="h-full w-full animate-rise object-contain p-4" key={shot} />
-          </div>
-          {photos.length > 1 && (
-            <div className="mt-3 flex gap-3">
-              {photos.map((src, i) => (
-                <button key={src} onClick={() => setShot(i)} className={cx('h-20 w-20 border bg-white p-1 transition active:scale-95', i === shot ? 'border-black' : 'border-transparent hover:border-ink-600')} aria-label={`Photo ${i + 1}`}>
-                  <img src={src} alt="" className="h-full w-full object-contain" />
-                </button>
-              ))}
+      <div className="grid gap-8 md:grid-cols-[3fr_2fr] [&>*]:min-w-0">
+        <div {...huntSpot('product-photo')} className={cx('grid gap-3', photos.length > 1 && 'sm:grid-cols-2')}>
+          {photos.map((src, i) => (
+            <div key={src} className="relative aspect-[4/5] overflow-hidden bg-ink-900">
+              <img src={src} alt={i === 0 ? p.name : ''} className="h-full w-full object-contain mix-blend-multiply" />
             </div>
-          )}
+          ))}
         </div>
-        <div className="[container-type:inline-size]">
-          <p className="text-sm font-semibold uppercase tracking-widest text-acid">{p.category}</p>
+        <div className="[container-type:inline-size] md:sticky md:top-24 md:self-start">
+          <p className="text-xs font-semibold uppercase tracking-[.2em] text-ink-400">{p.category}</p>
           <h1 {...huntSpot('product-name')} className="mt-2 break-words font-poster leading-none [hyphens:none]" style={titleSize(p.name)}>{p.name}</h1>
-          <p className="mt-3 text-2xl font-semibold">{money(p.price)}</p>
+          <p className="mt-3 text-lg font-semibold">{money(p.price)}</p>
           <p className="mt-5 whitespace-pre-line text-ink-200">{p.description}</p>
 
           {p.colors.length > 1 && <div className="mt-8">
@@ -105,10 +96,10 @@ export default function Product() {
           </div>
 
           <div className="mt-8 flex gap-3">
-            <div className="flex items-center rounded-full border border-ink-700">
-              <button className="rounded-full p-3 transition active:scale-90 disabled:opacity-30" disabled={qty <= 1} onClick={() => { sfx('tap'); setQty(Math.max(1, qty - 1)) }} aria-label="Decrease"><Minus size={16} /></button>
+            <div className="flex items-center border border-coal/40">
+              <button className="p-3 transition active:scale-90 disabled:opacity-30" disabled={qty <= 1} onClick={() => { sfx('tap'); setQty(Math.max(1, qty - 1)) }} aria-label="Decrease"><Minus size={16} /></button>
               <Tick value={qty} className="w-8 text-center font-semibold" />
-              <button className="rounded-full p-3 transition active:scale-90" onClick={() => { sfx('tap'); setQty(qty + 1) }} aria-label="Increase"><Plus size={16} /></button>
+              <button className="p-3 transition active:scale-90" onClick={() => { sfx('tap'); setQty(qty + 1) }} aria-label="Increase"><Plus size={16} /></button>
             </div>
             <Button size="lg" className={cx('flex-1', added && '!bg-acid')} onClick={addToBag}>
               {added ? <><Check size={18} className="animate-pop-check" /> Added to bag</> : <>Add to bag · <Tick value={p.price * qty}>{money(p.price * qty)}</Tick></>}
@@ -116,15 +107,15 @@ export default function Product() {
           </div>
 
           <div className="mt-8 grid gap-3 text-sm text-ink-400 sm:grid-cols-2">
-            <p className="flex items-center gap-2"><Truck size={16} className="text-acid" /> Delivery or free pickup</p>
-            <p className="flex items-center gap-2"><ShieldCheck size={16} className="text-acid" /> Printed to order, ready 2-5 work days after payment</p>
+            <p className="flex items-center gap-2"><Truck size={16} /> Delivery or free pickup</p>
+            <p className="flex items-center gap-2"><ShieldCheck size={16} /> Printed to order, ready 2-5 work days after payment</p>
           </div>
         </div>
       </div>
       {more.length > 0 && (
         <section className="mt-20">
-          <h2 className="mb-6 font-poster text-4xl">You might also like</h2>
-          <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">{more.map((x) => <ProductCard key={x.id} product={x} />)}</div>
+          <h2 className="mb-6 font-poster text-lg uppercase">You might also like</h2>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-4">{more.map((x) => <ProductCard key={x.id} product={x} />)}</div>
         </section>
       )}
     </div>

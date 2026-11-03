@@ -14,25 +14,40 @@
 @tailwind utilities;
 
 :root { color-scheme: light; }
-html, body { background: #ffffff; color: #111111; }
+html, body { background: #eeece7; color: #0b0b0b; }
 body { @apply font-sans antialiased; }
-::selection { background: #5caedb; color: #ffffff; }
+::selection { background: #b3261e; color: #ffffff; }
 input[type='number']::-webkit-inner-spin-button { opacity: .4; }
 
-/* Shared design links: "Design yours" blinks with a blue outline, tint and outer glow until it's used. */
+/* Shared design links: "Design yours" blinks with a red outline, tint and outer glow until it's used. */
 @keyframes beacon {
-  0%, 100% { box-shadow: 0 0 0 2px #5caedb, 0 0 4px 1px rgba(92, 174, 219, .35); background-color: rgba(92, 174, 219, .08); }
-  50% { box-shadow: 0 0 0 2px #5caedb, 0 0 26px 9px rgba(92, 174, 219, .9); background-color: rgba(92, 174, 219, .32); }
+  0%, 100% { box-shadow: 0 0 0 2px #b3261e, 0 0 4px 1px rgba(179, 38, 30, .35); background-color: rgba(179, 38, 30, .08); }
+  50% { box-shadow: 0 0 0 2px #b3261e, 0 0 26px 9px rgba(179, 38, 30, .9); background-color: rgba(179, 38, 30, .32); }
 }
-.beacon { border-radius: 9999px; color: #111111 !important; animation: beacon 1s ease-in-out infinite; }
+.beacon { color: #111111 !important; animation: beacon 1s ease-in-out infinite; }
 
 /* Every pressable thing shows a clear focus ring for keyboard users. */
-:where(button, a, [role='radio'], input[type='checkbox']):focus-visible { outline: 2px solid #5caedb; outline-offset: 2px; }
+:where(button, a, [role='radio'], input[type='checkbox']):focus-visible { outline: 2px solid #b3261e; outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee { animation: none !important; }
   .animate-tick, .animate-shake, .animate-page, .animate-pop-check, .animate-shimmer { animation: none !important; }
-  .beacon { animation: none; box-shadow: 0 0 0 2px #5caedb, 0 0 18px 5px rgba(92, 174, 219, .6); background-color: rgba(92, 174, 219, .2); }
+  .beacon { animation: none; box-shadow: 0 0 0 2px #b3261e, 0 0 18px 5px rgba(179, 38, 30, .6); background-color: rgba(179, 38, 30, .2); }
+}
+
+/* Headline letters fall into place as they scroll into view. */
+.fall-char { display: inline-block; opacity: 0; transform: translateY(-.75em) rotate(-5deg); transition: opacity .35s ease, transform .75s cubic-bezier(.2, 1.4, .4, 1); }
+.fall-in .fall-char { opacity: 1; transform: none; }
+
+/* Blocks rise gently as they scroll into view. */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .9s cubic-bezier(.2, .8, .2, 1); }
+.reveal-in { opacity: 1; transform: none; }
+
+/* Film grain over dark campaign panels. */
+.grain::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .14; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fall-char, .reveal { opacity: 1; transform: none; transition: none; }
 }
 
 @media print {
