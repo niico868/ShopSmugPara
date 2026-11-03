@@ -46,11 +46,11 @@ function FooterGroup({ title, links }: { title: string; links: MapLink[] }) {
   )
 }
 
-export function Logo({ className }: { className?: string }) {
+export function Logo({ className, light }: { className?: string; light?: boolean }) {
   const { settings } = useSettings()
   return (
     <Link to="/" className={cx('group flex items-center gap-2.5', className)}>
-      <img src="/brand/logo.png" alt="" className="h-9 w-auto sm:h-10 transition group-hover:-rotate-6" />
+      <img src="/brand/logo.png" alt="" className={cx('h-9 w-auto transition group-hover:-rotate-6 sm:h-10', light ? 'brightness-0 invert' : 'brightness-0')} />
       <span className="whitespace-nowrap font-poster text-sm uppercase tracking-wider max-[379px]:hidden min-[400px]:text-base sm:text-lg">{settings.store_name}</span>
     </Link>
   )
@@ -167,7 +167,7 @@ export default function Layout() {
       <footer className="bg-coal text-white">
         <div className="grid gap-10 px-4 py-14 sm:grid-cols-2 sm:px-8 lg:grid-cols-5">
           <div className="sm:col-span-2 lg:col-span-1">
-            <Logo />
+            <Logo light />
             <p className="mt-3 max-w-xs text-sm text-white/60">Streetwear for the bold, from Smuggler&rsquo;s Paradise in Trinidad and Tobago. Custom designs made to order, ready 2&ndash;5 work days after payment is made.</p>
           </div>
           <FooterGroup title="Shop" links={[...shown(SHOP_LINKS), ...cats, ...shown(CUSTOM_LINKS)]} />

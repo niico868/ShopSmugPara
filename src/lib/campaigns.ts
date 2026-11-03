@@ -26,7 +26,7 @@ export const CAMPAIGNS: Campaign[] = [
     title: 'Sovereignty',
     line: 'Things money can’t buy back.',
     status: 'live',
-    tees: ['/products/sovereignty-fm-front.jpg', '/products/sovereignty-fm-back.jpg'],
+    tees: ['/products/sovereignty-fm-front-dark.jpg', '/products/sovereignty-fm-back-dark.jpg'],
     match: 'sovereignty',
     year: '2026',
   },
@@ -53,16 +53,16 @@ export const CAMPAIGNS: Campaign[] = [
 export const liveCampaign = CAMPAIGNS.find((c) => c.status === 'live') ?? CAMPAIGNS[0]
 
 /** The photo in the join pop-up. Swap for a campaign photo of the clothes being worn. */
-export const MEMBERS_PHOTO = '/products/sovereignty-fm-front.jpg'
+export const MEMBERS_PHOTO = '/products/sovereignty-fm-front-dark.jpg'
 
 /**
  * The spinning carousel on the home page. Swap these for photos of the brand out in the world:
  * events, the beach, the print room, people wearing it. Square or portrait works best.
  */
 export const CAROUSEL: { src: string; label: string }[] = [
-  { src: '/products/sovereignty-fm-front.jpg', label: 'Sovereignty' },
+  { src: '/products/sovereignty-fm-front-dark.jpg', label: 'Sovereignty' },
   { src: '/stickers/goathead.png', label: 'Goat head' },
-  { src: '/products/sovereignty-fm-back.jpg', label: 'Things money can’t buy back' },
+  { src: '/products/sovereignty-fm-back-dark.jpg', label: 'Things money can’t buy back' },
   { src: '/stickers/survivor.png', label: 'Survivor' },
   { src: '/stickers/trinidad-posoperation.png', label: 'POS operation' },
   { src: '/stickers/moneyrosesticker.png', label: 'Money rose' },

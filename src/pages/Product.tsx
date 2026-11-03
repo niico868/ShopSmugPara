@@ -60,7 +60,7 @@ export default function Product() {
       <div className="grid gap-8 md:grid-cols-[3fr_2fr] [&>*]:min-w-0">
         <div {...huntSpot('product-photo')} className={cx('grid gap-3', photos.length > 1 && 'sm:grid-cols-2')}>
           {photos.map((src, i) => (
-            <div key={src} className="relative aspect-[4/5] overflow-hidden bg-ink-900">
+            <div key={src} className="relative aspect-[4/5] overflow-hidden bg-paper">
               <img src={src} alt={i === 0 ? p.name : ''} className="h-full w-full object-contain mix-blend-multiply" />
             </div>
           ))}

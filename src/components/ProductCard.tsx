@@ -7,7 +7,7 @@ export function ProductCard({ product, delay = 0 }: { product: Product; delay?: 
   const back = product.images?.[0]
   return (
     <Link to={`/shop/${product.slug}`} className="group block animate-rise transition active:scale-[.99]" style={{ animationDelay: `${Math.min(delay, 8) * 45}ms`, animationFillMode: 'both' }}>
-      <div className="relative aspect-[4/5] overflow-hidden">
+      <div className="relative aspect-[4/5] overflow-hidden bg-paper">
         <img src={product.image_url} alt={product.name} loading="lazy" className="absolute inset-0 h-full w-full object-contain mix-blend-multiply transition duration-500 group-hover:opacity-0" />
         {back && <img src={back} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-contain opacity-0 mix-blend-multiply transition duration-500 group-hover:opacity-100" />}
       </div>
