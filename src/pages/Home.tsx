@@ -67,7 +67,7 @@ export default function Home() {
         ))}
       </section>
 
-      <section className="relative z-10 grid gap-10 bg-paper px-4 py-24 sm:px-8 md:grid-cols-3">
+      <section className="relative z-10 grid gap-10 bg-paper px-4 py-24 sm:px-8 md:grid-cols-3 [&>*]:min-w-0">
         <div>
           <span aria-hidden className="block h-16 w-16" style={brandMark('/brand/sp-monogram.svg', '#0b0b0b')} />
           <FallText {...huntSpot('home-who')} text="Who are we" className="mt-6 font-medium text-3xl " />
@@ -78,7 +78,7 @@ export default function Home() {
             where we moved in the gaps, built in the margins and carved our own road. It&rsquo;s for those who treat freedom, wealth and risk
             as part of the same language.
           </p>
-          <p {...huntSpot('home-way-of-life')} className="mt-6 w-max max-w-full font-medium text-3xl">That&rsquo;s not a brand story. That&rsquo;s a way of life.</p>
+          <p {...huntSpot('home-way-of-life')} className="mt-6 text-xl font-medium">That&rsquo;s not a brand story. That&rsquo;s a way of life.</p>
           <a href={INSTAGRAM} target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 border border-coal px-6 py-3 text-xs font-semibold uppercase tracking-[.08em] transition hover:bg-coal hover:text-white">
             <Instagram size={16} /> Follow @smugglerparadise
           </a>

@@ -39,10 +39,10 @@ export function MembersPopup() {
   if (!open) return null
   return (
     <div className="fixed inset-0 z-[55] bg-black/70 p-3 backdrop-blur-[2px] sm:p-6 lg:p-10" onMouseDown={(e) => { if (e.target === e.currentTarget) close() }}>
-      <div role="dialog" aria-modal="true" aria-labelledby="join-title" className="grain relative h-full w-full animate-rise overflow-y-auto bg-coal text-white">
+      <div role="dialog" aria-modal="true" aria-labelledby="join-title" className="grain relative h-full w-full animate-rise overflow-y-auto bg-black text-white">
         <img src={MEMBERS_PHOTO} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-50 md:left-auto md:right-0 md:w-3/5 md:object-contain md:opacity-100" />
-        <span aria-hidden className="absolute inset-0 bg-gradient-to-r from-coal via-coal/80 to-transparent md:via-coal/40" />
-        <button onClick={close} className="absolute right-3 top-3 z-20 flex items-center gap-2 border border-white bg-coal px-4 py-2.5 text-xs font-semibold uppercase tracking-[.08em] transition hover:bg-white hover:text-black sm:right-5 sm:top-5">
+        <span aria-hidden className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent md:via-black/40" />
+        <button onClick={close} className="absolute right-3 top-3 z-20 flex items-center gap-2 border border-white bg-black px-4 py-2.5 text-xs font-semibold uppercase tracking-[.08em] transition hover:bg-white hover:text-black sm:right-5 sm:top-5">
           Close <X size={16} />
         </button>
         <div className="relative z-10 flex min-h-full max-w-xl flex-col justify-center px-5 pb-8 pt-20 sm:px-10 lg:px-14">

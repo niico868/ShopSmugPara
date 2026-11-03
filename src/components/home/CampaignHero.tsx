@@ -8,7 +8,7 @@ import { TreasureMap } from '../Contraband'
 function Slide({ c, i, total }: { c: Campaign; i: number; total: number }) {
   const live = c.status === 'live'
   return (
-    <section className="grain sticky top-16 flex h-[calc(100svh-4rem)] min-h-[520px] items-end overflow-hidden bg-coal text-white" style={{ zIndex: i + 1 }}>
+    <section className="grain sticky top-16 flex h-[calc(100svh-4rem)] min-h-[520px] items-end overflow-hidden bg-black text-white" style={{ zIndex: i + 1 }}>
       {c.image && <img src={c.image} alt="" className="absolute inset-0 h-full w-full object-cover" />}
       {!c.image && c.tees && (
         <Link {...(i === 0 ? huntSpot('home-drop') : {})} to={`/campaigns/${c.slug}`} aria-label={c.title} className="absolute inset-0 flex items-center justify-center">
