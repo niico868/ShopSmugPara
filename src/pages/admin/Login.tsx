@@ -41,7 +41,7 @@ export default function Login({ onDone }: { onDone: () => void }) {
                 {!DEMO && (
                   <>
                     <Button type="button" variant="outline" size="lg" className="w-full" onClick={google} disabled={busy}><GoogleIcon /> Continue with Google</Button>
-                    <div className="flex items-center gap-3 text-xs uppercase tracking-widest text-ink-400"><span className="h-px flex-1 bg-ink-800" />or<span className="h-px flex-1 bg-ink-800" /></div>
+                    <div className="flex items-center gap-3 text-xs uppercase tracking-[.08em] text-ink-400"><span className="h-px flex-1 bg-ink-800" />or<span className="h-px flex-1 bg-ink-800" /></div>
                   </>
                 )}
                 <form onSubmit={submit} className="space-y-4">

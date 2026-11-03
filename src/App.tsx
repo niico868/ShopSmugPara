@@ -34,7 +34,7 @@ const ContrabandAdmin = lazy(() => import('./pages/admin/Contraband'))
 function NotFound() {
   return (
     <div className="grid min-h-[60vh] place-items-center text-center">
-      <div><p className="font-poster text-9xl text-acid">404</p><p className="text-ink-400">This page wandered off.</p></div>
+      <div><p className="font-medium text-3xl text-acid">404</p><p className="text-ink-400">This page wandered off.</p></div>
     </div>
   )
 }

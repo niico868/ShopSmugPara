@@ -38,7 +38,7 @@ export default function Contraband() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-poster text-5xl">Contraband</h1>
+          <h1 className="font-medium text-3xl">Contraband</h1>
           <p className="max-w-xl text-sm text-ink-400">One gold coin hidden on the site each day, midnight to midnight Trinidad time. Members open the treasure map on the homepage for the clue. Each member can claim it once a day; after each claim the coin moves to its next spot.</p>
         </div>
         <Button onClick={() => setEdit({ cycle_date: nextFreeDay(hunts), page: '/', spots: [], clue: '', claim_type: 'click', answers: [], reward_ep: 20, reward_pp: 5 })}><Plus size={16} /> New hunt</Button>

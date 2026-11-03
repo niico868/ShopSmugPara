@@ -12,7 +12,7 @@ export function ProductCard({ product, delay = 0 }: { product: Product; delay?: 
         {back && <img src={back} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-contain opacity-0 mix-blend-multiply transition duration-500 group-hover:opacity-100" />}
       </div>
       <div className="mt-3 text-[13px] leading-tight">
-        <p className="font-bold uppercase tracking-wide">{product.name}</p>
+        <p className="font-medium">{product.name}</p>
         <p className="mt-1 text-ink-400">{money(product.price)}</p>
       </div>
     </Link>

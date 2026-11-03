@@ -57,7 +57,7 @@ export function MemberForm({ source, onJoined, tone = 'light' }: { source: strin
         <span>Send me drops, campaigns and offers from Smuggler&rsquo;s Paradise. I can opt out anytime. <Link to="/privacy" className="underline">Privacy</Link></span>
       </label>
       {error && <p role="alert" className={cx('text-sm font-semibold', dark ? 'text-white' : 'text-acid')}>{error}</p>}
-      <button disabled={busy} className={cx('h-12 w-full font-poster text-xs uppercase tracking-widest transition disabled:opacity-60', dark ? 'bg-white text-black hover:bg-acid hover:text-white' : 'bg-coal text-white hover:bg-acid')}>
+      <button disabled={busy} className={cx('h-12 w-full font-medium text-xs tracking-[.08em] transition disabled:opacity-60', dark ? 'bg-white text-black hover:bg-acid hover:text-white' : 'bg-coal text-white hover:bg-acid')}>
         {busy ? 'Joining…' : 'Join the members'}
       </button>
     </form>

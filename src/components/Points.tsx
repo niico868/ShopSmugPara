@@ -79,7 +79,7 @@ export function PointsBin() {
         <div className="absolute inset-x-4 top-full z-50 mt-2 animate-rise sm:inset-x-auto sm:right-0 sm:w-72 border border-black/10 bg-white p-4 text-sm shadow-xl">
           <div className="flex items-center gap-3">
             <Coin className="h-10 w-10" />
-            <p className="font-poster text-lg leading-tight">{fmtPts(shown)} {CURRENCY.EP.many}</p>
+            <p className="font-medium text-lg leading-tight">{fmtPts(shown)} {CURRENCY.EP.many}</p>
           </div>
           {shown > 0 ? (
             <p className="mt-3 text-ink-400">You&rsquo;ve stashed {fmtPts(shown)} EP in this browser. Sign up to claim them, plus a {rules.welcome_ep} EP welcome bonus, and keep earning toward a free tee at {fmtPts(rules.free_tee_ep)} EP.</p>
@@ -163,7 +163,7 @@ function FlightFx({ f }: { f: Flight }) {
 
   if (!f.amount) {
     return (
-      <span ref={label} className="absolute whitespace-nowrap rounded-full bg-black px-3 py-1 font-poster text-lg uppercase tracking-wide text-[#f6b21a]" style={{ left: f.x, top: f.y }}>
+      <span ref={label} className="absolute whitespace-nowrap rounded-full bg-black px-3 py-1 font-medium text-lg tracking-wide text-[#f6b21a]" style={{ left: f.x, top: f.y }}>
         {f.label}
       </span>
     )
@@ -174,7 +174,7 @@ function FlightFx({ f }: { f: Flight }) {
       {Array.from({ length: 8 }, (_, i) => (
         <span key={`s${i}`} ref={(el) => { sparks.current[i] = el }} className="absolute h-2 w-2 rounded-full bg-[#f6b21a] shadow-[0_0_8px_#ffd75e]" style={{ left: f.x, top: f.y }} />
       ))}
-      <span ref={label} className="absolute whitespace-nowrap font-poster text-3xl text-[#f6b21a] [text-shadow:0_2px_0_#0d1b2a,0_0_12px_rgba(255,215,94,.8)]" style={{ left: f.x, top: f.y }}>
+      <span ref={label} className="absolute whitespace-nowrap font-medium text-3xl text-[#f6b21a] [text-shadow:0_2px_0_#0d1b2a,0_0_12px_rgba(255,215,94,.8)]" style={{ left: f.x, top: f.y }}>
         +{fmtPts(f.amount)} <span className="text-xl">{f.currency}</span>
       </span>
       {[0, 1, 2].map((i) => (

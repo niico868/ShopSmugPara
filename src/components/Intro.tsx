@@ -21,17 +21,17 @@ export function Intro() {
     <div role="dialog" aria-modal="true" aria-labelledby="passage-title" className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-black px-6 py-10 text-center text-white">
       <div className="flex max-w-lg animate-rise flex-col items-center">
         <img src="/stickers/classiclogowhite.png" alt="Smuggler's Paradise" className="w-64 max-w-full sm:w-80" />
-        <h2 id="passage-title" className="mt-8 font-pirate text-5xl sm:text-6xl">Choose your passage</h2>
+        <h2 id="passage-title" className="mt-8 font-pirate text-4xl">Choose your passage</h2>
         <div className="mt-8 flex flex-wrap justify-center gap-4">
-          <button onClick={() => choose(true)} className="flex min-w-40 items-center justify-center gap-3 bg-white px-7 py-4 font-poster text-xs uppercase tracking-wider text-black transition hover:bg-acid hover:text-white">
+          <button onClick={() => choose(true)} className="flex min-w-40 items-center justify-center gap-3 bg-white px-7 py-4 font-medium text-xs tracking-wider text-black transition hover:bg-acid hover:text-white">
             <Volume2 size={20} /> Sail loud
           </button>
-          <button onClick={() => choose(false)} className="flex min-w-40 items-center justify-center gap-3 border border-white px-7 py-4 font-poster text-xs uppercase tracking-wider transition hover:bg-white hover:text-black">
+          <button onClick={() => choose(false)} className="flex min-w-40 items-center justify-center gap-3 border border-white px-7 py-4 font-medium text-xs tracking-wider transition hover:bg-white hover:text-black">
             <VolumeX size={20} /> Run silent
           </button>
         </div>
         <p className="mt-6 max-w-sm text-sm text-white/60">We recommend full audio for the intended atmosphere. Adjust anytime in the top corner.</p>
-        <p className="mt-10 font-pirate text-3xl text-acid">{TAGLINE}</p>
+        <p className="mt-10 font-medium text-3xl text-acid">{TAGLINE}</p>
       </div>
     </div>
   )

@@ -115,8 +115,8 @@ export function RewardsCard() {
       <div className="flex items-center gap-5">
         <Coin className="h-14 w-14 sm:h-16 sm:w-16" />
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[.25em] text-acid">Smuggler&rsquo;s Paradise Rewards · {r.tier === 'buyer' ? 'Buyer' : 'Engager'}</p>
-          <p className="font-poster text-2xl leading-tight min-[400px]:text-3xl sm:text-4xl"><span className="tabular-nums">{fmtPts(r.balance < 0 ? r.balance : shown)}</span> {cur.many}</p>
+          <p className="text-xs font-semibold uppercase tracking-[.08em] text-acid">Smuggler&rsquo;s Paradise Rewards · {r.tier === 'buyer' ? 'Buyer' : 'Engager'}</p>
+          <p className="font-medium text-2xl leading-tight min-[400px]:text-3xl "><span className="tabular-nums">{fmtPts(r.balance < 0 ? r.balance : shown)}</span> {cur.many}</p>
           {claimed > 0 && <p className="mt-1 text-sm font-semibold text-[#f6b21a]">+{claimed} EP claimed from your guest stash. Welcome aboard.</p>}
           {r.flagged && <p className="mt-1 text-sm text-white/70">Your welcome bonus is on hold while we check your account.</p>}
           {r.balance < 0 && <p className="mt-1 text-sm text-white/70">Your balance is below zero after a refund, so rewards are paused until it&rsquo;s back above zero.</p>}

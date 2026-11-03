@@ -98,7 +98,7 @@ export function TreasureMap({ className }: { className?: string }) {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className={cx('group flex items-center gap-2 rounded-full bg-white/10 py-1.5 pl-1.5 pr-4 text-xs font-semibold uppercase tracking-[.2em] text-white ring-1 ring-white/20 transition hover:bg-white hover:text-black', className)}
+      <button onClick={() => setOpen(true)} className={cx('group flex items-center gap-2 rounded-full bg-white/10 py-1.5 pl-1.5 pr-4 text-xs font-semibold uppercase tracking-[.08em] text-white ring-1 ring-white/20 transition hover:bg-white hover:text-black', className)}
         aria-haspopup="dialog">
         <span className="grid h-9 w-9 place-items-center rounded-full bg-[#efd9a7]"><MapIcon className="h-6 w-7 transition group-hover:rotate-6" /></span>
         {hunt && !hunt.claimed ? 'Today’s Contraband' : 'Treasure map'}
@@ -111,8 +111,8 @@ export function TreasureMap({ className }: { className?: string }) {
             <div className="flex items-center gap-3">
               <ContrabandCoin className="h-12 w-12 shrink-0" />
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[.3em] text-[#8a5a08]">The daily hunt</p>
-                <h2 className="font-pirate text-4xl leading-none">Contraband</h2>
+                <p className="text-[11px] font-semibold uppercase tracking-[.08em] text-[#8a5a08]">The daily hunt</p>
+                <h2 className="font-medium text-2xl leading-tight">Contraband</h2>
               </div>
             </div>
             {!hunt ? (
@@ -121,11 +121,11 @@ export function TreasureMap({ className }: { className?: string }) {
               <p className="mt-5 text-sm">You found today&rsquo;s Contraband. A fresh coin is hidden after midnight, Trinidad time.</p>
             ) : (
               <>
-                <p className="mt-5 text-xs font-semibold uppercase tracking-[.2em] text-[#8a5a08]">Today&rsquo;s clue</p>
-                <p className="mt-1 font-pirate text-2xl leading-snug">{hunt.clue || 'Somewhere on this site, a gold coin is hiding.'}</p>
+                <p className="mt-5 text-xs font-semibold uppercase tracking-[.08em] text-[#8a5a08]">Today&rsquo;s clue</p>
+                <p className="mt-1 font-medium text-2xl leading-snug">{hunt.clue || 'Somewhere on this site, a gold coin is hiding.'}</p>
                 {hunt.claim_type === 'answer' && (
                   <label className="mt-4 block">
-                    <span className="text-xs font-semibold uppercase tracking-[.2em] text-[#8a5a08]">Your answer</span>
+                    <span className="text-xs font-semibold uppercase tracking-[.08em] text-[#8a5a08]">Your answer</span>
                     <input value={answer} onChange={(e) => usePoints.setState({ answer: e.target.value })} placeholder="Type it here"
                       className="mt-1 w-full rounded-[4px] border border-[#c9a96a] bg-white/70 px-3 py-2 text-sm text-black outline-none focus:border-[#8a5a08]" />
                   </label>

@@ -46,7 +46,7 @@ export default function Account() {
       <RewardsCard />
       <div className="mt-10 flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="font-poster text-5xl">My account</h1>
+          <h1 className="font-medium text-3xl">My account</h1>
           <p className="break-words text-sm text-ink-400">Signed in as {account?.email}</p>
         </div>
         <Button variant="ghost" size="sm" onClick={() => signOut()}><LogOut size={14} /> Sign out</Button>

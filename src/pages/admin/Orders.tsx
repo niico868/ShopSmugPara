@@ -58,7 +58,7 @@ export default function Orders() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-poster text-5xl">Orders</h1>
+          <h1 className="font-medium text-3xl">Orders</h1>
           <p className="text-sm text-ink-400">{shown.length} of {orders.length} orders</p>
         </div>
         <div className="flex gap-2">

@@ -30,12 +30,12 @@ export default function Shop() {
     return list
   }, [products, q, handle, sort])
 
-  const tab = ({ isActive }: { isActive: boolean }) => cx('whitespace-nowrap border-b-2 pb-1 text-xs font-semibold uppercase tracking-[.14em] transition', isActive ? 'border-coal' : 'border-transparent text-ink-400 hover:text-black')
+  const tab = ({ isActive }: { isActive: boolean }) => cx('whitespace-nowrap border-b-2 pb-1 text-xs font-semibold uppercase tracking-[.08em] transition', isActive ? 'border-coal' : 'border-transparent text-ink-400 hover:text-black')
 
   return (
     <div className="px-4 pb-20 pt-8 sm:px-8">
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
-        <h1 {...huntSpot('shop-title')} className="flex items-baseline gap-3 font-poster text-xl uppercase sm:text-2xl">
+        <h1 {...huntSpot('shop-title')} className="flex items-baseline gap-3 font-medium text-xl sm:text-2xl">
           {title} <span className="font-sans text-sm font-normal text-ink-400">&bull; {products ? shown.length : 0} {shown.length === 1 ? 'item' : 'items'}</span>
         </h1>
         <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
@@ -43,7 +43,7 @@ export default function Shop() {
             <Search size={15} className="absolute left-0 top-1/2 -translate-y-1/2 text-ink-400" />
             <input value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search designs" placeholder="Search" className="h-10 w-full border-b border-coal/30 bg-transparent pl-6 text-sm outline-none focus:border-coal" />
           </div>
-          <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort" className="h-10 bg-transparent text-xs font-semibold uppercase tracking-[.14em] outline-none">
+          <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort" className="h-10 bg-transparent text-xs font-semibold uppercase tracking-[.08em] outline-none">
             <option value="new">Newest</option>
             <option value="low">Price: low to high</option>
             <option value="high">Price: high to low</option>

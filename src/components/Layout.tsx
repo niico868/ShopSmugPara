@@ -22,13 +22,13 @@ import type { Product } from '../lib/types'
 import { visibleCategories } from '../lib/catalog'
 import { CAMPAIGN_LINKS, CUSTOM_LINKS, SHOP_LINKS, SUPPORT_LINKS, WORLD_LINKS, shown, type MapLink } from '../lib/siteMap'
 
-const navCls = 'text-xs font-semibold uppercase tracking-[.16em] transition hover:text-acid'
+const navCls = 'text-xs font-semibold uppercase tracking-[.08em] transition hover:text-acid'
 
 function MenuGroup({ title, links, big }: { title: string; links: MapLink[]; big?: boolean }) {
   return (
     <div>
-      <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-ink-400">{title}</p>
-      <ul className={big ? 'space-y-2 font-poster text-lg uppercase' : 'space-y-2 text-sm font-semibold'}>
+      <p className="mb-3 text-xs font-semibold uppercase tracking-[.08em] text-ink-400">{title}</p>
+      <ul className={big ? 'space-y-2 font-medium text-lg ' : 'space-y-2 text-sm font-semibold'}>
         {links.map((l) => <li key={l.to}><Link to={l.to} className="transition hover:text-acid">{l.label}</Link></li>)}
       </ul>
     </div>
@@ -38,7 +38,7 @@ function MenuGroup({ title, links, big }: { title: string; links: MapLink[]; big
 function FooterGroup({ title, links }: { title: string; links: MapLink[] }) {
   return (
     <div className="text-sm">
-      <p className="mb-4 text-xs font-semibold uppercase tracking-[.2em] text-white">{title}</p>
+      <p className="mb-4 text-xs font-semibold uppercase tracking-[.08em] text-white">{title}</p>
       <ul className="space-y-2 text-white/60">
         {links.map((l) => <li key={l.to}><Link className="transition hover:text-white" to={l.to}>{l.label}</Link></li>)}
       </ul>
@@ -51,7 +51,7 @@ export function Logo({ className, light }: { className?: string; light?: boolean
   return (
     <Link to="/" className={cx('group flex items-center gap-2.5', className)}>
       <img src="/brand/logo.png" alt="" className={cx('h-9 w-auto transition group-hover:-rotate-6 sm:h-10', light ? 'brightness-0 invert' : 'brightness-0')} />
-      <span className="whitespace-nowrap font-poster text-sm uppercase tracking-wider max-[379px]:hidden min-[400px]:text-base sm:text-lg">{settings.store_name}</span>
+      <span className="whitespace-nowrap font-poster text-xs uppercase tracking-wider max-[379px]:hidden sm:text-sm">{settings.store_name}</span>
     </Link>
   )
 }
@@ -63,7 +63,7 @@ function DesignTip({ onClose, align }: { onClose: () => void; align: 'center' | 
     <div role="note" className={cx('absolute top-full z-50 mt-8 w-60 animate-pop-in bg-black p-4 pr-9 text-left text-white shadow-[0_10px_40px_rgba(179,38,30,.45)] ring-2 ring-acid', centre ? 'left-1/2 -ml-[7.5rem]' : '-left-1')}>
       <span aria-hidden className={cx('absolute -top-2 h-4 w-4 rotate-45 bg-black ring-2 ring-acid [clip-path:polygon(0_0,100%_0,0_100%)]', centre ? 'left-1/2 -ml-2' : 'left-4')} />
       <ArrowUp aria-hidden size={18} className={cx('absolute -top-7 animate-bounce text-acid', centre ? 'left-1/2 -ml-[9px]' : 'left-[15px]')} />
-      <p className="font-poster text-sm uppercase tracking-wider">Like this tee?</p>
+      <p className="font-medium text-sm tracking-wider">Like this tee?</p>
       <p className="mt-1 text-sm text-white/70">Make one that&rsquo;s all yours with <b className="text-acid">Design yours</b>.</p>
       <button onClick={onClose} className="absolute right-2 top-2 rounded-full p-1 text-white/60 hover:bg-white/10 hover:text-white" aria-label="Hide tip"><X size={16} /></button>
     </div>
@@ -89,7 +89,7 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <div className="overflow-hidden bg-coal py-2 text-[11px] font-semibold uppercase tracking-[.25em] text-white">
+      <div className="overflow-hidden bg-coal py-2 text-[11px] font-semibold uppercase tracking-[.08em] text-white">
         <div className="flex w-max animate-marquee gap-16 whitespace-nowrap">
           {Array.from({ length: 8 }).map((_, i) => (
             <span key={i}>{i % 2 ? BRAND_LINE : settings.announcement || TAGLINE}</span>
@@ -174,14 +174,14 @@ export default function Layout() {
           <FooterGroup title="World" links={[...shown(CAMPAIGN_LINKS), ...shown(WORLD_LINKS)]} />
           <FooterGroup title="Help" links={shown(SUPPORT_LINKS)} />
           <div className="text-sm">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[.2em] text-white">Get in touch</p>
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[.08em] text-white">Get in touch</p>
             <a {...huntSpot('footer-whatsapp')} className="flex w-max items-center gap-2 text-white/60 hover:text-white" href={WHATSAPP} target="_blank" rel="noreferrer"><WhatsAppIcon size={16} /> WhatsApp us</a>
             <a {...huntSpot('footer-instagram')} className="mt-3 flex w-max items-center gap-2 text-white/60 hover:text-white" href={INSTAGRAM} target="_blank" rel="noreferrer"><Instagram size={16} /> @smugglerparadise</a>
             <SfxToggle className="mt-3 text-white/60 hover:text-white" />
             <p className="mt-4"><Link to="/admin" className="text-white/30 hover:text-white/60">Staff login</Link></p>
           </div>
         </div>
-        <p {...huntSpot('footer-tagline')} className="overflow-hidden whitespace-nowrap px-4 text-center font-pirate text-[10.5vw] leading-[1.1] text-white sm:px-8">{TAGLINE}</p>
+        <p {...huntSpot('footer-tagline')} className="px-4 font-pirate text-3xl text-white sm:px-8">{TAGLINE}</p>
         <div className="mt-6"><FooterCopyLink /></div>
         <p className="border-t border-white/10 py-5 text-center text-xs text-white/40">© {new Date().getFullYear()} {settings.store_name}. All rights reserved.{DEMO && ' · Demo mode: data stays in this browser'}</p>
       </footer>

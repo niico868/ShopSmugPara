@@ -43,16 +43,16 @@ export default function Home() {
         products={shown}
       />
 
-      <section className="relative z-10 bg-coal px-4 py-24 text-white sm:px-8 md:py-36">
-        <p className="mb-5 text-xs font-semibold uppercase tracking-[.3em] text-white/70">Made for</p>
-        <FallText {...huntSpot('home-headline')} as="h2" text={'The Brave\nThe Risk Takers\nThe Streets'} className="font-pirate text-[15vw] leading-[.98] md:text-[10vw]" />
+      <section className="relative z-10 bg-coal px-4 py-24 text-white sm:px-8 md:py-28">
+        <p className="mb-5 text-xs font-semibold uppercase tracking-[.08em] text-white/70">Made for</p>
+        <FallText {...huntSpot('home-headline')} as="h2" text={'The Brave\nThe Risk Takers\nThe Streets'} className="text-3xl font-medium leading-tight md:text-5xl" />
         <p className="mt-8 max-w-md text-white/75">Some move with the crowd. We move with intent. Heavyweight tees born on the beaches of Trinidad and Tobago, and a studio to print your own.</p>
       </section>
 
       <section className="relative z-10 overflow-hidden bg-coal pb-20 text-white">
         <div className="flex items-end justify-between gap-4 px-4 pb-4 sm:px-8">
-          <FallText text="The world" className="font-poster text-2xl uppercase sm:text-4xl" />
-          <p className="text-xs uppercase tracking-[.2em] text-white/60">Hold &amp; drag</p>
+          <FallText text="The world" className="font-medium text-2xl " />
+          <p className="text-xs uppercase tracking-[.08em] text-white/60">Hold &amp; drag</p>
         </div>
         <SpinCarousel />
       </section>
@@ -60,8 +60,8 @@ export default function Home() {
       <section className="relative z-10 grid gap-px bg-coal md:grid-cols-3">
         {CODES.map((c, i) => (
           <Reveal key={c.t} delay={i * 110} className="bg-paper px-6 py-14 sm:px-8 md:min-h-[320px]">
-            <p className="font-poster text-xs text-ink-400">0{i + 1}</p>
-            <p {...huntSpot(`home-code-${i + 1}`)} className="mt-14 w-max max-w-full font-pirate text-5xl lg:text-6xl">{c.t}</p>
+            <p className="font-medium text-xs text-ink-400">0{i + 1}</p>
+            <p {...huntSpot(`home-code-${i + 1}`)} className="mt-14 w-max max-w-full font-medium text-3xl ">{c.t}</p>
             <p className="mt-4 whitespace-pre-line text-sm text-ink-400">{c.d}</p>
           </Reveal>
         ))}
@@ -70,16 +70,16 @@ export default function Home() {
       <section className="relative z-10 grid gap-10 bg-paper px-4 py-24 sm:px-8 md:grid-cols-3">
         <div>
           <span aria-hidden className="block h-16 w-16" style={brandMark('/brand/sp-monogram.svg', '#0b0b0b')} />
-          <FallText {...huntSpot('home-who')} text="Who are we" className="mt-6 font-pirate text-5xl lg:text-6xl" />
+          <FallText {...huntSpot('home-who')} text="Who are we" className="mt-6 font-medium text-3xl " />
         </div>
         <Reveal className="md:col-span-2 md:max-w-3xl">
-          <p className="text-xl leading-relaxed lg:text-3xl lg:leading-snug">
+          <p className="text-lg leading-relaxed lg:text-2xl lg:leading-snug">
             Smuggler&rsquo;s Paradise wasn&rsquo;t born as a brand. It began on the beaches of Trinidad and Tobago, in the places the system forgot,
             where we moved in the gaps, built in the margins and carved our own road. It&rsquo;s for those who treat freedom, wealth and risk
             as part of the same language.
           </p>
-          <p {...huntSpot('home-way-of-life')} className="mt-6 w-max max-w-full font-pirate text-3xl">That&rsquo;s not a brand story. That&rsquo;s a way of life.</p>
-          <a href={INSTAGRAM} target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 border border-coal px-6 py-3 text-xs font-semibold uppercase tracking-[.2em] transition hover:bg-coal hover:text-white">
+          <p {...huntSpot('home-way-of-life')} className="mt-6 w-max max-w-full font-medium text-3xl">That&rsquo;s not a brand story. That&rsquo;s a way of life.</p>
+          <a href={INSTAGRAM} target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 border border-coal px-6 py-3 text-xs font-semibold uppercase tracking-[.08em] transition hover:bg-coal hover:text-white">
             <Instagram size={16} /> Follow @smugglerparadise
           </a>
         </Reveal>
@@ -87,10 +87,10 @@ export default function Home() {
 
       <section {...huntSpot('home-studio')} className="relative z-10 grid items-center overflow-hidden bg-coal text-white md:grid-cols-2">
         <div className="px-4 py-16 sm:px-8 md:py-24">
-          <p className="text-xs font-semibold uppercase tracking-[.3em] text-white/70">Design studio</p>
-          <FallText text={'Got an idea?\nPrint it.'} className="mt-3 font-poster text-4xl uppercase leading-none sm:text-6xl" />
+          <p className="text-xs font-semibold uppercase tracking-[.08em] text-white/70">Design studio</p>
+          <FallText text={'Got an idea?\nPrint it.'} className="mt-3 font-medium text-2xl leading-tight " />
           <p className="mt-5 max-w-md text-white/70">Pick a regular or oversized Shaka Wear tee in black, white, cream or grey. Upload your artwork, add text, or use the Smug Para pack of official marks and quotes. Preview it live and order in minutes.</p>
-          <Link to="/design" className="mt-7 inline-flex h-12 items-center gap-2 bg-white px-6 font-poster text-xs uppercase tracking-widest text-black transition hover:bg-acid hover:text-white">Open the designer <ArrowRight size={16} /></Link>
+          <Link to="/design" className="mt-7 inline-flex h-12 items-center gap-2 bg-white px-6 font-medium text-xs tracking-[.08em] text-black transition hover:bg-acid hover:text-white">Open the designer <ArrowRight size={16} /></Link>
         </div>
         <div className="flex justify-center gap-2 bg-paper px-6 py-10">
           <TeeMockup color="#111111" fit="oversized" className="w-1/2 max-w-[300px]" />
@@ -102,7 +102,7 @@ export default function Home() {
         {STEPS.map((s, i) => (
           <Reveal key={s.t} delay={i * 80}>
             <div {...(i === 2 ? huntSpot('home-step-3') : {})} className="border-t border-coal pt-4">
-              <p className="font-poster text-xs text-ink-400">0{i + 1}</p>
+              <p className="font-medium text-xs text-ink-400">0{i + 1}</p>
               <p className="mt-2 font-bold uppercase tracking-wide">{s.t}</p>
               <p className="mt-1 text-sm text-ink-400">{s.d}</p>
             </div>

@@ -33,7 +33,7 @@ export default function Products() {
     <div className="space-y-6">
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="font-poster text-5xl">Products</h1>
+          <h1 className="font-medium text-3xl">Products</h1>
           <p className="text-sm text-ink-400">{list.filter((p) => p.active).length} live · {list.length} total</p>
         </div>
         <Button onClick={() => setEdit(blank())}><Plus size={16} /> New product</Button>

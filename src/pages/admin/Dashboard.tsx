@@ -64,7 +64,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="font-poster text-5xl">Dashboard</h1>
+          <h1 className="font-medium text-3xl">Dashboard</h1>
           <p className="text-sm text-ink-400">Live overview of the last 30 days.</p>
         </div>
         {stats.trend !== null && (

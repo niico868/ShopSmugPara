@@ -22,8 +22,8 @@ export default function SharedDesign() {
   const areas = AREA_ORDER.filter((a) => areaLayers(d.design, a).length)
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
-      <p className="text-xs font-semibold uppercase tracking-[.2em] text-acid">Shared design</p>
-      <h1 className="mt-1 break-words font-poster text-5xl">{d.name}</h1>
+      <p className="text-xs font-semibold uppercase tracking-[.08em] text-acid">Shared design</p>
+      <h1 className="mt-1 break-words font-medium text-3xl">{d.name}</h1>
       <p className="text-sm text-ink-400">{fitName(d.design.fit)} · {colorName(d.design.color)}</p>
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {(areas.length ? areas : (['front'] as const)).map((a) => (

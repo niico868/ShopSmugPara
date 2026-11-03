@@ -54,7 +54,7 @@ export function Dialog({ title, onClose, children, wide }: { title: ReactNode; o
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={onClose}>
       <div className={cx('max-h-[92vh] w-full overflow-y-auto rounded-2xl bg-white p-6', wide ? 'max-w-3xl' : 'max-w-md')} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div className="flex items-start justify-between gap-4">
-          <h2 className="flex items-center gap-2 font-poster text-xl uppercase">{title}</h2>
+          <h2 className="flex items-center gap-2 font-medium text-xl ">{title}</h2>
           <button onClick={onClose} className="rounded-full p-1 hover:bg-ink-800" aria-label="Close dialog"><X size={18} /></button>
         </div>
         {children}

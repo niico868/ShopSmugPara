@@ -21,8 +21,8 @@ export default function CampaignPage() {
         )}
         <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-coal/90 to-transparent" />
         <div className="relative z-10">
-          <p className="text-xs font-semibold uppercase tracking-[.3em] text-white/80">{c.chapter} &middot; {c.year}</p>
-          <h1 className="mt-2 font-pirate text-[17vw] leading-[.9] md:text-[9vw]">{c.title}</h1>
+          <p className="text-xs font-semibold uppercase tracking-[.08em] text-white/80">{c.chapter} &middot; {c.year}</p>
+          <h1 className="mt-2 font-medium text-3xl leading-tight ">{c.title}</h1>
         </div>
       </section>
       <StickyCollection year={c.year} title={c.title} line={c.line} to="/shop" products={pieces} />

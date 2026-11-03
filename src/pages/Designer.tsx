@@ -553,7 +553,7 @@ export default function Designer() {
     <div className="mx-auto max-w-7xl px-4 py-8">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="font-poster text-5xl">Design studio</h1>
+          <h1 className="font-medium text-3xl">Design studio</h1>
           <p className="text-sm text-ink-400">
             {saved ? <>Editing <b className="text-black">{saved.name}</b>. </> : null}
             Drag to move; it snaps to the centre. Pull a corner to resize and the top handle to rotate, or pinch and twist on a phone.

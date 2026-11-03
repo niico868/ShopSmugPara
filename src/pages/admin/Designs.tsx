@@ -13,7 +13,7 @@ export default function Designs() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-poster text-5xl">Custom designs</h1>
+        <h1 className="font-medium text-3xl">Custom designs</h1>
         <p className="text-sm text-ink-400">Every custom tee customers have ordered, newest first.</p>
       </div>
       {designs.length === 0 ? <Empty title="No custom orders yet" /> : (

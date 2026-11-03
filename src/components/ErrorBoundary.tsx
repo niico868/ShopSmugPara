@@ -28,7 +28,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
     return (
       <div className="grid min-h-[60vh] place-items-center px-4 text-center">
         <div className="max-w-md">
-          <p className="font-poster text-5xl text-acid">Something broke</p>
+          <p className="font-medium text-3xl text-acid">Something broke</p>
           <p className="mt-3 text-sm text-ink-400">Reloading usually fixes it. If it keeps happening, send this message to support:</p>
           <pre className="mt-3 whitespace-pre-wrap rounded-xl bg-ink-900 p-3 text-left text-xs text-flame">{this.state.error.message}</pre>
           <button onClick={() => location.reload()} className="mt-5 rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white">Reload page</button>

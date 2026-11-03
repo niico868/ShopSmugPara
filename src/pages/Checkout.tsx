@@ -63,7 +63,7 @@ export default function Checkout() {
   return (
     <form onSubmit={submit} onInvalidCapture={(e) => { sfx('error'); nudge(e.target, false) }} className="mx-auto grid max-w-6xl gap-8 px-4 py-12 lg:grid-cols-[1fr_400px]">
       <div className="space-y-6">
-        <h1 className="font-poster text-5xl">Checkout</h1>
+        <h1 className="font-medium text-3xl">Checkout</h1>
         <ol className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider" aria-label={`${ready} of ${steps.length} sections complete`}>
           {steps.map((s, i) => (
             <li key={s.name} className="flex flex-1 items-center gap-2">

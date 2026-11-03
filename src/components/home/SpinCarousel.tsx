@@ -91,7 +91,7 @@ export function SpinCarousel() {
         {CAROUSEL.map((item, i) => (
           <figure key={item.src} className="absolute inset-0 m-0 overflow-hidden bg-[#161616]" style={{ transform: `rotateY(${(360 / n) * i}deg) translateZ(${size.r}px)` }}>
             <img src={item.src} alt="" draggable={false} loading="lazy" className="h-[calc(100%-2.25rem)] w-full object-contain p-3" />
-            <figcaption className="truncate border-t border-white/15 px-3 py-2 text-[11px] font-semibold uppercase tracking-widest text-white/80">{item.label}</figcaption>
+            <figcaption className="truncate border-t border-white/15 px-3 py-2 text-[11px] font-semibold uppercase tracking-[.08em] text-white/80">{item.label}</figcaption>
           </figure>
         ))}
       </div>

@@ -13,8 +13,8 @@ export default {
         flame: '#e5484d',
       },
       fontFamily: {
-        sans: ['"Creato Display"', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['"Creato Display"', 'Inter', 'sans-serif'],
+        sans: ['"Inter Tight"', '"Helvetica Neue"', 'Arial', 'system-ui', 'sans-serif'],
+        display: ['"Inter Tight"', '"Helvetica Neue"', 'Arial', 'sans-serif'],
         // Bold expanded sans for headers.
         poster: ['"Akira Expanded"', '"Archivo Black"', 'Impact', 'sans-serif'],
         // Smuggler's Paradise blackletter, for brand lines and captions.

@@ -15,29 +15,26 @@ function Slide({ c, i, total }: { c: Campaign; i: number; total: number }) {
           {c.tees.map((src, t) => <img key={src} src={src} alt="" className={cx('h-full max-h-full w-full min-w-0 object-contain md:w-1/2', t > 0 && 'hidden md:block')} />)}
         </Link>
       )}
-      {!c.image && !c.tees && (
-        <p aria-hidden className="pointer-events-none absolute -top-[.08em] left-0 select-none whitespace-nowrap font-poster text-[34vw] leading-none text-white/[.05]">{String(i + 1).padStart(2, '0')}</p>
-      )}
       <span aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-coal/90 via-coal/10 to-transparent" />
       <div className="relative z-10 flex w-full flex-col justify-between gap-6 px-4 pb-8 sm:px-8 md:flex-row md:items-end">
         <div className="max-w-4xl">
-          <p className="text-xs font-semibold uppercase tracking-[.3em] text-white/80">
+          <p className="text-xs font-semibold uppercase tracking-[.08em] text-white/80">
             {c.chapter} &middot; {live ? 'Out now' : c.when}
           </p>
-          <h2 className={cx('mt-3', live ? 'font-pirate text-[17vw] leading-[.9] md:text-[9vw]' : 'font-poster text-[10vw] uppercase leading-none md:text-[6vw]')}>{c.title}</h2>
+          <h2 className={cx('mt-3', live ? 'font-pirate text-5xl leading-none md:text-6xl' : 'text-3xl font-medium md:text-5xl')}>{c.title}</h2>
           <p className="mt-3 max-w-lg text-sm text-white/85 sm:text-base">{c.line}</p>
           {live && <TreasureMap className="mt-4" />}
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-3">
           {live ? (
             <>
-              <Link to={`/campaigns/${c.slug}`} className="inline-flex h-12 items-center gap-2 bg-white px-6 font-poster text-xs uppercase tracking-widest text-black transition hover:bg-acid hover:text-white">Shop the campaign <ArrowRight size={16} /></Link>
-              <Link to="/design" className="inline-flex h-12 items-center border border-white px-6 font-poster text-xs uppercase tracking-widest transition hover:bg-white hover:text-black">Design yours</Link>
+              <Link to={`/campaigns/${c.slug}`} className="inline-flex h-12 items-center gap-2 bg-white px-6 font-medium text-xs tracking-[.08em] text-black transition hover:bg-acid hover:text-white">Shop the campaign <ArrowRight size={16} /></Link>
+              <Link to="/design" className="inline-flex h-12 items-center border border-white px-6 font-medium text-xs tracking-[.08em] transition hover:bg-white hover:text-black">Design yours</Link>
             </>
           ) : (
-            <Link to="/members" className="inline-flex h-12 items-center gap-2 bg-white px-6 font-poster text-xs uppercase tracking-widest text-black transition hover:bg-acid hover:text-white">Hear first <ArrowRight size={16} /></Link>
+            <Link to="/members" className="inline-flex h-12 items-center gap-2 bg-white px-6 font-medium text-xs tracking-[.08em] text-black transition hover:bg-acid hover:text-white">Hear first <ArrowRight size={16} /></Link>
           )}
-          <span className="ml-1 font-poster text-xs tracking-widest text-white/70">{String(i + 1).padStart(2, '0')}/{String(total).padStart(2, '0')}</span>
+          <span className="ml-1 font-medium text-xs tracking-[.08em] text-white/70">{String(i + 1).padStart(2, '0')}/{String(total).padStart(2, '0')}</span>
         </div>
       </div>
     </section>

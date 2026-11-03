@@ -27,7 +27,7 @@ export default function MembersAdmin() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-poster text-3xl uppercase">Members <span className="font-sans text-base font-normal text-ink-400">{rows.length}</span></h1>
+        <h1 className="font-medium text-3xl ">Members <span className="font-sans text-base font-normal text-ink-400">{rows.length}</span></h1>
         {rows.length > 0 && <Button variant="outline" size="sm" onClick={exportCsv}><Download size={14} /> Export CSV</Button>}
       </div>
       {error && <p className="mb-4 text-sm text-flame">{error}</p>}

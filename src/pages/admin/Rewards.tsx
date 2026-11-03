@@ -18,7 +18,7 @@ export default function Rewards() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-poster text-5xl">Rewards</h1>
+        <h1 className="font-medium text-3xl">Rewards</h1>
         <p className="max-w-2xl text-sm text-ink-400">Reshares and wear-and-tag posts wait here for you to approve. Boat catches, Contraband, the welcome bonus and purchase points are automatic. Corrections need a written reason.</p>
       </div>
       <div className="flex gap-2">

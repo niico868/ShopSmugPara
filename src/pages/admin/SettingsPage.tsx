@@ -22,7 +22,7 @@ export default function SettingsPage() {
   return (
     <form onSubmit={save} className="max-w-3xl space-y-6">
       <div>
-        <h1 className="font-poster text-5xl">Settings</h1>
+        <h1 className="font-medium text-3xl">Settings</h1>
         <p className="text-sm text-ink-400">Store details, pricing and checkout copy.</p>
       </div>
       <Card className="grid gap-4 sm:grid-cols-2">

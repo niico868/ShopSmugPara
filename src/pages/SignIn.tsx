@@ -37,16 +37,16 @@ export default function SignIn() {
     <div className="mx-auto max-w-sm px-4 py-16">
       {claim ? (
         <>
-          <p className="text-xs font-semibold uppercase tracking-[.3em] text-acid">Smuggler&rsquo;s Paradise Rewards</p>
-          <h1 className="mt-2 font-poster text-4xl uppercase leading-none">{stash > 0 ? 'Claim your stash' : 'Join the crew'}</h1>
+          <p className="text-xs font-semibold uppercase tracking-[.08em] text-acid">Smuggler&rsquo;s Paradise Rewards</p>
+          <h1 className="mt-2 font-medium text-2xl leading-tight">{stash > 0 ? 'Claim your stash' : 'Join the crew'}</h1>
           <p className="mt-3 text-sm text-ink-400">
             {stash > 0 ? `Sign up and your ${fmtPts(stash)} ${CURRENCY.EP.many} move to your account, plus a ${welcome} EP welcome bonus.` : `Sign up for a ${welcome} EP welcome bonus and keep the ${CURRENCY.EP.many} you earn.`} Your designs and orders are saved there too. No password needed.
           </p>
         </>
       ) : (
         <>
-          <p className="text-xs font-semibold uppercase tracking-[.3em] text-acid">Design studio</p>
-          <h1 className="mt-2 font-poster text-4xl uppercase leading-none">Sign in to design</h1>
+          <p className="text-xs font-semibold uppercase tracking-[.08em] text-acid">Design studio</p>
+          <h1 className="mt-2 font-medium text-2xl leading-tight">Sign in to design</h1>
           <p className="mt-3 text-sm text-ink-400">Your designs and orders are saved to your account. No password needed.</p>
         </>
       )}
@@ -60,7 +60,7 @@ export default function SignIn() {
       ) : (
         <div className="mt-8 space-y-5">
           <Button variant="outline" size="lg" className="w-full" onClick={google} disabled={busy}><GoogleIcon /> Continue with Google</Button>
-          <div className="flex items-center gap-3 text-xs uppercase tracking-widest text-ink-400"><span className="h-px flex-1 bg-ink-800" />or<span className="h-px flex-1 bg-ink-800" /></div>
+          <div className="flex items-center gap-3 text-xs uppercase tracking-[.08em] text-ink-400"><span className="h-px flex-1 bg-ink-800" />or<span className="h-px flex-1 bg-ink-800" /></div>
           <form onSubmit={emailLink} className="space-y-3">
             <Field label="Email"><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" /></Field>
             <Button type="submit" size="lg" className="w-full" disabled={busy}>Email me a sign-in link</Button>

@@ -12,7 +12,7 @@ export default function Track() {
     <div className="mx-auto max-w-lg px-4 py-20">
       <div className="mb-8 text-center">
         <PackageSearch size={40} className="mx-auto text-acid" />
-        <h1 {...huntSpot('track-title')} className="mt-4 font-poster text-5xl">Track your order</h1>
+        <h1 {...huntSpot('track-title')} className="mt-4 font-medium text-3xl">Track your order</h1>
         <p className="mt-2 text-ink-400">Enter the order code from your confirmation and the email you ordered with.</p>
       </div>
       <Card>
