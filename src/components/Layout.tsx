@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Suspense, useEffect, useState } from 'react'
-import { ArrowUp, Instagram, Menu, ShoppingBag, X, Sparkles, User } from 'lucide-react'
+import { ArrowUp, Check, Copy, Instagram, Menu, ShoppingBag, X, Sparkles, User } from 'lucide-react'
 import { useAccount } from '../lib/auth'
 import { useCart, cartCount } from '../store/cart'
 import { useSettings } from '../lib/settings'
@@ -147,10 +147,41 @@ export default function Layout() {
             <p className="mt-4"><Link to="/admin" className="text-white/30 hover:text-white/60">Staff login</Link></p>
           </div>
         </div>
+        <FooterCopyLink />
         <p className="border-t border-white/10 py-5 text-center text-xs text-white/40">© {new Date().getFullYear()} {settings.store_name}. All rights reserved.{DEMO && ' · Demo mode: data stays in this browser'}</p>
       </footer>
 
       <CartDrawer />
+    </div>
+  )
+}
+
+const FOOTER_LINK = 'https://we.tl/t-PA4DVqVPwQRoCmzw'
+
+function FooterCopyLink() {
+  const [copied, setCopied] = useState(false)
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(FOOTER_LINK)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard can be blocked; the link stays selectable on the page.
+    }
+  }
+
+  return (
+    <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-3 px-4 pb-8 text-sm">
+      <code className="max-w-full select-all break-all text-white/60">{FOOTER_LINK}</code>
+      <button
+        type="button"
+        onClick={copy}
+        className="inline-flex items-center gap-1.5 rounded border border-white/20 px-3 py-1.5 text-xs font-semibold text-white hover:border-white/50"
+      >
+        {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+        {copied ? 'Copied' : 'Copy'}
+      </button>
     </div>
   )
 }
