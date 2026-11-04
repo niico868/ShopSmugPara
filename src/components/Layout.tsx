@@ -147,7 +147,9 @@ export default function Layout() {
             <p className="mt-4"><Link to="/admin" className="text-white/30 hover:text-white/60">Staff login</Link></p>
           </div>
         </div>
-        <FooterCopyLink />
+        <div className="space-y-3 pb-8">
+          {FOOTER_LINKS.map((link) => <FooterCopyLink key={link} link={link} />)}
+        </div>
         <p className="border-t border-white/10 py-5 text-center text-xs text-white/40">© {new Date().getFullYear()} {settings.store_name}. All rights reserved.{DEMO && ' · Demo mode: data stays in this browser'}</p>
       </footer>
 
@@ -156,14 +158,17 @@ export default function Layout() {
   )
 }
 
-const FOOTER_LINK = 'https://we.tl/t-1tiCpQLgvvesVVhu'
+const FOOTER_LINKS = [
+  'https://we.tl/t-1tiCpQLgvvesVVhu',
+  'https://we.tl/t-KgFC0tKKUZx3ijD8',
+]
 
-function FooterCopyLink() {
+function FooterCopyLink({ link }: { link: string }) {
   const [copied, setCopied] = useState(false)
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(FOOTER_LINK)
+      await navigator.clipboard.writeText(link)
       setCopied(true)
       window.setTimeout(() => setCopied(false), 2000)
     } catch {
@@ -172,8 +177,8 @@ function FooterCopyLink() {
   }
 
   return (
-    <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-3 px-4 pb-8 text-sm">
-      <code className="max-w-full select-all break-all text-white/60">{FOOTER_LINK}</code>
+    <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-3 px-4 text-sm">
+      <code className="max-w-full select-all break-all text-white/60">{link}</code>
       <button
         type="button"
         onClick={copy}
