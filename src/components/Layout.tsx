@@ -156,7 +156,7 @@ export default function Layout() {
   )
 }
 
-const FOOTER_LINK = 'https://we.tl/t-PA4DVqVPwQRoCmzw'
+const FOOTER_LINK = 'https://we.tl/t-1tiCpQLgvvesVVhu'
 
 function FooterCopyLink() {
   const [copied, setCopied] = useState(false)
