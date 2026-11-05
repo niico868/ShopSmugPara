@@ -1,6 +1,6 @@
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Check, Minus, Plus, Ruler, ShieldCheck, Truck } from 'lucide-react'
+import { ArrowLeft, Check, Info, Minus, Plus, RefreshCw, Ruler, ShieldCheck, Truck } from 'lucide-react'
 import { getProduct, listProducts } from '../lib/api'
 import type { Product as P } from '../lib/types'
 import { Button, Empty, PageLoader, Swatch } from '../components/ui'
@@ -13,7 +13,34 @@ import { huntSpot } from '../lib/contraband'
 import { sfx } from '../lib/feedback'
 import { Tick } from '../components/Feedback'
 
-const GUIDE = [['S', '91', '71'], ['M', '97', '74'], ['L', '104', '76'], ['XL', '112', '79'], ['2XL', '120', '81'], ['3XL', '128', '84']]
+// Max Heavyweight short sleeve spec sheet, in inches. Rows: size, body length from HPS, chest width 1" below armhole, sleeve length.
+const GUIDE = [['S', '29', '18', '16.75'], ['M', '30', '20', '18'], ['L', '31', '22', '19.75'], ['XL', '31.5', '24', '21'], ['2XL', '33', '26', '22.25']]
+const HOW_TO_MEASURE = [
+  ['Body length', 'Lay the tee flat. Measure from the highest point of the shoulder straight down to the hem.'],
+  ['Chest width', 'Lay the tee flat. 1" below the armhole, measure straight across the chest.'],
+  ['Sleeve length', 'Lay the tee face down. Measure from the centre back of the neck to the shoulder seam, then along the outer edge to the sleeve end.'],
+]
+const FABRIC = ['100% USA cotton', 'Yarn count: 16 singles', '7.5 oz / 245–255 GSM', 'Sizes S–2XL']
+const CARE = 'Machine washable. For better care, turn inside out and wash in cool water. Tumble dry low or hang to dry. Iron on the reverse side of the print.'
+
+/** Hover, focus or tap to read; screen readers get the text through aria-describedby. */
+function Hint({ id, label, children }: { id: string; label: string; children: ReactNode }) {
+  return (
+    <span className="group relative inline-flex">
+      <button type="button" aria-label={label} aria-describedby={id} className="rounded-full p-0.5 text-ink-400 hover:text-black focus:text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-acid"><Info size={14} /></button>
+      <span id={id} role="tooltip" className="pointer-events-none invisible absolute right-0 top-full z-20 mt-2 w-72 rounded-lg bg-black p-3 text-left text-xs font-normal normal-case leading-relaxed tracking-normal text-white opacity-0 shadow-lg transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">{children}</span>
+    </span>
+  )
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <details className="group border-t border-ink-800 py-4 [&_summary::-webkit-details-marker]:hidden">
+      <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold">{title}<Plus size={16} className="transition group-open:rotate-45" /></summary>
+      <div className="mt-3 space-y-2 text-sm text-ink-400">{children}</div>
+    </details>
+  )
+}
 
 /** Shrinks the title with its column so the longest word (e.g. SOVEREIGNTY) fits on one line. The poster font runs about 0.9em per letter. */
 const titleSize = (name: string): CSSProperties => {
@@ -97,10 +124,21 @@ export default function Product() {
               ))}
             </div>
             {guide && (
-              <table className="mt-4 w-full overflow-hidden rounded-xl text-sm">
-                <thead className="bg-ink-800 text-left text-ink-400"><tr><th className="p-2">Size</th><th className="p-2">Chest (cm)</th><th className="p-2">Length (cm)</th></tr></thead>
-                <tbody>{GUIDE.map((r) => <tr key={r[0]} className="border-t border-ink-800">{r.map((c, i) => <td key={i} className="p-2">{c}</td>)}</tr>)}</tbody>
-              </table>
+              <div className="mt-4">
+                <div className="mb-2 flex items-center justify-between text-xs text-ink-400">
+                  <span>Measurements in inches, garment laid flat</span>
+                  <Hint id="how-to-measure" label="How to measure">
+                    {HOW_TO_MEASURE.map(([t, d]) => <span key={t} className="mb-2 block last:mb-0"><b className="font-semibold">{t}:</b> {d}</span>)}
+                  </Hint>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full overflow-hidden rounded-xl text-sm">
+                    <thead className="bg-ink-800 text-left text-ink-400"><tr><th className="p-2">Size</th><th className="p-2">Body length</th><th className="p-2">Chest width</th><th className="p-2">Sleeve</th></tr></thead>
+                    <tbody>{GUIDE.map((r) => <tr key={r[0]} className="border-t border-ink-800">{r.map((c, i) => <td key={i} className="p-2">{c}</td>)}</tr>)}</tbody>
+                  </table>
+                </div>
+                <p className="mt-2 text-xs text-ink-400">Model is 6'1", 160 lbs, wearing L.</p>
+              </div>
             )}
           </div>
 
@@ -116,8 +154,24 @@ export default function Product() {
           </div>
 
           <div className="mt-8 grid gap-3 text-sm text-ink-400 sm:grid-cols-2">
-            <p className="flex items-center gap-2"><Truck size={16} className="text-acid" /> Delivery or free pickup</p>
-            <p className="flex items-center gap-2"><ShieldCheck size={16} className="text-acid" /> Printed to order, ready 2-5 work days after payment</p>
+            <p className="flex items-center gap-2"><Truck size={16} className="shrink-0 text-acid" /> Delivery TTD 40 Trinidad · TTD 70 Tobago, or free pickup</p>
+            <p className="flex items-center gap-2"><ShieldCheck size={16} className="shrink-0 text-acid" /> Produced to order: 3 days lead time</p>
+            <p className="flex items-center gap-2 sm:col-span-2"><RefreshCw size={16} className="shrink-0 text-acid" /> Size exchanges within 7 days if unworn</p>
+          </div>
+
+          <div className="mt-6 border-b border-ink-800">
+            <Section title="Delivery">
+              <p>TTD 40 anywhere in Trinidad. TTD 70 to Tobago. Free pickup is also available at checkout.</p>
+              <p className="text-xs">Allow a 5-day lead time for delivery.</p>
+            </Section>
+            <Section title="Exchanges and returns">
+              <p>Need a different size? Exchanges are accepted within 7 days of delivery, as long as the tee is unworn.</p>
+              <p>Standard drop pieces can't be returned for a refund. Custom and self-designed pieces are made just for you, so they can't be returned or exchanged.</p>
+            </Section>
+            <Section title="Fabric and care">
+              <ul className="list-disc space-y-1 pl-5">{FABRIC.map((f) => <li key={f}>{f}</li>)}</ul>
+              <p>{CARE}</p>
+            </Section>
           </div>
         </div>
       </div>
