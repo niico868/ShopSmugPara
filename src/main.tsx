@@ -8,6 +8,15 @@ import { Toaster } from './components/Toast'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { SUPABASE_ERROR } from './lib/supabase'
 import './index.css'
+import { loadEditorFonts, prefetchEditorFonts } from './lib/fonts'
+
+// T-shirt editor fonts: fetch them in the background after load, and right away when someone
+// points at, taps or tabs to any link into the designer.
+prefetchEditorFonts()
+const toDesigner = (e: Event) => {
+  if ((e.target as Element | null)?.closest?.('a[href^="/design"]')) void loadEditorFonts()
+}
+for (const ev of ['pointerover', 'touchstart', 'focusin']) document.addEventListener(ev, toDesigner, { passive: true })
 
 const root = createRoot(document.getElementById('root')!)
 

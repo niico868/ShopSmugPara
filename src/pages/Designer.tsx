@@ -24,6 +24,10 @@ import { makeShareCard } from '../lib/shareCard'
 import { ShareButtons } from '../components/ShareButtons'
 import { Tick, useProgress } from '../components/Feedback'
 import { sfx } from '../lib/feedback'
+import { loadEditorFonts } from '../lib/fonts'
+
+// Start the editor fonts as soon as this page's code arrives, before it renders.
+void loadEditorFonts()
 
 const DRAFT = 'sp.designer.draft'
 const RULES_KEY = 'sp.designer.rules'
