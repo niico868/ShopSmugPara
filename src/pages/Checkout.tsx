@@ -14,12 +14,13 @@ import { ItemThumb } from '../components/ItemThumb'
 import { toast } from '../components/Toast'
 import { Tick, useProgress } from '../components/Feedback'
 import { nudge, sfx } from '../lib/feedback'
+import { inCurrency, regionsOn, shippingFee, type Region } from '../lib/shipping'
 
 export default function Checkout() {
   const { items, clear } = useCart()
   const { settings } = useSettings()
   const nav = useNavigate()
-  const [f, setF] = useState({ customer_name: '', email: '', phone: '', fulfillment: 'delivery' as 'delivery' | 'pickup', address: '', notes: '', payment_method: PAYMENT_METHODS[0] })
+  const [f, setF] = useState({ customer_name: '', email: '', phone: '', fulfillment: 'delivery' as 'delivery' | 'pickup', address: '', notes: '', payment_method: PAYMENT_METHODS[0], region: 'trinidad' as Region })
   const [busy, setBusy] = useState(false)
   const [products, setProducts] = useState<Product[]>([])
   const [credit, setCredit] = useState(false)
@@ -30,7 +31,13 @@ export default function Checkout() {
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value })
 
   const sub = cartSubtotal(items)
-  const shipping = f.fulfillment === 'pickup' || (settings.free_shipping_over > 0 && sub >= settings.free_shipping_over) ? 0 : settings.shipping_fee
+  const regions = regionsOn(settings)
+  const region: Region = regions ? f.region : 'trinidad'
+  const usd = region === 'us'
+  const rate = settings.usd_rate ?? 7
+  // Every amount is kept in TTD; US orders are shown in USD.
+  const show = (ttd: number) => (usd ? inCurrency(ttd, 'USD', rate) : money(ttd))
+  const shipping = shippingFee(settings, usd ? 'delivery' : f.fulfillment, region, sub)
   const discount = credit ? Math.min(rules.credit_ttd, sub) : 0
   const total = sub + shipping - discount
 
@@ -49,7 +56,7 @@ export default function Checkout() {
     if (f.fulfillment === 'delivery' && !f.address.trim()) { nudge(document.getElementById('checkout-address')); return toast.error('Please add a delivery address.') }
     setBusy(true)
     try {
-      const { code } = await placeOrder({ ...f, email: f.email.trim().toLowerCase(), items, use_credit: credit }, settings)
+      const { code } = await placeOrder({ ...f, region, fulfillment: usd ? 'delivery' : f.fulfillment, email: f.email.trim().toLowerCase(), items, use_credit: credit }, settings)
       sfx('success')
       clear()
       refreshPoints()
@@ -85,15 +92,27 @@ export default function Checkout() {
         </Card>
         <Card className="space-y-4">
           <h2 className="font-display text-lg font-bold">Delivery</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {([['delivery', MapPin, 'Deliver to me', money(settings.shipping_fee)], ['pickup', Store, 'I will collect', 'Free']] as const).map(([v, Icon, t, d]) => (
+          {regions && (
+            <Field label="Where are you?">
+              <div className="grid grid-cols-3 gap-2" role="group" aria-label="Delivery location">
+                {([['trinidad', 'Trinidad', money(settings.shipping_fee)], ['tobago', 'Tobago', money(settings.tobago_shipping_fee!)], ['us', 'United States', inCurrency(settings.us_shipping_fee_usd! * rate, 'USD', rate)]] as const).map(([v, t, d]) => (
+                  <button type="button" key={v} aria-pressed={f.region === v} onClick={() => { if (f.region !== v) sfx('select'); setF({ ...f, region: v, fulfillment: v === 'us' ? 'delivery' : f.fulfillment }) }} className={cx('rounded-xl border p-3 text-left transition active:scale-[.98]', f.region === v ? 'border-acid bg-acid/10' : 'border-ink-700 hover:border-ink-400')}>
+                    <b className="block text-sm">{t}</b><span className="text-xs text-ink-400">{d}</span>
+                  </button>
+                ))}
+              </div>
+            </Field>
+          )}
+          {usd && <p className="rounded-xl bg-ink-800 p-3 text-sm text-ink-200">US orders are shown in USD at TTD {rate} = USD 1. Delivery to the US is {inCurrency(settings.us_shipping_fee_usd! * rate, 'USD', rate)}.</p>}
+          {!usd && <div className="grid gap-3 sm:grid-cols-2">
+            {([['delivery', MapPin, 'Deliver to me', money(region === 'tobago' ? settings.tobago_shipping_fee! : settings.shipping_fee)], ['pickup', Store, 'I will collect', 'Free']] as const).map(([v, Icon, t, d]) => (
               <button type="button" key={v} aria-pressed={f.fulfillment === v} onClick={() => { if (f.fulfillment !== v) sfx('select'); setF({ ...f, fulfillment: v }) }} className={cx('flex items-center gap-3 rounded-xl border p-4 text-left transition active:scale-[.98]', f.fulfillment === v ? 'border-acid bg-acid/10' : 'border-ink-700 hover:border-ink-400')}>
                 <Icon className={f.fulfillment === v ? 'text-acid' : 'text-ink-400'} />
                 <span><b className="block text-sm">{t}</b><span className="text-xs text-ink-400">{d}</span></span>
               </button>
             ))}
-          </div>
-          {f.fulfillment === 'delivery' && <Field label="Delivery address"><Textarea id="checkout-address" value={f.address} onChange={set('address')} autoComplete="street-address" /></Field>}
+          </div>}
+          {(usd || f.fulfillment === 'delivery') && <Field label="Delivery address"><Textarea id="checkout-address" value={f.address} onChange={set('address')} autoComplete="street-address" /></Field>}
           <Field label="Notes (optional)"><Textarea value={f.notes} onChange={set('notes')} placeholder="Deadline, event date, special requests…" /></Field>
         </Card>
         <CheckoutRewards items={items} products={products} credit={credit} setCredit={setCredit} />
@@ -122,15 +141,15 @@ export default function Checkout() {
                   <p className="font-semibold">{it.name} <span className="text-ink-400">× {it.qty}</span></p>
                   <p className="text-xs text-ink-400">{colorName(it.color)} · {it.size}{it.reward && <span className="ml-1 font-semibold text-acid">· Reward</span>}</p>
                 </div>
-                <p className="text-sm font-semibold">{money(it.qty * it.unit_price)}</p>
+                <p className="text-sm font-semibold">{show(it.qty * it.unit_price)}</p>
               </li>
             ))}
           </ul>
           <div className="mt-5 space-y-2 border-t border-ink-800 pt-4 text-sm">
-            <div className="flex justify-between"><span className="text-ink-400">Subtotal</span><span>{money(sub)}</span></div>
-            <div className="flex justify-between"><span className="text-ink-400">Delivery</span><Tick value={shipping}>{shipping ? money(shipping) : 'Free'}</Tick></div>
-            {discount > 0 && <div className="flex justify-between text-acid"><span>Paradise Points credit</span><span>-{money(discount)}</span></div>}
-            <div className="flex justify-between pt-2 text-lg font-bold"><span>Total</span><Tick value={total}>{money(total)}</Tick></div>
+            <div className="flex justify-between"><span className="text-ink-400">Subtotal</span><span>{show(sub)}</span></div>
+            <div className="flex justify-between"><span className="text-ink-400">Delivery</span><Tick value={shipping}>{shipping ? show(shipping) : 'Free'}</Tick></div>
+            {discount > 0 && <div className="flex justify-between text-acid"><span>Paradise Points credit</span><span>-{show(discount)}</span></div>}
+            <div className="flex justify-between pt-2 text-lg font-bold"><span>Total</span><Tick value={total}>{show(total)}</Tick></div>
           </div>
           <Button size="lg" type="submit" className="mt-5 w-full" disabled={busy}>{busy ? <><Loader2 size={16} className="animate-spin" /> Placing order…</> : <><Lock size={16} /> Place order</>}</Button>
         </Card>

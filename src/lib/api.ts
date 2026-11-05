@@ -1,3 +1,4 @@
+import { shippingFee } from './shipping'
 import { supabase, DEMO } from './supabase'
 import type { CheckoutInput, Design, Order, OrderEvent, OrderStatus, PaymentStatus, Product, ProofStatus, SavedDesign, Settings } from './types'
 import { AREA_ORDER } from './pricing'
@@ -120,8 +121,7 @@ export async function placeOrder(input: CheckoutInput, settings: Settings): Prom
   )
   if (DEMO) {
     const subtotal = items.reduce((s, i) => s + i.unit_price * i.qty, 0)
-    const freeShip = settings.free_shipping_over > 0 && subtotal >= settings.free_shipping_over
-    const shipping = input.fulfillment === 'pickup' || freeShip ? 0 : settings.shipping_fee
+    const shipping = shippingFee(settings, input.fulfillment, input.region ?? 'trinidad', subtotal)
     const created = new Date().toISOString()
     const { use_credit, ...rest } = input
     const order: Order = {

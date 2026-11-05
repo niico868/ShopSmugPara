@@ -11,6 +11,7 @@ import { AREAS, TeeMockup, imageDpi, svgToPng } from '../../components/TeeMockup
 import { bakeTone, toneLabel, toneOf } from '../../lib/tone'
 import { AREA_ORDER } from '../../lib/pricing'
 import { cx, dateTime, money } from '../../lib/format'
+import { inCurrency } from '../../lib/shipping'
 import { toast } from '../../components/Toast'
 
 export default function OrderDetail() {
@@ -27,6 +28,8 @@ export default function OrderDetail() {
 
   if (order === undefined) return <PageLoader />
   if (!order) return <Empty title="Order not found"><Link to="/admin/orders" className="text-acid">Back to orders</Link></Empty>
+  // Amounts are stored in TTD; US orders are shown in USD at the rate they were placed at.
+  const om = (n: number) => (order.currency === 'USD' ? inCurrency(n, 'USD', Number(order.fx_rate) || 7) : money(n))
 
   const act = async (patch: { status?: OrderStatus; payment_status?: PaymentStatus }, n = '') => {
     setBusy(true)
@@ -86,10 +89,10 @@ export default function OrderDetail() {
               {order.items.map((it) => <ItemRow key={it.id} item={it} code={order.code} />)}
             </ul>
             <div className="mt-6 space-y-1 border-t border-ink-800 pt-4 text-sm">
-              <div className="flex justify-between text-ink-400"><span>Subtotal</span><span>{money(order.subtotal)}</span></div>
-              <div className="flex justify-between text-ink-400"><span>{order.fulfillment === 'pickup' ? 'Pickup' : 'Delivery'}</span><span>{money(order.shipping)}</span></div>
-              {!!order.discount && Number(order.discount) > 0 && <div className="flex justify-between text-ink-400"><span>Paradise Points credit</span><span>-{money(Number(order.discount))}</span></div>}
-              <div className="flex justify-between text-lg font-bold"><span>Total</span><span>{money(order.total)}</span></div>
+              <div className="flex justify-between text-ink-400"><span>Subtotal</span><span>{om(order.subtotal)}</span></div>
+              <div className="flex justify-between text-ink-400"><span>{order.fulfillment === 'pickup' ? 'Pickup' : 'Delivery'}</span><span>{om(order.shipping)}</span></div>
+              {!!order.discount && Number(order.discount) > 0 && <div className="flex justify-between text-ink-400"><span>Paradise Points credit</span><span>-{om(Number(order.discount))}</span></div>}
+              <div className="flex justify-between text-lg font-bold"><span>Total</span><span>{om(order.total)}</span></div>
             </div>
           </Card>
         </div>
@@ -100,7 +103,7 @@ export default function OrderDetail() {
             <p className="text-lg">{order.customer_name}</p>
             <p className="text-sm text-ink-400">{order.email}</p>
             <p className="text-sm text-ink-400">{order.phone}</p>
-            <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-ink-400">{order.fulfillment === 'pickup' ? 'Collecting in person' : 'Deliver to'}</p>
+            <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-ink-400">{order.fulfillment === 'pickup' ? 'Collecting in person' : `Deliver to${order.region === 'tobago' ? ' · Tobago' : order.region === 'us' ? ' · United States (USD)' : ''}`}</p>
             {order.address && <p className="whitespace-pre-line text-sm">{order.address}</p>}
             <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-ink-400">Payment</p>
             <p className="text-sm">{order.payment_method}</p>

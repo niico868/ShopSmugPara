@@ -11,6 +11,7 @@ import { Dialog } from '../components/designer/Controls'
 import { AREA_ORDER } from '../lib/pricing'
 import { DEPOSIT_NOTE, READY_NOTE, colorName } from '../lib/constants'
 import { dateTime, money } from '../lib/format'
+import { inCurrency } from '../lib/shipping'
 import { WHATSAPP } from '../lib/brand'
 import { useSettings } from '../lib/settings'
 import { toast } from '../components/Toast'
@@ -37,6 +38,8 @@ export default function OrderStatus() {
       <Empty title="We couldn't find that order">Check the code and email match your confirmation. <Link to="/track" className="text-acid">Try again</Link></Empty>
     </div>
   )
+  // Amounts are stored in TTD; US orders are shown in USD at the rate they were placed at.
+  const om = (n: number) => (order.currency === 'USD' ? inCurrency(n, 'USD', Number(order.fx_rate) || 7) : money(n))
 
   const wa = `${settings.whatsapp ? `https://wa.me/${settings.whatsapp.replace(/\D/g, '')}` : WHATSAPP}?text=${encodeURIComponent(`Hi! Question about order ${order.code}`)}`
 
@@ -71,7 +74,7 @@ export default function OrderStatus() {
         <Card className="mt-4 border-acid/40">
           <p className="text-sm font-semibold text-acid">Payment: {order.payment_method}</p>
           <p className="mt-1 text-sm text-ink-200">{settings.payment_instructions}</p>
-          <p className="mt-2 text-sm">Amount due: <b>{money(order.total)}</b> · 50% down payment: <b>{money(Math.ceil(order.total / 2))}</b> · Reference: <b className="font-mono">{order.code}</b></p>
+          <p className="mt-2 text-sm">Amount due: <b>{om(order.total)}</b> · 50% down payment: <b>{om(Math.ceil(order.total / 2))}</b> · Reference: <b className="font-mono">{order.code}</b></p>
           <p className="mt-2 text-sm text-ink-400">{DEPOSIT_NOTE} {READY_NOTE}</p>
         </Card>
       )}
@@ -93,15 +96,15 @@ export default function OrderStatus() {
                   <p className="font-semibold">{it.name}</p>
                   <p className="text-ink-400">{colorName(it.color)} · {it.size} · Qty {it.qty}</p>
                 </div>
-                <p className="font-semibold">{money(it.unit_price * it.qty)}</p>
+                <p className="font-semibold">{om(it.unit_price * it.qty)}</p>
               </li>
             ))}
           </ul>
           <div className="mt-5 space-y-1 border-t border-ink-800 pt-4 text-sm">
-            <div className="flex justify-between text-ink-400"><span>Subtotal</span><span>{money(order.subtotal)}</span></div>
-            <div className="flex justify-between text-ink-400"><span>{order.fulfillment === 'pickup' ? 'Collection' : 'Delivery'}</span><span>{order.shipping ? money(order.shipping) : 'Free'}</span></div>
-            {!!order.discount && Number(order.discount) > 0 && <div className="flex justify-between text-acid"><span>Paradise Points credit</span><span>-{money(Number(order.discount))}</span></div>}
-            <div className="flex justify-between text-base font-bold"><span>Total</span><span>{money(order.total)}</span></div>
+            <div className="flex justify-between text-ink-400"><span>Subtotal</span><span>{om(order.subtotal)}</span></div>
+            <div className="flex justify-between text-ink-400"><span>{order.fulfillment === 'pickup' ? 'Collection' : 'Delivery'}</span><span>{order.shipping ? om(order.shipping) : 'Free'}</span></div>
+            {!!order.discount && Number(order.discount) > 0 && <div className="flex justify-between text-acid"><span>Paradise Points credit</span><span>-{om(Number(order.discount))}</span></div>}
+            <div className="flex justify-between text-base font-bold"><span>Total</span><span>{om(order.total)}</span></div>
           </div>
         </Card>
         <Card>
