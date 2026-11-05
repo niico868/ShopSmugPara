@@ -38,6 +38,95 @@ async function findDesign(cfg: ShareConfig, id: string): Promise<DesignRow | nul
   return rows[0] ?? null
 }
 
+interface ProductRow { slug: string; name: string; description: string; price: number; category: string; colors: string[]; sizes: string[]; image_url: string; images?: string[] | null; active: boolean }
+
+async function findProduct(cfg: ShareConfig, slug: string): Promise<ProductRow | null> {
+  const q = `${cfg.url}/rest/v1/products?slug=eq.${encodeURIComponent(slug)}&active=eq.true&select=*`
+  const res = await fetch(q, { headers: { apikey: cfg.key, Authorization: `Bearer ${cfg.key}` }, cf: { cacheTtl: 60 } } as RequestInit)
+  if (!res.ok) return null
+  const rows = await res.json() as ProductRow[]
+  return rows[0] ?? null
+}
+
+/** Swaps the site-wide preview tags for the given ones and adds any extra head HTML (e.g. JSON-LD). */
+function rewrite(page: Response, title: string, tags: string[], cache = 'public, max-age=300') {
+  const out = new HTMLRewriter()
+    .on('meta[property^="og:"]', { element: (el) => el.remove() })
+    .on('meta[name^="twitter:"]', { element: (el) => el.remove() })
+    .on('meta[name="description"]', { element: (el) => el.remove() })
+    .on('link[rel="canonical"]', { element: (el) => el.remove() })
+    .on('script[type="application/ld+json"]', { element: (el) => el.remove() })
+    .on('title', { element: (el) => el.setInnerContent(title) })
+    .on('head', { element: (el) => el.append(tags.join('\n    '), { html: true }) })
+    .transform(page)
+  const res = new Response(out.body, out)
+  res.headers.set('Cache-Control', cache)
+  return res
+}
+
+/** /shop/<slug>: the product's own title, description, photo and Google Product data, so search and shared links show the tee. */
+async function productPage(page: Response, env: Env, url: URL, slug: string): Promise<Response> {
+  const cfg = await loadConfig(env, url.origin)
+  const p = cfg ? await findProduct(cfg, slug).catch(() => null) : null
+  if (!p) return page
+  const abs = (u: string) => new URL(u, url.origin).href
+  const photos = [p.image_url, ...(p.images ?? [])].filter(Boolean).map(abs)
+  const canonical = `${url.origin}/shop/${p.slug}`
+  const title = `${p.name} | Smug Para heavyweight tee`
+  const blurb = (p.description || '').replace(/\s+/g, ' ').trim()
+  const description = (blurb ? `${blurb} ` : '') + `TTD ${p.price.toFixed(2)}. Heavyweight streetwear from Trinidad and Tobago.`
+  const ld = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Product',
+        name: p.name,
+        description: blurb || description,
+        image: photos,
+        sku: p.slug,
+        category: p.category,
+        color: p.colors.join(', '),
+        size: p.sizes.join(', '),
+        brand: { '@type': 'Brand', name: 'Smug Para' },
+        url: canonical,
+        offers: {
+          '@type': 'Offer',
+          url: canonical,
+          priceCurrency: 'TTD',
+          price: p.price.toFixed(2),
+          availability: 'https://schema.org/InStock',
+          itemCondition: 'https://schema.org/NewCondition',
+          seller: { '@type': 'Organization', name: 'Smug Para' },
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${url.origin}/` },
+          { '@type': 'ListItem', position: 2, name: 'Shop', item: `${url.origin}/shop` },
+          { '@type': 'ListItem', position: 3, name: p.name, item: canonical },
+        ],
+      },
+    ],
+  }
+  const tags = [
+    ['og:type', 'product'], ['og:site_name', 'Smug Para'], ['og:url', canonical],
+    ['og:title', title], ['og:description', description],
+    ['product:price:amount', p.price.toFixed(2)], ['product:price:currency', 'TTD'],
+    ...(photos[0] ? [['og:image', photos[0]], ['og:image:alt', `${p.name} tee by Smug Para`]] : []),
+  ].map(([k, c]) => `<meta property="${k}" content="${esc(c)}" />`)
+  tags.push(
+    `<meta name="description" content="${esc(description)}" />`,
+    `<meta name="twitter:card" content="${photos[0] ? 'summary_large_image' : 'summary'}" />`,
+    `<meta name="twitter:title" content="${esc(title)}" />`,
+    `<meta name="twitter:description" content="${esc(description)}" />`,
+    ...(photos[0] ? [`<meta name="twitter:image" content="${esc(photos[0])}" />`] : []),
+    `<link rel="canonical" href="${esc(canonical)}" />`,
+    `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`,
+  )
+  return rewrite(page, title, tags)
+}
+
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } })
 
@@ -100,6 +189,8 @@ export default {
       return req.method === 'POST' ? aiArt(req, env, url.origin) : json({ error: 'Use POST.' }, 405)
     }
     const page = await env.ASSETS.fetch(new Request(`${url.origin}/`, req))
+    const slug = url.pathname.match(/^\/shop\/([a-z0-9-]+)\/?$/i)?.[1]
+    if (slug && req.method === 'GET') return productPage(page, env, url, slug)
     const id = url.pathname.match(/^\/d\/([0-9a-f-]{36})\/?$/i)?.[1]
     if (!id || req.method !== 'GET') return page
 
@@ -124,15 +215,6 @@ export default {
       `<meta name="description" content="${esc(description)}" />`,
     )
 
-    const out = new HTMLRewriter()
-      .on('meta[property^="og:"]', { element: (el) => el.remove() })
-      .on('meta[name^="twitter:"]', { element: (el) => el.remove() })
-      .on('meta[name="description"]', { element: (el) => el.remove() })
-      .on('title', { element: (el) => el.setInnerContent(title) })
-      .on('head', { element: (el) => el.append(tags.join('\n    '), { html: true }) })
-      .transform(page)
-    const res = new Response(out.body, out)
-    res.headers.set('Cache-Control', 'public, max-age=300')
-    return res
+    return rewrite(page, title, tags)
   },
 }
