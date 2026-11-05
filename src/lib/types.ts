@@ -128,6 +128,10 @@ export interface OrderEvent {
 
 export interface Order {
   id: string
+  /** Set by the delivery-regions migration. Amounts stay in TTD; US orders show in USD at fx_rate. */
+  region?: 'trinidad' | 'tobago' | 'us'
+  currency?: 'TTD' | 'USD'
+  fx_rate?: number
   code: string
   created_at: string
   customer_name: string
@@ -168,6 +172,12 @@ export interface Settings {
   price_per_inch_after: number
   shipping_fee: number
   free_shipping_over: number
+  /** Delivery to Tobago, TTD. Unset until the delivery-regions migration runs. */
+  tobago_shipping_fee?: number
+  /** Delivery to the United States, USD. */
+  us_shipping_fee_usd?: number
+  /** TTD per 1 USD, for showing US orders in USD. */
+  usd_rate?: number
   whatsapp: string
   announcement: string
   payment_instructions: string
@@ -181,6 +191,8 @@ export interface CheckoutInput {
   address: string
   notes: string
   payment_method: string
+  /** Where a delivery goes: Trinidad (default), Tobago or the United States. */
+  region?: 'trinidad' | 'tobago' | 'us'
   items: OrderItem[]
   /** Spend Paradise Points on the credit off this order. */
   use_credit?: boolean

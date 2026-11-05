@@ -43,6 +43,9 @@ export default function SettingsPage() {
         <span className="hidden sm:block" />
         <Field label="Delivery fee"><Input type="number" step="0.01" value={s.shipping_fee} onChange={set('shipping_fee', true)} /></Field>
         <Field label="Free delivery over" hint="0 turns this off"><Input type="number" step="0.01" value={s.free_shipping_over} onChange={set('free_shipping_over', true)} /></Field>
+        {s.tobago_shipping_fee != null && <Field label="Tobago delivery fee (TTD)"><Input type="number" step="0.01" value={s.tobago_shipping_fee} onChange={set('tobago_shipping_fee', true)} /></Field>}
+        {s.us_shipping_fee_usd != null && <Field label="US delivery fee (USD)"><Input type="number" step="0.01" value={s.us_shipping_fee_usd} onChange={set('us_shipping_fee_usd', true)} /></Field>}
+        {s.usd_rate != null && <Field label="Exchange rate" hint="TTD per 1 USD, for US orders"><Input type="number" step="0.01" value={s.usd_rate} onChange={set('usd_rate', true)} /></Field>}
       </Card>
       <Card>
         <Field label="Payment instructions" hint="Shown at checkout and on the customer's tracking page while unpaid."><Textarea value={s.payment_instructions} onChange={set('payment_instructions')} /></Field>
