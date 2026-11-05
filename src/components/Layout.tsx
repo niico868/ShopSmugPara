@@ -12,7 +12,7 @@ import { PointsBin, PointsFx } from './Points'
 import { syncPoints } from '../lib/points'
 import { HuntCoin } from './Contraband'
 import { huntSpot } from '../lib/contraband'
-import { Intro, SoundToggle } from './Intro'
+import { SoundToggle } from './Intro'
 import { WhatsAppIcon } from './icons'
 import { BRAND_LINE, INSTAGRAM, TAGLINE, WHATSAPP } from '../lib/brand'
 import { RouteProgress, SfxToggle, Tick, TopProgress } from './Feedback'
@@ -124,7 +124,6 @@ export default function Layout() {
       <Pirogue />
       <PointsFx />
       <HuntCoin />
-      <Intro />
 
       <footer className="mt-24 bg-black text-white">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-3">
