@@ -2,6 +2,7 @@ import { forwardRef, useId, useLayoutEffect, useRef, useState, type ReactNode } 
 import type { Area, Layer } from '../lib/types'
 import { fontCss, type Fit } from '../lib/constants'
 import { toneOf } from '../lib/tone'
+import { EDITOR_FONTS_HREF, loadEditorFonts } from '../lib/fonts'
 
 // Flat-lay photos of the Shaka Wear blanks, front, back and a neckline close-up for each fit and colour
 // (cut out and lined up by tools/tee-photos.py).
@@ -432,6 +433,8 @@ export const TeeMockup = forwardRef<SVGSVGElement, Props>(function TeeMockup(
   ref,
 ) {
   const id = useId().replace(/:/g, '')
+  const hasText = layers.some((l) => l.type === 'text')
+  useLayoutEffect(() => { if (hasText) void loadEditorFonts() }, [hasText])
   const light = luminance(color) > 0.6
   const t = tee(fit)
   const label = area === 'label'
@@ -532,6 +535,7 @@ export async function svgToPng(svg: SVGSVGElement, scale = 2): Promise<string> {
   clone.querySelectorAll('[data-ui]').forEach((n) => n.remove())
   clone.setAttribute('width', String(VIEW.w))
   clone.setAttribute('height', String(VIEW.h))
+  await loadEditorFonts()
   await Promise.all([embedFonts(clone), embedImages(clone)])
   const xml = new XMLSerializer().serializeToString(clone)
   const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml)
@@ -581,9 +585,7 @@ async function fontFaceCss(spec: string, text: string) {
   return fontCache.get(key)!
 }
 async function embedFonts(svg: SVGSVGElement) {
-  const link = document.querySelector<HTMLLinkElement>('link[href*="fonts.googleapis.com/css2"]')
-  if (!link) return
-  const specs = new Map(new URL(link.href).searchParams.getAll('family').map((f) => [f.split(':')[0].replace(/\+/g, ' '), f.replace(/ /g, '+')]))
+  const specs = new Map(new URL(EDITOR_FONTS_HREF).searchParams.getAll('family').map((f) => [f.split(':')[0].replace(/\+/g, ' '), f.replace(/ /g, '+')]))
   const chars = new Map<string, Set<string>>()
   svg.querySelectorAll('text').forEach((t) => {
     const family = (t.getAttribute('font-family') ?? '').split(',')[0].replace(/["']/g, '').trim()
