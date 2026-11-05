@@ -13,14 +13,18 @@ import { huntSpot } from '../lib/contraband'
 import { sfx } from '../lib/feedback'
 import { Tick } from '../components/Feedback'
 
-// Max Heavyweight short sleeve spec sheet, in inches. Rows: size, body length from HPS, chest width 1" below armhole, sleeve length.
+// Standard and custom pieces: Max Heavyweight short sleeve spec sheet, in inches.
+// Rows: size, body length from HPS, chest width 1" below armhole, sleeve length.
 const GUIDE = [['S', '29', '18', '16.75'], ['M', '30', '20', '18'], ['L', '31', '22', '19.75'], ['XL', '31.5', '24', '21'], ['2XL', '33', '26', '22.25']]
 const HOW_TO_MEASURE = [
   ['Body length', 'Lay the tee flat. Measure from the highest point of the shoulder straight down to the hem.'],
   ['Chest width', 'Lay the tee flat. 1" below the armhole, measure straight across the chest.'],
   ['Sleeve length', 'Lay the tee face down. Measure from the centre back of the neck to the shoulder seam, then along the outer edge to the sleeve end.'],
 ]
+// Premium drops (Sovereignty) are a luxury tee: same body length, about 2" wider at the chest per size.
+const PREMIUM_GUIDE = GUIDE.map(([s, len, chest]) => [s, len, String(Number(chest) + 2)])
 const FABRIC = ['100% USA cotton', 'Yarn count: 16 singles', '7.5 oz / 245–255 GSM', 'Sizes S–2XL']
+const PREMIUM_FABRIC = ['Exclusive drop on a luxury tee', 'Ultra heavyweight 400gsm cotton', 'Same length as our standard tees, about 2" wider at the chest per size']
 const CARE = 'Machine washable. For better care, turn inside out and wash in cool water. Tumble dry low or hang to dry. Iron on the reverse side of the print.'
 
 /** Hover, focus or tap to read; screen readers get the text through aria-describedby. */
@@ -133,11 +137,11 @@ export default function Product() {
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full overflow-hidden rounded-xl text-sm">
-                    <thead className="bg-ink-800 text-left text-ink-400"><tr><th className="p-2">Size</th><th className="p-2">Body length</th><th className="p-2">Chest width</th><th className="p-2">Sleeve</th></tr></thead>
-                    <tbody>{GUIDE.map((r) => <tr key={r[0]} className="border-t border-ink-800">{r.map((c, i) => <td key={i} className="p-2">{c}</td>)}</tr>)}</tbody>
+                    <thead className="bg-ink-800 text-left text-ink-400"><tr><th className="p-2">Size</th><th className="p-2">Body length</th><th className="p-2">Chest width</th>{!p.premium && <th className="p-2">Sleeve</th>}</tr></thead>
+                    <tbody>{(p.premium ? PREMIUM_GUIDE : GUIDE).map((r) => <tr key={r[0]} className="border-t border-ink-800">{r.map((c, i) => <td key={i} className="p-2">{c}</td>)}</tr>)}</tbody>
                   </table>
                 </div>
-                <p className="mt-2 text-xs text-ink-400">Model is 6'1", 160 lbs, wearing L.</p>
+                <p className="mt-2 text-xs text-ink-400">{p.premium ? 'Luxury cut: same length as our standard tees, about 2" wider at the chest. Measurements are approximate.' : 'Model is 6\'1", 160 lbs, wearing L.'}</p>
               </div>
             )}
           </div>
@@ -156,7 +160,7 @@ export default function Product() {
           <div className="mt-8 grid gap-3 text-sm text-ink-400 sm:grid-cols-2">
             <p className="flex items-center gap-2"><Truck size={16} className="shrink-0 text-acid" /> Delivery TTD 40 Trinidad · TTD 70 Tobago, or free pickup</p>
             <p className="flex items-center gap-2"><ShieldCheck size={16} className="shrink-0 text-acid" /> Produced to order: 3 days lead time</p>
-            <p className="flex items-center gap-2 sm:col-span-2"><RefreshCw size={16} className="shrink-0 text-acid" /> Size exchanges within 7 days if unworn</p>
+            <p className="flex items-center gap-2 sm:col-span-2"><RefreshCw size={16} className="shrink-0 text-acid" /> Size exchanges within 48 hours if unworn</p>
           </div>
 
           <div className="mt-6 border-b border-ink-800">
@@ -165,11 +169,11 @@ export default function Product() {
               <p className="text-xs">Allow a 5-day lead time for delivery.</p>
             </Section>
             <Section title="Exchanges and returns">
-              <p>Need a different size? Exchanges are accepted within 7 days of delivery, as long as the tee is unworn.</p>
+              <p>Need a different size? Exchanges are accepted within 48 hours of delivery, as long as the tee is unworn.</p>
               <p>Standard drop pieces can't be returned for a refund. Custom and self-designed pieces are made just for you, so they can't be returned or exchanged.</p>
             </Section>
             <Section title="Fabric and care">
-              <ul className="list-disc space-y-1 pl-5">{FABRIC.map((f) => <li key={f}>{f}</li>)}</ul>
+              <ul className="list-disc space-y-1 pl-5">{(p.premium ? PREMIUM_FABRIC : FABRIC).map((f) => <li key={f}>{f}</li>)}</ul>
               <p>{CARE}</p>
             </Section>
           </div>
