@@ -16,7 +16,7 @@ export default {
         // Bold expanded sans for headers.
         poster: ['"Akira Expanded"', '"Archivo Black"', 'Impact', 'sans-serif'],
         // Smuggler's Paradise blackletter, for brand lines and captions.
-        pirate: ['"Jack Pirate"', '"Pirata One"', 'serif'],
+        pirate: ['"Pirate Digits"', '"Jack Pirate"', '"Pirata One"', 'serif'],
       },
       borderRadius: { xl: '6px', '2xl': '8px', '3xl': '10px' },
       keyframes: {

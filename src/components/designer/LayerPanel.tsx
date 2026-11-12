@@ -97,12 +97,13 @@ export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicat
 
       {layer.type === 'image' && (
         <>
+          {/* Colour first, so on a phone it sits right under the tee and changes can be watched as they happen */}
+          <ToneControls layer={layer} onPatch={onPatch} />
           {canRemoveBackground(layer.src) && <RemoveBgButtons onErase={onEraseBg} onAi={onRemoveBg} progress={removingBg} />}
           <Range label="Width" min={10} max={520} value={layer.width!} onChange={(v) => onPatch({ width: v }, false)} />
           <DpiWarning layer={layer} fit={fit} />
           {layer.flagged && <p className="rounded-lg bg-ink-800 p-2.5 text-xs text-ink-400">Our team will take a closer look at this image before printing.</p>}
           <Toggle label="Drop shadow" checked={!!layer.shadow} onChange={(on) => onPatch({ shadow: on || undefined })} />
-          <ToneControls layer={layer} onPatch={onPatch} />
         </>
       )}
       <Range label="Rotation" min={-180} max={180} value={layer.rotation} onChange={(v) => onPatch({ rotation: v }, false)} suffix="°" />
