@@ -2,6 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Old Cloudflare address: move to the same page on smugpara.com (the Worker also does this for /shop and /d links).
+      if (location.hostname === 'shop-smug-para.neikoliaugustine.workers.dev')
+        location.replace('https://smugpara.com' + location.pathname + location.search + location.hash)
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#ffffff" />
     <meta name="description" content="Smuggler's Paradise streetwear from Trinidad and Tobago. Shop Smug Para heavyweight tees or design your own. Faith rewards the brave." />

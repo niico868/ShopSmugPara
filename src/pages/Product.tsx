@@ -2,7 +2,7 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Check, Info, Minus, Plus, RefreshCw, Ruler, ShieldCheck, Truck } from 'lucide-react'
 import { getProduct, listProducts } from '../lib/api'
-import type { Product as P } from '../lib/types'
+import type { Product as P, ProductVariant } from '../lib/types'
 import { Button, Empty, PageLoader, Swatch } from '../components/ui'
 import { ProductCard } from '../components/ProductCard'
 import { colorName } from '../lib/constants'
@@ -12,6 +12,7 @@ import { toast } from '../components/Toast'
 import { huntSpot } from '../lib/contraband'
 import { sfx } from '../lib/feedback'
 import { Tick } from '../components/Feedback'
+import { SaleCountdown, useSaleLeft } from '../components/SaleTimer'
 
 // Standard and custom pieces: Max Heavyweight short sleeve spec sheet, in inches.
 // Rows: size, body length from HPS, chest width 1" below armhole, sleeve length.
@@ -59,6 +60,7 @@ export default function Product() {
   const [p, setP] = useState<P | null | undefined>()
   const [more, setMore] = useState<P[]>([])
   const [color, setColor] = useState('')
+  const [variant, setVariant] = useState<ProductVariant | null>(null)
   const [size, setSize] = useState('')
   const [qty, setQty] = useState(1)
   const [guide, setGuide] = useState(false)
@@ -71,18 +73,28 @@ export default function Product() {
     setShot(0)
     getProduct(slug).then((x) => {
       setP(x)
-      if (x) { setColor(x.colors[0]); setSize(x.sizes.includes('M') ? 'M' : x.sizes[0]) }
+      if (x) { setColor(x.colors[0]); setVariant(x.variants?.[0] ?? null); setSize(x.sizes.includes('M') ? 'M' : x.sizes[0]) }
     }).catch(() => setP(null))
     listProducts().then((all) => setMore(all.filter((x) => x.slug !== slug).slice(0, 4))).catch(() => {})
   }, [slug])
 
+  const left = useSaleLeft(p?.sale_ends_at)
+  const closed = left === 0
+
   if (p === undefined) return <PageLoader />
   if (p === null) return <div className="mx-auto max-w-xl px-4 py-20"><Empty title="Design not found"><Link to="/shop" className="text-acid">Back to the shop</Link></Empty></div>
 
-  const photos = [p.image_url, ...(p.images ?? [])].filter(Boolean)
+  const variants = p.variants ?? []
+  const photos = (variant ? variant.images : [p.image_url, ...(p.images ?? [])]).filter(Boolean)
+  const styles = [...new Set(variants.map((v) => v.style))]
+  const looks = variant ? variants.filter((v) => v.style === variant.style) : []
+  const pick = (v: ProductVariant | undefined) => { if (!v || v === variant) return; sfx('select'); setVariant(v); setShot(0) }
+  const pickStyle = (style: string) => pick(variants.find((v) => v.style === style && v.color === variant?.color) ?? variants.find((v) => v.style === style))
 
   const addToBag = () => {
-    add({ id: uid(), kind: 'catalog', product_id: p.id, name: p.name, color, size, qty, unit_price: p.price, image_url: p.image_url })
+    if (closed) return
+    const look = variant ? `${variant.style} · ${variant.color}` : color
+    add({ id: uid(), kind: 'catalog', product_id: p.id, name: p.name, color: look, size, qty, unit_price: p.price, image_url: variant?.images[0] ?? p.image_url })
     toast.success(`${p.name} added to your bag`)
     setAdded(true)
   }
@@ -93,12 +105,12 @@ export default function Product() {
       <div className="grid gap-10 md:grid-cols-2 [&>*]:min-w-0">
         <div>
           <div {...huntSpot('product-photo')} className="aspect-square border border-ink-800 bg-white">
-            <img src={photos[shot]} alt={p.name} className="h-full w-full animate-rise object-contain p-4" key={shot} />
+            <img src={photos[shot]} alt={p.name} className="h-full w-full animate-rise object-contain p-4" key={photos[shot]} />
           </div>
           {photos.length > 1 && (
             <div className="mt-3 flex gap-3">
               {photos.map((src, i) => (
-                <button key={src} onClick={() => setShot(i)} className={cx('h-20 w-20 border bg-white p-1 transition active:scale-95', i === shot ? 'border-black' : 'border-transparent hover:border-ink-600')} aria-label={`Photo ${i + 1}`}>
+                <button key={src + i} onClick={() => setShot(i)} className={cx('h-20 w-20 border bg-white p-1 transition active:scale-95', i === shot ? 'border-black' : 'border-transparent hover:border-ink-600')} aria-label={`Photo ${i + 1}`}>
                   <img src={src} alt="" className="h-full w-full object-contain" />
                 </button>
               ))}
@@ -111,11 +123,34 @@ export default function Product() {
           <p className="mt-3 text-2xl font-semibold">{money(p.price)}</p>
           <p className="mt-5 whitespace-pre-line text-ink-200">{p.description}</p>
 
-          {p.colors.length > 1 && <div className="mt-8">
+          {p.sale_ends_at && <SaleCountdown endsAt={p.sale_ends_at} className="mt-6" />}
+
+          {variant && styles.length > 1 && <div className="mt-8">
+            <p className="mb-3 text-sm font-semibold">Style: <span className="text-ink-400">{variant.style}</span></p>
+            <div className="flex flex-wrap gap-2">
+              {styles.map((st) => (
+                <button key={st} onClick={() => pickStyle(st)} aria-pressed={st === variant.style} className={cx('h-11 rounded-xl border px-4 text-sm font-semibold transition active:scale-95', st === variant.style ? 'border-black bg-black text-white' : 'border-ink-700 hover:border-ink-400')}>{st}</button>
+              ))}
+            </div>
+          </div>}
+          {variant && <div className="mt-8">
+            <p className="mb-3 text-sm font-semibold">Colour: <span className="text-ink-400">{variant.color}</span></p>
+            <div className="flex flex-wrap gap-3">
+              {looks.map((v) => (
+                <button key={v.id} type="button" title={v.color} aria-label={v.color} aria-pressed={v.id === variant.id} onClick={() => pick(v)}
+                  className={cx('grid h-10 w-10 place-items-center rounded-full border-2 transition duration-200 active:scale-90', v.id === variant.id ? 'scale-110 border-acid ring-4 ring-acid/20' : 'border-ink-700 hover:scale-105 hover:border-ink-400')}
+                  style={{ background: v.swatch }}>
+                  <span className="h-4 w-4 rounded-full" style={{ background: v.print }} />
+                </button>
+              ))}
+            </div>
+          </div>}
+
+          {!variant && p.colors.length > 1 && <div className="mt-8">
             <p className="mb-3 text-sm font-semibold">Colour: <span className="text-ink-400">{colorName(color)}</span></p>
             <div className="flex flex-wrap gap-3">{p.colors.map((c) => <Swatch key={c} hex={c} title={colorName(c)} active={c === color} onClick={() => setColor(c)} />)}</div>
           </div>}
-          {p.colors.length === 1 && <p className="mt-6 text-sm font-semibold">Colour: <span className="text-ink-400">{colorName(color)}</span></p>}
+          {!variant && p.colors.length === 1 && <p className="mt-6 text-sm font-semibold">Colour: <span className="text-ink-400">{colorName(color)}</span></p>}
 
           <div className="mt-8">
             <div className="mb-3 flex items-center justify-between">
@@ -152,8 +187,8 @@ export default function Product() {
               <Tick value={qty} className="w-8 text-center font-semibold" />
               <button className="rounded-full p-3 transition active:scale-90" onClick={() => { sfx('tap'); setQty(qty + 1) }} aria-label="Increase"><Plus size={16} /></button>
             </div>
-            <Button size="lg" className={cx('flex-1', added && '!bg-acid')} onClick={addToBag}>
-              {added ? <><Check size={18} className="animate-pop-check" /> Added to bag</> : <>Add to bag · <Tick value={p.price * qty}>{money(p.price * qty)}</Tick></>}
+            <Button size="lg" className={cx('flex-1', added && '!bg-acid')} onClick={addToBag} disabled={closed}>
+              {closed ? 'Sale ended' : added ? <><Check size={18} className="animate-pop-check" /> Added to bag</> : <>Add to bag · <Tick value={p.price * qty}>{money(p.price * qty)}</Tick></>}
             </Button>
           </div>
 

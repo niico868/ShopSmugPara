@@ -28,7 +28,23 @@ export interface Product {
   active: boolean
   /** Premium drops (like Sovereignty) can never be a free reward tee. */
   premium?: boolean
+  /** Style + colour options, each with its own photos (front first). Empty for single-look tees. */
+  variants?: ProductVariant[] | null
+  /** Limited drops: after this time the tee stays on show but can't be bought. */
+  sale_ends_at?: string | null
   created_at: string
+}
+
+export interface ProductVariant {
+  id: string
+  /** e.g. "Oversized tee" or "Cropped vest". */
+  style: string
+  /** e.g. "Black / gold print". */
+  color: string
+  /** Garment colour and print colour, for the swatch. */
+  swatch: string
+  print: string
+  images: string[]
 }
 
 export type Side = 'front' | 'back'

@@ -38,7 +38,7 @@ async function findDesign(cfg: ShareConfig, id: string): Promise<DesignRow | nul
   return rows[0] ?? null
 }
 
-interface ProductRow { slug: string; name: string; description: string; price: number; category: string; colors: string[]; sizes: string[]; image_url: string; images?: string[] | null; active: boolean }
+interface ProductRow { slug: string; name: string; description: string; price: number; category: string; colors: string[]; sizes: string[]; image_url: string; images?: string[] | null; active: boolean; variants?: { images: string[] }[] | null; sale_ends_at?: string | null }
 
 async function findProduct(cfg: ShareConfig, slug: string): Promise<ProductRow | null> {
   const q = `${cfg.url}/rest/v1/products?slug=eq.${encodeURIComponent(slug)}&active=eq.true&select=*`
@@ -70,7 +70,8 @@ async function productPage(page: Response, env: Env, url: URL, slug: string): Pr
   const p = cfg ? await findProduct(cfg, slug).catch(() => null) : null
   if (!p) return page
   const abs = (u: string) => new URL(u, url.origin).href
-  const photos = [p.image_url, ...(p.images ?? [])].filter(Boolean).map(abs)
+  const photos = [...new Set([p.image_url, ...(p.images ?? []), ...(p.variants ?? []).flatMap((v) => v.images ?? [])])].filter(Boolean).map(abs)
+  const ended = !!p.sale_ends_at && Date.parse(p.sale_ends_at) <= Date.now()
   const canonical = `${url.origin}/shop/${p.slug}`
   const title = `${p.name} | Smug Para heavyweight tee`
   const blurb = (p.description || '').replace(/\s+/g, ' ').trim()
@@ -94,7 +95,7 @@ async function productPage(page: Response, env: Env, url: URL, slug: string): Pr
           url: canonical,
           priceCurrency: 'TTD',
           price: p.price.toFixed(2),
-          availability: 'https://schema.org/InStock',
+          availability: ended ? 'https://schema.org/Discontinued' : 'https://schema.org/InStock',
           itemCondition: 'https://schema.org/NewCondition',
           seller: { '@type': 'Organization', name: 'Smug Para' },
         },
@@ -182,9 +183,17 @@ async function aiArt(req: Request, env: Env, origin: string): Promise<Response> 
   }
 }
 
+// The old Cloudflare address. Visits there (old bookmarks, shared links, home-screen icons)
+// are sent to the same page on the shop's own domain. Preview builds use other workers.dev names.
+const OLD_HOST = 'shop-smug-para.neikoliaugustine.workers.dev'
+const HOME = 'https://smugpara.com'
+
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url)
+    if (url.hostname === OLD_HOST && (req.method === 'GET' || req.method === 'HEAD')) {
+      return Response.redirect(`${HOME}${url.pathname}${url.search}`, 301)
+    }
     if (url.pathname === '/api/ai-art') {
       return req.method === 'POST' ? aiArt(req, env, url.origin) : json({ error: 'Use POST.' }, 405)
     }
