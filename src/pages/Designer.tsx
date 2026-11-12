@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ArrowDown, ArrowUp, Check, Download, Info, Link2, Loader2, Minus, Plus, Redo2, RotateCcw, Save, Type, Undo2 } from 'lucide-react'
 import type { Area, Design, Layer, RosterRow } from '../lib/types'
-import { AREAS, CUSTOM_SIZES, areaScale, PRICE_STRIP_IN, PRINT, TeeMockup, areaBounds, areaCentre, svgToPng, VIEW } from '../components/TeeMockup'
+import { AREAS, CUSTOM_SIZES, areaScale, PRINT, TeeMockup, areaBounds, areaCentre, svgToPng, VIEW } from '../components/TeeMockup'
 import { Button, Field, Input, Swatch } from '../components/ui'
 import { FITS, TEE_COLORS, colorName, fitName } from '../lib/constants'
 import { cx, money, uid } from '../lib/format'
@@ -10,7 +10,7 @@ import { useSettings } from '../lib/settings'
 import { useCart } from '../store/cart'
 import { toast } from '../components/Toast'
 import { getDesign, getProduct, saveDesign } from '../lib/api'
-import { AREA_ORDER, areaLayers, customPrice, quoteCustom } from '../lib/pricing'
+import { AREA_ORDER, PRINT_SIZES, areaLayers, customPrice, inLabel, quoteCustom } from '../lib/pricing'
 import { checkImage, warmUpChecker } from '../lib/moderation'
 import { detectToneBase } from '../lib/tone'
 import { erasePlainBackground, removeBackground } from '../lib/bgRemoval'
@@ -33,8 +33,6 @@ const DRAFT = 'sp.designer.draft'
 const RULES_KEY = 'sp.designer.rules'
 const blank = (): Design => ({ color: '#111111', fit: 'regular', front: [], back: [] })
 const SMALL: Area[] = ['sleeve_left', 'sleeve_right', 'label']
-/** Running inches of the print strip, as square inches of print. */
-const sqIn = (inches: number) => Math.round(inches * PRICE_STRIP_IN)
 
 const loadDraft = (): Design => {
   try {
@@ -708,16 +706,16 @@ export default function Designer() {
               <p className="mt-1 text-xs text-ink-400">True to the size chart: the same print looks smaller on a bigger tee.</p>
             </div>
             <div className="space-y-1 text-sm">
-              <div className="flex justify-between text-ink-400"><span>Custom tee, {fitName(fit).toLowerCase()}, up to {sqIn(settings.print_included_in)} sq in of print</span><span className="shrink-0">{money(settings.custom_base_price)}</span></div>
+              <div className="flex justify-between text-ink-400"><span>Custom tee, {fitName(fit).toLowerCase()}, prints up to {inLabel(Math.round(settings.print_included_in))} long</span><span className="shrink-0">{money(settings.custom_base_price)}</span></div>
               {quote.lines.map((l) => (
                 <div key={l.area} className="flex justify-between gap-2 pl-3 text-xs text-ink-400">
                   <span>{AREAS[l.area].name} print</span>
-                  <span className="shrink-0">{measured.print_sq_in?.[l.area] ?? 0} sq in</span>
+                  <span className="shrink-0">{inLabel(l.inches)} long</span>
                 </div>
               ))}
               {quote.price > settings.custom_base_price && (
                 <div className="flex justify-between text-[#9a6a00]">
-                  <span>Extra print area, {sqIn(quote.inches - settings.print_included_in)} sq in</span>
+                  <span>Extra print length, {inLabel(quote.inches - settings.print_included_in)}</span>
                   <span className="shrink-0">+{money(quote.price - settings.custom_base_price)}</span>
                 </div>
               )}
@@ -726,10 +724,11 @@ export default function Designer() {
             <p className="flex gap-2 rounded-lg bg-acid/10 p-2.5 text-xs text-ink-300">
               <Info size={14} className="mt-0.5 shrink-0 text-acid" />
               <span>
-                Your price depends on how much of the tee you print: front, back, sleeves and label added together.
-                {money(settings.custom_base_price)} covers up to {sqIn(settings.print_included_in)} sq in, enough for one big front or back print.
-                More print adds a little at a time: {money(settings.price_at_tier)} at {sqIn(settings.price_tier_in)} sq in and {money(settings.price_at_max)} at {sqIn(settings.price_max_in)} sq in,
-                then {money(settings.price_per_inch_after)} for every extra {PRICE_STRIP_IN} sq in.
+                Your price depends on the print length on each side (front, back, sleeves and label added together).
+                A full print is about {PRINT_SIZES.full} in long and a mid print about {PRINT_SIZES.mid} in long; narrower prints count for less.
+                {' '}{money(settings.custom_base_price)} covers one full print on the front or back.
+                More print adds a little at a time: {money(settings.price_at_tier)} for {Math.round(settings.price_tier_in)} in of print in total and {money(settings.price_at_max)} for {Math.round(settings.price_max_in)} in,
+                then {money(settings.price_per_inch_after)} for every extra inch.
               </span>
             </p>
             <div className="flex items-center gap-3">

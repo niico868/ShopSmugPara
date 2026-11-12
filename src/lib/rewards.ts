@@ -45,12 +45,14 @@ export const DEFAULT_RULES: RewardRules = {
   claim_days: 60, ep_expiry_days: 180, pp_expiry_months: 12,
 }
 
-/** Badges and access an Engager unlocks on reaching each total. Never spent. */
+/** Badges unlocked on reaching each total of Engagement Points. Never spent. Any one badge gets you into the community group. */
 export const MILESTONES = [
-  { at: 250, name: 'Lookout', perk: 'Lookout badge on your account' },
-  { at: 500, name: 'Navigator', perk: 'Navigator badge and first look at new drops' },
-  { at: 1000, name: 'Smuggler’s World', perk: 'Preview access to Smuggler’s World' },
+  { at: 250, name: 'Lookout' },
+  { at: 500, name: 'Navigator' },
+  { at: 1000, name: 'Smuggler’s World' },
 ]
+/** What every badge gives you. */
+export const BADGE_PERK = 'Access to our community group'
 
 export type RewardId = 'free_tee_ep' | 'credit_50' | 'free_tee_pp' | 'free_custom_pp'
 

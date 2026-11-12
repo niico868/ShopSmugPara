@@ -1,7 +1,7 @@
 import type { Settings } from './types'
 import type { RewardRules } from './rewards'
 import { fmtPts } from './rewards'
-import { PRICE_STRIP_IN } from '../components/TeeMockup'
+import { PRINT_SIZES, priceGuide } from './pricing'
 
 // The FAQ: every page of the site, the rewards, the pirogue and the hidden treasure, explained.
 // Numbers come from the live settings and reward rules, so answers stay right when they change.
@@ -27,8 +27,6 @@ export interface FaqCategory {
   blurb: string
   items: FaqItem[]
 }
-
-const sq = (inches: number) => Math.round(inches * PRICE_STRIP_IN)
 
 export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => string): FaqCategory[] {
   const p = fmtPts
@@ -285,15 +283,11 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
           q: 'How is a custom tee priced?',
           a: [
             'By how much of the tee you print. The print on every area (front, back, sleeves and neck label) is added together, so there’s no separate charge per area.',
-            [
-              '**' + money(s.custom_base_price) + '** covers up to ' + sq(s.print_included_in) + ' sq in of print: enough for one big front or back print.',
-              '**' + money(s.price_at_tier) + '** at ' + sq(s.price_tier_in) + ' sq in.',
-              '**' + money(s.price_at_max) + '** at ' + sq(s.price_max_in) + ' sq in.',
-              'Then **' + money(s.price_per_inch_after) + '** for every extra ' + PRICE_STRIP_IN + ' sq in.',
-            ],
-            'Between those points the price rises a little at a time, rounded to the nearest 5. The studio shows the print size of each area and the running total as you design.',
+            'Print size is measured as the **length of the print on each side**: a **full print** is about ' + PRINT_SIZES.full + ' in long and a **mid print** about ' + PRINT_SIZES.mid + ' in long. Narrower prints count for less.',
+            priceGuide(s, money).map((g) => '**' + g.price + '** ' + g.text),
+            'Between those points the price rises a little at a time, rounded to the nearest 5. The studio shows the print length on each side and the running total as you design.',
           ],
-          tags: 'cost price square inches sq in print area front back sleeve label extra how much',
+          tags: 'cost price print size length inches full print mid print front back sleeve label extra how much',
         },
         {
           id: 'pricing-confirm',
@@ -333,7 +327,7 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
               '**Contact**: your name, email and phone or WhatsApp number. We use the email to look up your order.',
               '**Delivery**: have it delivered (' + money(s.shipping_fee) + ') with your address, or collect it for free.',
               '**Notes** (optional): deadlines, event dates or special requests.',
-              '**Payment**: bank transfer or cash on collection.',
+              '**Payment**: pay in full, or a 50% deposit with the balance before collection or delivery.',
             ],
             'If you’re signed in, your rewards appear here too, so you can apply a discount or a free tee. Press **Place order** and you’ll get your **order code**.',
           ],
@@ -345,11 +339,12 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
           a: [
             [
               '**Bank transfer** (preferred). Use your order code as the reference.',
-              '**Cash on collection**, with a **50% down payment** first. Down payments can be made at any Paywise outlet nationwide.',
+              'At any **Paywise** outlet nationwide.',
             ],
-            'After you order, the order page shows the amount due, the 50% down payment and your reference. Design work and printing only start once the down payment is made.',
+            'Every order needs **full payment** or a **50% deposit** up front; any balance is due before you collect or we deliver. We don’t take cash on collection.',
+            'After you order, the order page shows the amount due, the 50% deposit and your reference. Design work and printing only start once your payment is made.',
           ],
-          tags: 'pay payment bank transfer cash deposit down payment paywise reference card online',
+          tags: 'pay payment bank transfer cash deposit down payment full paywise reference card online collection',
         },
         {
           id: 'turnaround',
@@ -474,14 +469,10 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
           q: 'What do Engagement Points get me?',
           a: [
             'At **' + p(r.free_tee_ep) + ' EP** you earn a **free standard tee** (up to ' + money(r.free_tee_max_price) + '). Add one to your bag and make it free at checkout, or let it ride along free with your first order. It’s set aside for you for ' + r.claim_days + ' days.',
-            'Along the way you unlock badges, which are never spent:',
-            [
-              '**Lookout** at 250 EP: a badge on your account.',
-              '**Navigator** at 500 EP: a badge and first look at new drops.',
-              '**Smuggler’s World** at 1,000 EP: preview access to Smuggler’s World.',
-            ],
+            'Along the way you unlock badges, which are never spent: **Lookout** at 250 EP, **Navigator** at 500 EP and **Smuggler’s World** at 1,000 EP.',
+            '**Any badge gets you into our community group.** Once you have one, a **Join** button appears under your badges on your account page.',
           ],
-          tags: 'free tee redeem badges milestones lookout navigator smugglers world',
+          tags: 'free tee redeem badges milestones lookout navigator smugglers world community group chat join',
         },
         {
           id: 'rewards-buyer',

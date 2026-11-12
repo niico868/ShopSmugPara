@@ -28,7 +28,8 @@ create table if not exists public.settings (
   free_shipping_over numeric(10,2) not null default 80,
   whatsapp text not null default '',
   announcement text not null default 'Custom tees printed to order. Design yours in minutes.',
-  payment_instructions text not null default 'Pay by bank transfer using your order code as the reference. We start printing once payment reflects.'
+  payment_instructions text not null default 'Pay by bank transfer using your order code as the reference. We start printing once payment reflects.',
+  community_url text not null default ''
 );
 insert into public.settings (id) values (1) on conflict do nothing;
 
