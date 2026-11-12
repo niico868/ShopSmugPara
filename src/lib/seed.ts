@@ -74,6 +74,21 @@ export const seedProducts = (): Product[] => [
     sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
     premium: true,
   },
+  {
+    ...p('11-11-frtb', '11/11 FRTB', 350, 'Limited', ['#111111', '#FFFFFF'], '/products/frtb-tee-gold-front.jpg',
+      "Faith Rewards The Brave. Limited 11/11 drop, on sale until Sunday night only. Pick the oversized tee (men's fit) or the regular-size cropped vest (women's). Black with a yellow-gold or red print, or white with a black print. 240gsm heavyweight cotton.", true),
+    images: ['/products/frtb-tee-gold-back.jpg'],
+    sizes: ['S', 'M', 'L', 'XL'],
+    sale_ends_at: '2026-11-16T03:59:59Z',
+    variants: [
+      { id: 'tee-gold', style: "Oversized tee (men's)", color: 'Black / gold print', swatch: '#111111', print: '#F2B91A', images: ['/products/frtb-tee-gold-front.jpg', '/products/frtb-tee-gold-back.jpg'] },
+      { id: 'tee-red', style: "Oversized tee (men's)", color: 'Black / red print', swatch: '#111111', print: '#E12124', images: ['/products/frtb-tee-red-front.jpg', '/products/frtb-tee-red-back.jpg'] },
+      { id: 'tee-white', style: "Oversized tee (men's)", color: 'White / black print', swatch: '#FFFFFF', print: '#111111', images: ['/products/frtb-tee-white-front.jpg', '/products/frtb-tee-white-back.jpg'] },
+      { id: 'vest-gold', style: "Cropped vest (women's)", color: 'Black / gold print', swatch: '#111111', print: '#F2B91A', images: ['/products/frtb-vest-gold-front.jpg', '/products/frtb-vest-gold-back.jpg'] },
+      { id: 'vest-red', style: "Cropped vest (women's)", color: 'Black / red print', swatch: '#111111', print: '#E12124', images: ['/products/frtb-vest-red-front.jpg', '/products/frtb-vest-red-back.jpg'] },
+      { id: 'vest-white', style: "Cropped vest (women's)", color: 'White / black print', swatch: '#FFFFFF', print: '#111111', images: ['/products/frtb-vest-white-front.jpg', '/products/frtb-vest-white-back.jpg'] },
+    ],
+  },
 ]
 
 export const defaultSettings = (): Settings => ({
