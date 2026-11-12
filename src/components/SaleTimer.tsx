@@ -49,7 +49,7 @@ export function SaleCountdown({ endsAt, className }: { endsAt: string; className
   return (
     <div className={cx('border border-black bg-black p-4 text-white', className)} role="timer" aria-live="off">
       <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-acid"><Timer size={14} /> Limited drop · sale ends {ends}</p>
-      <div className="mt-2 flex gap-4 font-poster text-4xl leading-none tabular-nums">
+      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-2 font-poster text-[clamp(1.5rem,7.5vw,2.25rem)] leading-none tabular-nums">
         {[[d, 'days'], [h, 'hrs'], [m, 'min'], [s, 'sec']].map(([n, label]) => (
           <div key={label as string}>{pad(n as number)}<span className="ml-1 font-sans text-[10px] font-semibold uppercase tracking-widest text-white/60">{label}</span></div>
         ))}
