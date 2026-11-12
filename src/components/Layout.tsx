@@ -21,6 +21,7 @@ const links = [
   { to: '/shop', label: 'Shop' },
   { to: '/design', label: 'Design yours' },
   { to: '/track', label: 'Track order' },
+  { to: '/faq', label: 'FAQ' },
 ]
 
 export function Logo({ className }: { className?: string }) {
