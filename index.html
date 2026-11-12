@@ -44,6 +44,15 @@
       }
     </script>
     <title>Smug Para | Heavyweight tees and custom designs</title>
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function (OneSignal) {
+        await OneSignal.init({
+          appId: "398346ed-c4a1-49fa-951a-7d62e4633658",
+        });
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
