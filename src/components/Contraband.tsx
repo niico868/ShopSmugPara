@@ -80,7 +80,7 @@ export function HuntCoin() {
   )
 }
 
-/** The treasure-map icon on the homepage. It opens a scroll with the day's clue. */
+/** The Hidden treasure button on the homepage. It opens a scroll with the day's clue. */
 export function TreasureMap({ className }: { className?: string }) {
   const hunt = usePoints((s) => s.hunt)
   const open = usePoints((s) => s.mapOpen)
@@ -101,13 +101,13 @@ export function TreasureMap({ className }: { className?: string }) {
       <button onClick={() => setOpen(true)} className={cx('group flex items-center gap-2 rounded-full bg-white/10 py-1.5 pl-1.5 pr-4 text-xs font-semibold uppercase tracking-[.2em] text-white ring-1 ring-white/20 transition hover:bg-white hover:text-black', className)}
         aria-haspopup="dialog">
         <span className="grid h-9 w-9 place-items-center rounded-full bg-[#efd9a7]"><MapIcon className="h-6 w-7 transition group-hover:rotate-6" /></span>
-        {hunt && !hunt.claimed ? 'Today’s Contraband' : 'Treasure map'}
+        {hunt && !hunt.claimed ? 'Today’s Contraband' : 'Hidden treasure'}
       </button>
       {open && createPortal(
         <div className="fixed inset-0 z-[60] grid place-items-center bg-black/60 p-4" onClick={() => setOpen(false)}>
-          <div role="dialog" aria-modal aria-label="Treasure map" onClick={(e) => e.stopPropagation()}
+          <div role="dialog" aria-modal aria-label="Hidden treasure" onClick={(e) => e.stopPropagation()}
             className="relative w-full max-w-md animate-rise rounded-[4px] border-y-[14px] border-[#c9a96a] bg-[#f6e7c1] px-6 py-7 text-[#3b2a12] shadow-2xl [background-image:radial-gradient(circle_at_20%_10%,rgba(255,255,255,.5),transparent_40%),radial-gradient(circle_at_80%_90%,rgba(160,82,45,.15),transparent_45%)]">
-            <button onClick={() => setOpen(false)} className="absolute right-2 top-2 rounded-full p-1.5 hover:bg-black/10" aria-label="Close the map"><X size={18} /></button>
+            <button onClick={() => setOpen(false)} className="absolute right-2 top-2 rounded-full p-1.5 hover:bg-black/10" aria-label="Close the hidden treasure"><X size={18} /></button>
             <div className="flex items-center gap-3">
               <ContrabandCoin className="h-12 w-12 shrink-0" />
               <div>

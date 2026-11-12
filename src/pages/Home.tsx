@@ -10,6 +10,7 @@ import { useSettings } from '../lib/settings'
 import { INSTAGRAM, brandMark } from '../lib/brand'
 import { huntSpot } from '../lib/contraband'
 import { TreasureMap } from '../components/Contraband'
+import { useCutout } from '../lib/cutout'
 
 const STEPS = [
   { t: 'Pick a tee', d: 'Shop a drop, or choose a regular or oversized blank.' },
@@ -31,6 +32,7 @@ export default function Home() {
   const featured = products.filter((p) => p.featured)
   const shown = (featured.length ? featured : products).slice(0, 8)
   const lead = shown[0]
+  const leadPhoto = useCutout(lead?.image_url)
 
   return (
     <>
@@ -55,10 +57,10 @@ export default function Home() {
           </div>
           <div className="relative mx-auto w-full max-w-md">
             {lead ? (
-              <Link {...huntSpot('home-drop')} to={`/shop/${lead.slug}`} className="group block bg-white p-4 text-black transition hover:-translate-y-1">
-                <img src={lead.image_url} alt={lead.name} className="aspect-square w-full object-contain" />
-                <span className="mt-3 flex items-baseline justify-between border-t border-black pt-3">
-                  <span className="text-[11px] font-semibold uppercase tracking-[.25em] text-acid">New drop</span>
+              <Link {...huntSpot('home-drop')} to={`/shop/${lead.slug}`} className="group block bg-white/40 p-4 text-white transition hover:-translate-y-1">
+                <img src={leadPhoto} alt={lead.name} className="aspect-square w-full object-contain" />
+                <span className="mt-3 flex items-baseline justify-between border-t border-white/70 pt-3">
+                  <span className="text-[11px] font-semibold uppercase tracking-[.25em] text-white/80">New drop</span>
                   <span className="font-pirate text-2xl">{lead.name}</span>
                 </span>
               </Link>
