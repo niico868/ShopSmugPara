@@ -68,9 +68,9 @@ export const seedProducts = (): Product[] => [
     premium: true,
   },
   {
-    ...p('sovereignty-fm', 'Sovereignty (Fm)', 425, 'Oversized', ['#FFFFFF'], '/products/sovereignty-fm-front.jpg',
+    ...p('sovereignty-fm', 'Sovereignty (Fm)', 425, 'Oversized', ['#FFFFFF'], '/products/sovereignty-fm-white-front.jpg',
       'Things money can\'t buy back. White oversized, extra cropped tee with a pink print front and back. Ultra heavyweight 400gsm cotton.', true),
-    images: ['/products/sovereignty-fm-back.jpg'],
+    images: ['/products/sovereignty-fm-white-back.jpg'],
     sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
     premium: true,
   },

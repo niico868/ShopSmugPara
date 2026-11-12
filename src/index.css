@@ -8,6 +8,9 @@
 @font-face { font-family: 'Creato Display'; src: url('/fonts/creato-display-black.woff2') format('woff2'); font-weight: 900; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Akira Expanded'; src: url('/fonts/akira-expanded.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Jack Pirate'; src: url('/fonts/jack-pirate-alt.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+/* Jack Pirate's numbers are 'personal use only' placeholders, so digits (and the slash in dates like 11/11) come from
+   UnifrakturCook Bold, a free (OFL) blackletter. Only this tiny subset is downloaded, and only when a number shows. */
+@font-face { font-family: 'Pirate Digits'; src: url('/fonts/unifraktur-cook-digits.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0030-0039, U+002F; }
 
 @tailwind base;
 @tailwind components;
