@@ -575,7 +575,8 @@ export default function Designer() {
 
       <div className="grid gap-6 lg:grid-cols-[300px_1fr_300px] [&>*]:min-w-0">
         {/* Left: add, layers, team */}
-        <aside className="order-2 space-y-4 lg:order-1">
+        {/* On phones the edit panel jumps above Add while something is selected, so it sits right under the tee */}
+        <aside className={cx('space-y-4 lg:order-1', selected ? 'order-3' : 'order-2')}>
           <div className="flex rounded-full bg-ink-900 p-1">
             {(['add', 'layers', 'team'] as const).map((p) => (
               <button key={p} onClick={() => { if (p !== panel) sfx('select'); setPanel(p) }} aria-pressed={panel === p} className={cx('flex-1 rounded-full py-2 text-sm font-semibold transition-colors duration-200', panel === p ? 'bg-ink-700' : 'text-ink-400')}>
@@ -680,7 +681,7 @@ export default function Designer() {
         </section>
 
         {/* Right: properties + order */}
-        <aside className="order-3 space-y-4">
+        <aside className={cx('space-y-4 lg:order-3', selected ? 'order-2' : 'order-3')}>
           {selected ? (
             <LayerPanel
               layer={selected}

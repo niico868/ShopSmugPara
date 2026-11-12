@@ -35,7 +35,7 @@ interface PointsState {
   signedIn: boolean
   /** Today's Contraband hunt, if there is one. */
   hunt: Hunt | null
-  /** What the member typed into the treasure map's scroll. */
+  /** What the member typed into the Hidden treasure scroll. */
   answer: string
   mapOpen: boolean
   catchBoat: (x: number, y: number) => void
