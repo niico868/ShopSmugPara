@@ -183,9 +183,17 @@ async function aiArt(req: Request, env: Env, origin: string): Promise<Response> 
   }
 }
 
+// The old Cloudflare address. Visits there (old bookmarks, shared links, home-screen icons)
+// are sent to the same page on the shop's own domain. Preview builds use other workers.dev names.
+const OLD_HOST = 'shop-smug-para.neikoliaugustine.workers.dev'
+const HOME = 'https://smugpara.com'
+
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url)
+    if (url.hostname === OLD_HOST && (req.method === 'GET' || req.method === 'HEAD')) {
+      return Response.redirect(`${HOME}${url.pathname}${url.search}`, 301)
+    }
     if (url.pathname === '/api/ai-art') {
       return req.method === 'POST' ? aiArt(req, env, url.origin) : json({ error: 'Use POST.' }, 405)
     }

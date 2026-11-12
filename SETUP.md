@@ -115,7 +115,7 @@ Brand colours live in `tailwind.config.js` (`acid` is the lime green, `ink` the 
 
 Customers must sign in before they can open the designer. Email links work with no extra setup.
 
-1. Supabase > Authentication > URL Configuration: set **Site URL** to your live address (for example `https://shop-smug-para.neikoliaugustine.workers.dev`) and add the same address followed by `/**` under **Redirect URLs**.
+1. Supabase > Authentication > URL Configuration: set **Site URL** to your live address (`https://smugpara.com`) and add `https://smugpara.com/**` under **Redirect URLs**. The old `shop-smug-para.neikoliaugustine.workers.dev` address now forwards to smugpara.com, so sign-ins must come back to smugpara.com.
 2. Google sign-in (optional):
    1. In Google Cloud Console, create a project, then go to APIs & Services > OAuth consent screen and fill in the app name and your email.
    2. APIs & Services > Credentials > Create credentials > OAuth client ID > Web application.
