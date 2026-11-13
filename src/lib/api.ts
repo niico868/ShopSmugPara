@@ -4,6 +4,7 @@ import { AREA_ORDER } from './pricing'
 import { defaultSettings, seedOrders, seedProducts } from './seed'
 import { orderCode, uid } from './format'
 import { demoOrderChanged, demoSpendRewards } from './rewards'
+import { currentPhoto } from './onWhite'
 
 // ---------------------------------------------------------------------------
 // Demo backend: everything lives in localStorage so the app runs with zero setup.
@@ -51,12 +52,24 @@ export async function listProducts(includeInactive = false): Promise<Product[]> 
   if (DEMO) return demoProducts().filter((p) => includeInactive || p.active)
   let q = supabase!.from('products').select('*').order('created_at', { ascending: false })
   if (!includeInactive) q = q.eq('active', true)
-  return must(await q)
+  return (must(await q) as Product[]).map(withCurrentPhotos)
+}
+
+/** Swaps any renamed photo (see lib/onWhite) for its current file, wherever the product lists it. */
+function withCurrentPhotos<T extends Product | null>(p: T): T {
+  if (!p) return p
+  const v = (p as Product & { variants?: { images?: string[] }[] | null }).variants
+  return {
+    ...p,
+    image_url: currentPhoto(p.image_url),
+    images: p.images?.map(currentPhoto),
+    ...(v ? { variants: v.map((x) => ({ ...x, images: x.images?.map(currentPhoto) })) } : {}),
+  }
 }
 
 export async function getProduct(slug: string): Promise<Product | null> {
   if (DEMO) return demoProducts().find((p) => p.slug === slug) ?? null
-  return must(await supabase!.from('products').select('*').eq('slug', slug).maybeSingle())
+  return withCurrentPhotos(must(await supabase!.from('products').select('*').eq('slug', slug).maybeSingle()) as Product | null)
 }
 
 export async function saveProduct(p: Product) {
