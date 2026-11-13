@@ -143,7 +143,7 @@ export function RewardsCard() {
         {r.tier === 'engager' ? (
           <ul className="mt-2 list-disc space-y-1 pl-5">
             <li>Catch the pirogue: {rules.boat_ep} EP a catch, {rules.boat_daily} counted a day.</li>
-            <li>Find the day&rsquo;s Contraband with Hidden treasure on the homepage: {rules.contraband_ep} EP.</li>
+            <li>Find the day&rsquo;s Contraband with Hidden treasure in the footer: {rules.contraband_ep} EP.</li>
             <li>Reshare a shared design, a product or our posts: {rules.reshare_ep} EP, up to {rules.reshare_ep_per_week} a week.</li>
             <li>Your first completed order makes you a Buyer: leftover EP carry over as up to {rules.carry_over_cap} Paradise Points.</li>
           </ul>

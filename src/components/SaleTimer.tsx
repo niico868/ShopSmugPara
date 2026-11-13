@@ -47,11 +47,15 @@ export function SaleCountdown({ endsAt, className }: { endsAt: string; className
   }
   const { d, h, m, s } = parts(left)
   return (
-    <div className={cx('border border-black bg-black p-4 text-white', className)} role="timer" aria-live="off">
-      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-acid"><Timer size={14} /> Limited drop · sale ends {ends}</p>
-      <div className="mt-2 flex gap-4 font-poster text-4xl leading-none tabular-nums">
+    <div className={cx('border border-black bg-black p-4 text-white [container-type:inline-size]', className)} role="timer" aria-live="off">
+      <p className="flex items-start gap-2 text-xs font-semibold uppercase tracking-widest text-acid"><Timer size={14} className="mt-px shrink-0" /><span>Limited drop · sale ends {ends}</span></p>
+      {/* Four equal columns across the full width. The numbers scale with the screen so they never run off a phone. */}
+      <div className="mt-2 grid grid-cols-4 gap-2 font-poster leading-none tabular-nums sm:gap-4">
         {[[d, 'days'], [h, 'hrs'], [m, 'min'], [s, 'sec']].map(([n, label]) => (
-          <div key={label as string}>{pad(n as number)}<span className="ml-1 font-sans text-[10px] font-semibold uppercase tracking-widest text-white/60">{label}</span></div>
+          <div key={label as string} className="min-w-0 text-[clamp(1.6rem,9cqw,2.25rem)] sm:text-4xl">
+            {pad(n as number)}
+            <span className="mt-1 block font-sans text-[10px] font-semibold uppercase tracking-widest text-white/60 sm:ml-1 sm:mt-0 sm:inline">{label}</span>
+          </div>
         ))}
       </div>
     </div>

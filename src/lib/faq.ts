@@ -61,7 +61,7 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
           a: [
             'From top to bottom:',
             [
-              'The **hero**: our latest drop, with buttons to shop it or open the design studio, and the **Hidden treasure** button for the daily Contraband hunt.',
+              'The **hero**: our latest drop, with buttons to shop it or open the design studio.',
               '**New arrivals**: the tees currently featured.',
               '**Brand codes** and **Who are we**: the story behind the brand.',
               'The **design studio** panel and the four steps of a custom order: pick a tee, make it yours, we print it, track it live.',
@@ -619,7 +619,7 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
           id: 'treasure-what',
           q: 'What is the hidden treasure?',
           a: [
-            'Every day, one gold coin marked with an X, the **Contraband**, is hidden somewhere on the site. Press **Hidden treasure** on the home page (under the main buttons) to open the scroll with **today’s clue**, then go and find the coin.',
+            'Every day, one gold coin marked with an X, the **Contraband**, is hidden somewhere on the site. Press **Hidden treasure** in the footer of any page (under **Get in touch**) to open the scroll with **today’s clue**, then go and find the coin.',
           ],
           tags: 'treasure map contraband hunt coin clue daily scroll x marks the spot game',
         },

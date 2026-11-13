@@ -13,6 +13,7 @@ import { huntSpot } from '../lib/contraband'
 import { sfx } from '../lib/feedback'
 import { Tick } from '../components/Feedback'
 import { SaleCountdown, useSaleLeft } from '../components/SaleTimer'
+import { ProductImg } from '../components/ProductImg'
 
 const GUIDE = [['S', '91', '71'], ['M', '97', '74'], ['L', '104', '76'], ['XL', '112', '79'], ['2XL', '120', '81'], ['3XL', '128', '84']]
 
@@ -74,13 +75,13 @@ export default function Product() {
       <div className="grid gap-10 md:grid-cols-2 [&>*]:min-w-0">
         <div>
           <div {...huntSpot('product-photo')} className="aspect-square border border-ink-800 bg-white">
-            <img src={photos[shot]} alt={p.name} className="h-full w-full animate-rise object-contain p-4" key={photos[shot]} />
+            <ProductImg src={photos[shot]} alt={p.name} className="block h-full w-full animate-rise object-contain p-4" key={photos[shot]} />
           </div>
           {photos.length > 1 && (
-            <div className="mt-3 flex gap-3">
+            <div className="mt-3 flex flex-wrap gap-3">
               {photos.map((src, i) => (
                 <button key={src + i} onClick={() => setShot(i)} className={cx('h-20 w-20 border bg-white p-1 transition active:scale-95', i === shot ? 'border-black' : 'border-transparent hover:border-ink-600')} aria-label={`Photo ${i + 1}`}>
-                  <img src={src} alt="" className="h-full w-full object-contain" />
+                  <ProductImg src={src} alt="" className="block h-full w-full object-contain" />
                 </button>
               ))}
             </div>
@@ -145,7 +146,7 @@ export default function Product() {
               <Tick value={qty} className="w-8 text-center font-semibold" />
               <button className="rounded-full p-3 transition active:scale-90" onClick={() => { sfx('tap'); setQty(qty + 1) }} aria-label="Increase"><Plus size={16} /></button>
             </div>
-            <Button size="lg" className={cx('flex-1', added && '!bg-acid')} onClick={addToBag} disabled={closed}>
+            <Button size="lg" className={cx('min-w-0 flex-1 !px-4 text-center leading-tight', added && '!bg-acid')} onClick={addToBag} disabled={closed}>
               {closed ? 'Sale ended' : added ? <><Check size={18} className="animate-pop-check" /> Added to bag</> : <>Add to bag · <Tick value={p.price * qty}>{money(p.price * qty)}</Tick></>}
             </Button>
           </div>

@@ -18,6 +18,9 @@
 
 :root { color-scheme: light; }
 html, body { background: #ffffff; color: #111111; }
+/* Nothing on the storefront should make a phone scroll sideways. `clip` (not `hidden`) keeps sticky headers working. */
+html, body { overflow-x: clip; }
+@supports not (overflow: clip) { html, body { overflow-x: hidden; } }
 body { @apply font-sans antialiased; }
 ::selection { background: #5caedb; color: #ffffff; }
 input[type='number']::-webkit-inner-spin-button { opacity: .4; }
