@@ -28,9 +28,8 @@ export default function SettingsPage() {
       <Card className="grid gap-4 sm:grid-cols-2">
         <Field label="Store name"><Input value={s.store_name} onChange={set('store_name')} /></Field>
         <Field label="Currency code" hint="e.g. USD, ZAR, NGN, GBP, EUR"><Input value={s.currency} maxLength={3} onChange={(e) => setS({ ...s, currency: e.target.value.toUpperCase() })} /></Field>
-        <Field label="WhatsApp number" hint="International format, e.g. 27821234567"><Input value={s.whatsapp} onChange={set('whatsapp')} /></Field>
         <Field label="Announcement bar" hint="Leave empty to hide it"><Input value={s.announcement} onChange={set('announcement')} /></Field>
-        <Field label="Community group invite link" hint="Any rewards badge shows a Join button with this link. Empty: members ask for the invite on WhatsApp."><Input value={s.community_url ?? ''} placeholder="https://chat.whatsapp.com/…" onChange={set('community_url')} /></Field>
+        <Field label="Community group invite link" hint="Any rewards badge shows a Join button with this link. Empty: the Smuggler World Community group."><Input value={s.community_url ?? ''} placeholder="https://chat.whatsapp.com/…" onChange={set('community_url')} /></Field>
       </Card>
       <Card className="grid gap-4 sm:grid-cols-2">
         <p className="text-sm text-ink-400 sm:col-span-2">Custom tees are priced on the print length of every area together (front, back, sleeves and label), counted as a 22-inch-wide strip (1 running inch = 22 sq in). The price runs smoothly between the three price points below, rounded to the nearest 5.</p>

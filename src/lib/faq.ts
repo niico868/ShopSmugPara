@@ -74,9 +74,9 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
           id: 'contact',
           q: 'How do I contact you?',
           a: [
-            'The fastest way is [WhatsApp](https://wa.me/18683446257) on +1 (868) 344-6257. You can also message us on Instagram at [@smugglerparadise](https://www.instagram.com/smugglerparadise/). Both links are in the footer of every page.',
+            'The fastest way is to [message us on WhatsApp](https://wa.me/message/AOEKBZDXW2VOE1). If you need to call, our number is [1-868-338-1386](tel:+18683381386). You can also message us on Instagram at [@smugglerparadise](https://www.instagram.com/smugglerparadise/). All three are in the footer of every page.',
           ],
-          tags: 'whatsapp phone number instagram dm message support help email reach',
+          tags: 'whatsapp phone number call instagram dm message support help email reach',
         },
         {
           id: 'sound',
@@ -120,7 +120,7 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
           id: 'sizes',
           q: 'How do I pick my size?',
           a: [
-            'Press **Size guide** next to the sizes on a product page for the chest and length of each size. Oversized and cropped tees are cut boxy on purpose, so if you want a closer fit, try a size down. Not sure? [WhatsApp us](https://wa.me/18683446257) your usual size and we’ll help.',
+            'Press **Size guide** next to the sizes on a product page for the chest and length of each size. Oversized and cropped tees are cut boxy on purpose, so if you want a closer fit, try a size down. Not sure? [WhatsApp us](https://wa.me/message/AOEKBZDXW2VOE1) your usual size and we’ll help.',
           ],
           tags: 'size chart measurements fit small medium large xl xxl oversized cropped',
         },
@@ -352,6 +352,22 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
           a: ['Orders are printed to order and are **ready 2 to 5 work days after payment is made**. Need it for a date? Put it in the notes at checkout, or WhatsApp us before ordering.'],
           tags: 'how long time turnaround ready days delivery date when production',
         },
+        {
+          id: 'returns',
+          q: 'Can I return or exchange something?',
+          a: [
+            '**Custom orders can’t be returned**, because they’re made just for you. That’s why you get a proof to check first.',
+            'For **ready-made tees**, we may accept a return for **store credit** or **a different size**, at our discretion, if you tell us within **48 hours** of getting it, every tag is still on, and it’s unworn and unblemished. There are no cash refunds.',
+            'If we got your order wrong, tell us within 48 hours with a photo and we’ll put it right. The full details are in our [return policy](/returns).',
+          ],
+          tags: 'return refund exchange swap wrong size store credit tags damaged faulty policy',
+        },
+        {
+          id: 'policies',
+          q: 'Where are your terms and privacy policy?',
+          a: ['Read our [terms of service](/terms), [privacy policy](/privacy) and [return policy](/returns). They’re linked under **Help** in the footer of every page. We never sell your details.'],
+          tags: 'terms conditions tos privacy data personal information legal policy',
+        },
       ],
     },
     {
@@ -397,7 +413,7 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
       id: 'account',
       title: 'Account and sign-in',
       page: { to: '/account', label: 'My account' },
-      blurb: 'Signing in and what lives in your account.',
+      blurb: 'Signing in, what lives in your account, and drop alerts.',
       items: [
         {
           id: 'signin',
@@ -420,6 +436,20 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
             'On a phone, tap the points counter in the header to get there.',
           ],
           tags: 'my account profile saved designs orders history',
+        },
+        {
+          id: 'notifications',
+          q: 'Notifications not working, or my browser says they’re blocked?',
+          a: [
+            'Drop alerts tell you the moment a new drop or restock lands. If you pressed **Block** (or never answered), your device won’t get them until you allow them again:',
+            [
+              '**Chrome on a computer**: go to [smugpara.com](https://smugpara.com), click the **tune icon** (two sliders) on the left of the address bar, then **Site settings**, and set **Notifications** to **Allow**.',
+              '**Chrome on Android**: open smugpara.com, tap the icon left of the address, then **Permissions** (or **Site settings**) and turn **Notifications** on.',
+              '**iPhone or iPad**: alerts only work once the site is on your home screen. In Safari, tap **Share** then **Add to Home Screen**, open Smug Para from there, and allow notifications when asked. To change it later, go to **Settings** > **Notifications** > **Smug Para**.',
+            ],
+            'Then **reload the page**. If you’re asked again, choose **Allow**. Still nothing? Check that notifications aren’t muted for your browser in your phone or computer settings, or [WhatsApp us](https://wa.me/message/AOEKBZDXW2VOE1).',
+          ],
+          tags: 'notifications alerts push blocked allow drop alert restock not working permission onesignal chrome safari iphone android',
         },
       ],
     },

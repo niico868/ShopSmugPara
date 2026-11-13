@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Anchor, Check, Compass, Gift, ImagePlus, Lock, Send, Telescope, Users } from 'lucide-react'
 import { useSettings } from '../lib/settings'
-import { WHATSAPP } from '../lib/brand'
+import { COMMUNITY } from '../lib/brand'
 import { usePoints } from '../lib/points'
 import {
   BADGE_PERK, CURRENCY, MILESTONES, fmtPts, ladder, ledgerTitle, myLedger, mySubmissions, submitSocial,
@@ -30,7 +30,7 @@ function Badges({ lifetime }: { lifetime: number }) {
   const earned = MILESTONES.filter((m) => lifetime >= m.at)
   const best = earned[earned.length - 1]
   // Until a group invite link is set in admin settings, members ask for the invite on WhatsApp.
-  const join = settings.community_url || `${WHATSAPP}?text=${encodeURIComponent(`Hi! I've unlocked the ${best?.name ?? ''} badge. Please add me to the community group.`)}`
+  const join = settings.community_url || COMMUNITY
   return (
     <div className="mt-4">
       <p className="text-xs text-white/60">Badges are never spent. Unlock any badge to join our community group.</p>
