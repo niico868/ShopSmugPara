@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, Brush, Instagram } from 'lucide-react'
 import { listProducts } from '../lib/api'
 import type { Product } from '../lib/types'
@@ -10,7 +10,8 @@ import { useSettings } from '../lib/settings'
 import { INSTAGRAM, brandMark } from '../lib/brand'
 import { huntSpot } from '../lib/contraband'
 import { TreasureMap } from '../components/Contraband'
-import { useCutout } from '../lib/cutout'
+import { XrayScan, scanFrames } from '../components/XrayScan'
+import { saleEnded, useSaleLeft, shortLeft } from '../components/SaleTimer'
 
 const STEPS = [
   { t: 'Pick a tee', d: 'Shop a drop, or choose a regular or oversized blank.' },
@@ -32,7 +33,10 @@ export default function Home() {
   const featured = products.filter((p) => p.featured)
   const shown = (featured.length ? featured : products).slice(0, 8)
   const lead = shown[0]
-  const leadPhoto = useCutout(lead?.image_url)
+  // A live limited drop with several looks (the 11/11 drop) takes over the hero with the X-ray scanner.
+  const drop = products.find((p) => (p.variants?.length ?? 0) > 1 && p.sale_ends_at && !saleEnded(p))
+  const frames = useMemo(() => (drop?.variants ? scanFrames(drop.variants) : []), [drop])
+  const dropLeft = useSaleLeft(drop?.sale_ends_at)
 
   return (
     <>
@@ -55,12 +59,22 @@ export default function Home() {
             </div>
             <TreasureMap className="mt-6" />
           </div>
-          <div className="relative mx-auto w-full max-w-md">
-            {lead ? (
-              <Link {...huntSpot('home-drop')} to={`/shop/${lead.slug}`} className="group block bg-white/40 p-4 text-white transition hover:-translate-y-1">
-                <img src={leadPhoto} alt={lead.name} className="aspect-square w-full object-contain" />
-                <span className="mt-3 flex items-baseline justify-between border-t border-white/70 pt-3">
-                  <span className="text-[11px] font-semibold uppercase tracking-[.25em] text-white/80">New drop</span>
+          <div className="relative mx-auto w-full max-w-xl">
+            {drop && frames.length > 1 ? (
+              <Link {...huntSpot('home-drop')} to={`/shop/${drop.slug}`} className="group block bg-white p-2 text-black transition hover:-translate-y-1 sm:p-3">
+                <XrayScan frames={frames} />
+                <span className="mt-2 flex items-baseline justify-between gap-3 border-t border-black px-1 pt-3 sm:mt-3">
+                  <span className="text-[10px] font-semibold uppercase tracking-[.2em] text-acid sm:text-[11px] sm:tracking-[.25em]">
+                    Limited drop{dropLeft ? ` · ${shortLeft(dropLeft)} left` : ''}
+                  </span>
+                  <span className="shrink-0 whitespace-nowrap font-pirate text-2xl">{drop.name}</span>
+                </span>
+              </Link>
+            ) : lead ? (
+              <Link {...huntSpot('home-drop')} to={`/shop/${lead.slug}`} className="group block bg-white p-2 text-black transition hover:-translate-y-1 sm:p-3">
+                <img src={lead.image_url} alt={lead.name} className="aspect-square w-full scale-[1.04] object-contain" />
+                <span className="mt-2 flex items-baseline justify-between gap-3 border-t border-black px-1 pt-3 sm:mt-3">
+                  <span className="text-[11px] font-semibold uppercase tracking-[.25em] text-acid">New drop</span>
                   <span className="font-pirate text-2xl">{lead.name}</span>
                 </span>
               </Link>
