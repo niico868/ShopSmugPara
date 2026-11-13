@@ -21,7 +21,7 @@ export const SPOTS: { id: string; page: SpotPage; label: string }[] = [
   { id: 'product-photo', page: '/shop/:slug', label: 'Product: the main photo' },
   { id: 'product-size-guide', page: '/shop/:slug', label: 'Product: "Size guide"' },
   { id: 'track-title', page: '/track', label: 'Track order: the heading' },
-  { id: 'faq-title', page: '/faq', label: 'FAQ: the "Questions, answered" heading' },
+  { id: 'faq-title', page: '/faq', label: 'FAQ: the "Your questions, answered" heading' },
   { id: 'footer-tagline', page: '*', label: 'Any page, footer: the tagline' },
   { id: 'footer-whatsapp', page: '*', label: 'Any page, footer: "WhatsApp us"' },
   { id: 'footer-instagram', page: '*', label: 'Any page, footer: the Instagram link' },
