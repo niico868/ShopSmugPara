@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ArrowRight, Brush, Instagram } from 'lucide-react'
 import { listProducts } from '../lib/api'
 import type { Product } from '../lib/types'
@@ -11,6 +11,9 @@ import { INSTAGRAM, brandMark } from '../lib/brand'
 import { huntSpot } from '../lib/contraband'
 import { TreasureMap } from '../components/Contraband'
 import { useCutout } from '../lib/cutout'
+import { saleEnded } from '../components/SaleTimer'
+import { cargoNo, dropPhase } from '../lib/dropSchedule'
+import { LookOut } from '../components/LookOut'
 
 const STEPS = [
   { t: 'Pick a tee', d: 'Shop a drop, or choose a regular or oversized blank.' },
@@ -31,7 +34,24 @@ export default function Home() {
   useEffect(() => { listProducts().then(setProducts).catch(() => {}) }, [])
   const featured = products.filter((p) => p.featured)
   const shown = (featured.length ? featured : products).slice(0, 8)
-  const lead = shown[0]
+  // Mon/Tue the closed drop drops out of the hero and another available piece takes its place.
+  const onSale = products.filter((p) => !saleEnded(p))
+  const lead = (featured.length ? featured : products).find((p) => !saleEnded(p)) ?? onSale[0]
+  const cargo = products.find((p) => p.sale_ends_at && !saleEnded(p)) ?? lead
+
+  // The hero copy switches on its own with TT time; re-check every minute.
+  const [drop, setDrop] = useState(() => dropPhase())
+  useEffect(() => {
+    const t = setInterval(() => setDrop(dropPhase()), 60_000)
+    return () => clearInterval(t)
+  }, [])
+  const [lookOut, setLookOut] = useState(false)
+  const closeLookOut = useCallback(() => setLookOut(false), [])
+  const lookOutLink = (
+    <button type="button" onClick={() => setLookOut(true)} className="font-semibold text-white underline decoration-acid decoration-2 underline-offset-4 hover:text-acid">
+      Look out.
+    </button>
+  )
   const leadPhoto = useCutout(lead?.image_url)
 
   return (
@@ -41,14 +61,40 @@ export default function Home() {
         <span aria-hidden className="pointer-events-none absolute -right-24 top-1/2 hidden h-[520px] w-[860px] -translate-y-1/2 opacity-[.07] md:block" style={brandMark('/brand/emblem.svg', '#ffffff')} />
         <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 md:grid-cols-[1.1fr_1fr] md:py-24">
           <div className="animate-rise">
-            <p className="mb-5 text-xs font-semibold uppercase tracking-[.3em] text-acid">Smuggler&rsquo;s Paradise &middot; Trinidad &amp; Tobago</p>
-            <p className="mb-1 text-sm font-semibold uppercase tracking-[.35em] text-white/60">Made for</p>
-            <h1 {...huntSpot('home-headline')} className="font-pirate text-[13vw] leading-[.95] sm:text-7xl lg:text-8xl">
-              The Brave<br /><span className="text-acid">The Risk Takers</span><br />The Streets
-            </h1>
-            <p className="mt-6 max-w-md text-base text-white/70">
-              Some move with the crowd. We move with intent. Heavyweight tees born on the beaches of Trinidad and Tobago, and a studio to print your own.
-            </p>
+            {drop.phase === 'off' ? (
+              <>
+                <p className="mb-5 text-xs font-semibold uppercase tracking-[.3em] text-acid">Smuggler&rsquo;s Paradise &middot; Trinidad &amp; Tobago</p>
+                <p className="mb-1 text-sm font-semibold uppercase tracking-[.35em] text-white/60">Made for</p>
+                <h1 {...huntSpot('home-headline')} className="font-pirate text-[13vw] leading-[.95] sm:text-7xl lg:text-8xl">
+                  The Brave<br /><span className="text-acid">The Risk Takers</span><br />The Streets
+                </h1>
+                <p className="mt-6 max-w-md text-base text-white/70">
+                  Some move with the crowd. We move with intent. Heavyweight tees born on the beaches of Trinidad and Tobago, and a studio to print your own.
+                </p>
+              </>
+            ) : (
+              <>
+                {/* Cargo manifest label */}
+                <p className="mb-5 font-mono text-xs font-semibold uppercase leading-relaxed tracking-[.25em] text-acid">
+                  {drop.phase === 'live' ? (
+                    <>Cargo {cargoNo(drop.cargo)}{cargo ? <> &mdash; &ldquo;{cargo.name}&rdquo;</> : null}<br />On the dock until {drop.last ? 'Christmas Eve' : 'Sunday'}, 11:59pm</>
+                  ) : (
+                    <>Dock closed<br />Next cargo lands Wednesday, 12pm</>
+                  )}
+                </p>
+                <h1 {...huntSpot('home-headline')} className="font-pirate text-[13vw] leading-[.95] sm:text-7xl lg:text-8xl">
+                  Faith Rewards<br /><span className="text-acid">The Brave.</span>
+                </h1>
+                <p className="mt-6 max-w-md text-base text-white/70">
+                  {drop.phase === 'live'
+                    ? drop.last
+                      ? <>This cargo ships out Christmas Eve at midnight. It&rsquo;s the last run before Christmas. </>
+                      : <>This cargo ships out Sunday at midnight. A new shipment lands every Wednesday at noon till Christmas. </>
+                    : <>Last week&rsquo;s cargo is gone for good. The next one lands Wednesday at noon. </>}
+                  {lookOutLink}
+                </p>
+              </>
+            )}
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to={lead ? `/shop/${lead.slug}` : '/shop'}><Button size="lg" className="!bg-white !text-black hover:!bg-acid hover:!text-white">{lead ? `Shop ${lead.name}` : 'Shop now'} <ArrowRight size={18} /></Button></Link>
               <Link to="/design"><Button size="lg" variant="outline" className="!border-white !text-white hover:!bg-white hover:!text-black"><Brush size={18} /> Design your own</Button></Link>
@@ -60,7 +106,7 @@ export default function Home() {
               <Link {...huntSpot('home-drop')} to={`/shop/${lead.slug}`} className="group block bg-white/40 p-4 text-white transition hover:-translate-y-1">
                 <img src={leadPhoto} alt={lead.name} className="aspect-square w-full object-contain" />
                 <span className="mt-3 flex items-baseline justify-between border-t border-white/70 pt-3">
-                  <span className="text-[11px] font-semibold uppercase tracking-[.25em] text-white/80">New drop</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[.25em] text-white/80">{drop.phase === 'closed' ? 'On the shelf' : 'New drop'}</span>
                   <span className="font-pirate text-2xl">{lead.name}</span>
                 </span>
               </Link>
@@ -70,6 +116,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <LookOut open={lookOut} onClose={closeLookOut} />
 
       <section className="mx-auto max-w-7xl px-4 pt-16">
         <div className="mb-8 flex items-end justify-between border-b border-black pb-3">
