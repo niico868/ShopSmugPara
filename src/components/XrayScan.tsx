@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import type { ProductVariant } from '../lib/types'
 import { cx } from '../lib/format'
 import { xrayFilm } from '../lib/xray'
@@ -19,18 +20,21 @@ export function scanFrames(variants: ProductVariant[]): ScanFrame[] {
   )
 }
 
-// Timing of one look, in ms: it rests, then the scan beam sweeps down and leaves the next look behind it.
-const HOLD = 2100
-const SWEEP = 1900
+// Timing of one look, in ms: it rests, then the scan beam glides down and leaves the next look behind it.
+const HOLD = 3500
+const SWEEP = 3400
 const BAND = 26 // how tall the X-ray window above the beam is, in % of the frame
 
-const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2)
+// Gentle start and finish, steady through the middle, like a real scanner head.
+const ease = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2
 
 /**
  * Homepage hero for a limited drop: an X-ray scanner that cycles through every flat lay of the drop.
  * The photo rests on white; then a glowing beam sweeps down the frame. A dark X-ray window rides just above the
  * beam, showing the next look as a negative, and the next look "develops" back to a normal photo behind it.
  * Each frame is driven by CSS variables set from requestAnimationFrame, so React only re-renders once per look.
+ * Every flat lay (and its film) stays in the page and only its visibility changes, so no photo is ever swapped
+ * mid-scan; the hand-over to the next look is committed in the same frame the beam resets, so nothing flashes.
  * Under prefers-reduced-motion the looks simply change every few seconds, with no beam.
  */
 export function XrayScan({ frames, className }: { frames: ScanFrame[]; className?: string }) {
@@ -74,9 +78,9 @@ export function XrayScan({ frames, className }: { frames: ScanFrame[]; className
         // The beam runs from just above the frame to below it, so the X-ray window fully enters and leaves.
         el?.style.setProperty('--p', String(ease((t - HOLD) / SWEEP) * (100 + BAND + 4)))
       } else {
+        // Hand over to the next look and reset the beam in one frame: React commits first, then the beam resets.
+        flushSync(() => { setI((x) => (x + 1) % n); setScanning(false) })
         el?.style.setProperty('--p', '0')
-        setI((x) => (x + 1) % n)
-        setScanning(false)
         swept = false
         start = now
       }
@@ -96,37 +100,36 @@ export function XrayScan({ frames, className }: { frames: ScanFrame[]; className
   const beam = 'calc(var(--p) * 1%)'
   const bandTop = `calc(var(--p) * 1% - ${BAND}%)`
   const photo = 'absolute inset-0 h-full w-full scale-[1.08] object-contain'
+  const nextIdx = (i + 1) % n
+  const develop = `linear-gradient(to bottom, #000 calc(${bandTop} + 2%), transparent calc(${bandTop} + 9%))`
+  const window_ = `linear-gradient(to bottom, transparent ${bandTop}, #000 calc(${bandTop} + 9%), #000 ${beam}, transparent ${beam})`
 
   return (
     <div ref={box} className={cx('xray relative aspect-square w-full overflow-hidden bg-white', className)} style={{ ['--p' as string]: '0' }}>
-      {/* The look on show */}
-      <img src={cur.src} alt={cur.label} className={photo} draggable={false} />
+      {/* Every flat lay, stacked; only the look on show is visible */}
+      {frames.map((f, k) => (
+        <img key={f.src} src={f.src} alt={k === i ? f.label : ''} aria-hidden={k !== i} draggable={false} decoding="async"
+          className={cx(photo, k === i ? 'opacity-100' : 'opacity-0')} />
+      ))}
 
-      {scanning && (
-        <>
-          {/* The next look, developed, everywhere the X-ray window has already passed */}
-          <img
-            src={next.src} alt="" aria-hidden draggable={false} className={photo}
-            style={{ WebkitMaskImage: `linear-gradient(to bottom, #000 calc(${bandTop} + 2%), transparent calc(${bandTop} + 9%))`, maskImage: `linear-gradient(to bottom, #000 calc(${bandTop} + 2%), transparent calc(${bandTop} + 9%))` }}
-          />
-          {/* The X-ray window: the next look as a glowing blue negative, riding just above the beam */}
-          <div
-            aria-hidden className="absolute inset-0 bg-[#02060b]"
-            style={{
-              WebkitMaskImage: `linear-gradient(to bottom, transparent ${bandTop}, #000 calc(${bandTop} + 9%), #000 ${beam}, transparent ${beam})`,
-              maskImage: `linear-gradient(to bottom, transparent ${bandTop}, #000 calc(${bandTop} + 9%), #000 ${beam}, transparent ${beam})`,
-            }}
-          >
-            {films[next.src]
-              ? <img src={films[next.src]} alt="" draggable={false} className={cx(photo, 'xray-glow')} />
-              : <img src={next.src} alt="" draggable={false} className={cx(photo, 'xray-film')} />}
-            {/* Fine scan lines and a faint grid over the film */}
-            <span className="xray-lines absolute inset-0" />
-          </div>
-          {/* The beam itself */}
-          <span aria-hidden className="xray-beam absolute inset-x-0 h-[3px] -translate-y-1/2" style={{ top: beam }} />
-        </>
-      )}
+      {/* The next look, developed, everywhere the X-ray window has already passed */}
+      <div aria-hidden className="absolute inset-0" style={{ WebkitMaskImage: develop, maskImage: develop }}>
+        {frames.map((f, k) => (
+          <img key={f.src} src={f.src} alt="" draggable={false} className={cx(photo, k === nextIdx ? 'opacity-100' : 'opacity-0')} />
+        ))}
+      </div>
+
+      {/* The X-ray window: the next look as a glowing blue negative, riding just above the beam */}
+      <div aria-hidden className={cx('absolute inset-0 bg-[#02060b]', !scanning && 'invisible')} style={{ WebkitMaskImage: window_, maskImage: window_ }}>
+        {frames.map((f, k) => (films[f.src]
+          ? <img key={f.src} src={films[f.src]} alt="" draggable={false} className={cx(photo, 'xray-glow', k === nextIdx ? 'opacity-100' : 'opacity-0')} />
+          : <img key={f.src} src={f.src} alt="" draggable={false} className={cx(photo, 'xray-film', k === nextIdx ? 'opacity-100' : 'opacity-0')} />))}
+        {/* Fine scan lines and a faint grid over the film */}
+        <span className="xray-lines absolute inset-0" />
+      </div>
+
+      {/* The beam itself */}
+      <span aria-hidden className={cx('xray-beam absolute inset-x-0 h-[3px] -translate-y-1/2', !scanning && 'invisible')} style={{ top: beam }} />
 
       {/* Scanner frame: corner brackets and readouts */}
       <span aria-hidden className="xray-corners pointer-events-none absolute inset-2.5" />
