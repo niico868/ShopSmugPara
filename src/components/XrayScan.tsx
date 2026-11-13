@@ -4,8 +4,22 @@ import type { ProductVariant } from '../lib/types'
 import { cx } from '../lib/format'
 import { xrayFilm } from '../lib/xray'
 
-/** One flat lay the scanner shows: a single side of a single look. */
-export interface ScanFrame { src: string; label: string }
+/** One flat lay the scanner shows: a single side of a single look, with a ready-made X-ray film if there is one. */
+export interface ScanFrame { src: string; label: string; film?: string }
+
+/**
+ * Flat lays with a studio-clean copy in /products/scan: cut hard at the garment's edge (no shadow, no soft rim),
+ * on pure white, each with a matching X-ray film. Made offline with a background-removal model; any other photo
+ * is used as it is and its film is made in the browser.
+ */
+const SCAN_CUTS = new Set([
+  'frtb-tee-gold-front', 'frtb-tee-gold-back', 'frtb-tee-red-front', 'frtb-tee-red-back', 'frtb-tee-white2-front', 'frtb-tee-white2-back',
+  'frtb-vest-gold-front', 'frtb-vest-gold-back', 'frtb-vest-red-front', 'frtb-vest-red-back', 'frtb-vest-white-front', 'frtb-vest-white-back',
+])
+function clean(src: string): Pick<ScanFrame, 'src' | 'film'> {
+  const name = src.match(/\/products\/([\w-]+)\.jpg(?:\?.*)?$/)?.[1]
+  return name && SCAN_CUTS.has(name) ? { src: `/products/scan/${name}.jpg`, film: `/products/scan/${name}-xray.jpg` } : { src }
+}
 
 /**
  * Turns a drop's looks into flat lays, front then back for each look, in the order the looks are listed.
@@ -16,7 +30,7 @@ export function scanFrames(variants: ProductVariant[]): ScanFrame[] {
   const tidy = (s: string) => s.replace(/\s*\((?:wo)?men'?s\)/i, '').replace(/cropped vest/i, 'Cut sleeve vest').trim()
   const colour = (s: string) => s.replace(/\s*print$/i, '')
   return variants.flatMap((v) =>
-    v.images.slice(0, 2).map((src, i) => ({ src, label: `${tidy(v.style)} · ${colour(v.color)} · ${i ? 'Back' : 'Front'}` })),
+    v.images.slice(0, 2).map((src, i) => ({ ...clean(src), label: `${tidy(v.style)} · ${colour(v.color)} · ${i ? 'Back' : 'Front'}` })),
   )
 }
 
@@ -52,6 +66,7 @@ export function XrayScan({ frames, className }: { frames: ScanFrame[]; className
     let live = true
     frames.forEach((f) => {
       const im = new Image(); im.src = f.src
+      if (f.film) { const fi = new Image(); fi.src = f.film; setFilms((m) => ({ ...m, [f.src]: f.film! })); return }
       xrayFilm(f.src).then((film) => { if (live && film) setFilms((m) => ({ ...m, [f.src]: film })) })
     })
     return () => { live = false }
@@ -140,7 +155,7 @@ export function XrayScan({ frames, className }: { frames: ScanFrame[]; className
       <span className="pointer-events-none absolute right-5 top-5 bg-white/85 px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-black">
         {pos}<span className="text-black/40">/{total}</span>
       </span>
-      <span aria-live="polite" className="pointer-events-none absolute bottom-4 left-1/2 max-w-[calc(100%-4rem)] -translate-x-1/2 truncate whitespace-nowrap bg-white/80 px-2 py-0.5 text-center text-[10px] font-semibold uppercase tracking-[.2em] text-black/60 sm:text-[11px]">
+      <span aria-live="polite" className="pointer-events-none absolute bottom-4 left-1/2 max-w-[calc(100%-4rem)] -translate-x-1/2 truncate whitespace-nowrap bg-white/80 px-2 py-0.5 text-center text-[10px] font-semibold uppercase tracking-[.1em] sm:tracking-[.2em] text-black/60 sm:text-[11px]">
         {(scanning ? next : cur).label}
       </span>
     </div>

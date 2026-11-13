@@ -62,11 +62,25 @@ export default function Home() {
       <section className="relative overflow-hidden bg-black text-white">
         {/* The brand emblem, faint behind the hero */}
         <span aria-hidden className="pointer-events-none absolute -right-24 top-1/2 hidden h-[520px] w-[860px] -translate-y-1/2 opacity-[.07] md:block" style={brandMark('/brand/emblem.svg', '#ffffff')} />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 md:grid-cols-[1.1fr_1fr] md:py-24">
-          <div className="animate-rise">
+        {/* On phones the drop sits between the dock line and the headline; from md up it is the right-hand column. */}
+        <div className="relative mx-auto flex max-w-7xl flex-col px-4 py-16 md:grid md:grid-cols-[1.1fr_1fr] md:items-center md:gap-10 md:py-24">
+          <div className="contents md:block md:animate-rise">
+            <div className="order-1">
+              {dock.phase === 'off' ? (
+                <p className="mb-5 text-xs font-semibold uppercase tracking-[.3em] text-acid">Smuggler&rsquo;s Paradise &middot; Trinidad &amp; Tobago</p>
+              ) : (
+                <p className="mb-5 font-mono text-xs font-semibold uppercase leading-relaxed tracking-[.25em] text-acid">
+                  {dock.phase === 'live' ? (
+                    <>Cargo {cargoNo(dock.cargo)}{cargo ? <> &mdash; &ldquo;{cargo.name}&rdquo;</> : null}<br />On the dock until {dock.last ? 'Christmas Eve' : 'Sunday'}, 11:59pm</>
+                  ) : (
+                    <>Dock closed<br />Next cargo lands Wednesday, 12pm</>
+                  )}
+                </p>
+              )}
+            </div>
+            <div className="order-3">
             {dock.phase === 'off' ? (
               <>
-                <p className="mb-5 text-xs font-semibold uppercase tracking-[.3em] text-acid">Smuggler&rsquo;s Paradise &middot; Trinidad &amp; Tobago</p>
                 <p className="mb-1 text-sm font-semibold uppercase tracking-[.35em] text-white/60">Made for</p>
                 <h1 {...huntSpot('home-headline')} className="font-pirate text-[13vw] leading-[.95] sm:text-7xl lg:text-8xl">
                   The Brave<br /><span className="text-acid">The Risk Takers</span><br />The Streets
@@ -77,14 +91,6 @@ export default function Home() {
               </>
             ) : (
               <>
-                {/* Cargo manifest label */}
-                <p className="mb-5 font-mono text-xs font-semibold uppercase leading-relaxed tracking-[.25em] text-acid">
-                  {dock.phase === 'live' ? (
-                    <>Cargo {cargoNo(dock.cargo)}{cargo ? <> &mdash; &ldquo;{cargo.name}&rdquo;</> : null}<br />On the dock until {dock.last ? 'Christmas Eve' : 'Sunday'}, 11:59pm</>
-                  ) : (
-                    <>Dock closed<br />Next cargo lands Wednesday, 12pm</>
-                  )}
-                </p>
                 <h1 {...huntSpot('home-headline')} className="font-pirate text-[13vw] leading-[.95] sm:text-7xl lg:text-8xl">
                   Faith Rewards<br /><span className="text-acid">The Brave.</span>
                 </h1>
@@ -99,12 +105,13 @@ export default function Home() {
               </>
             )}
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to={lead ? `/shop/${lead.slug}` : '/shop'}><Button size="lg" className="!bg-white !text-black hover:!bg-acid hover:!text-white">{lead ? `Shop ${lead.name}` : 'Shop now'} <ArrowRight size={18} /></Button></Link>
-              <Link to="/design"><Button size="lg" variant="outline" className="!border-white !text-white hover:!bg-white hover:!text-black"><Brush size={18} /> Design your own</Button></Link>
+              <Link to={lead ? `/shop/${lead.slug}` : '/shop'}><Button size="lg" className="!bg-white !py-2 !text-black hover:!bg-acid hover:!text-white">{lead ? `Shop ${lead.name}` : 'Shop now'} <ArrowRight size={18} /></Button></Link>
+              <Link to="/design"><Button size="lg" variant="outline" className="!border-white !py-2 !text-white hover:!bg-white hover:!text-black"><Brush size={18} /> Design your own</Button></Link>
             </div>
             <TreasureMap className="mt-6" />
+            </div>
           </div>
-          <div className="relative mx-auto w-full max-w-xl">
+          <div className="relative order-2 mx-auto mb-8 w-full max-w-xl md:mb-0">
             {drop && frames.length > 1 ? (
               <Link {...huntSpot('home-drop')} to={`/shop/${drop.slug}`} className="group block bg-white p-2 text-black transition hover:-translate-y-1 sm:p-3">
                 <XrayScan frames={frames} />
