@@ -47,7 +47,7 @@ export default function Shop() {
       </div>
       <div className="mt-10">
         {!products ? <PageLoader /> : shown.length === 0 ? <Empty title="No designs match">Try another search or category.</Empty> : (
-          <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
             {shown.map((p, i) => <ProductCard key={p.id} product={p} delay={i} />)}
           </div>
         )}

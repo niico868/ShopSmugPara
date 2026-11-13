@@ -118,19 +118,21 @@ export default function Checkout() {
             {items.map((it) => (
               <li key={it.id} className="flex gap-3">
                 <ItemThumb item={it} className="h-16 w-14 shrink-0" />
-                <div className="flex-1 text-sm">
-                  <p className="font-semibold">{it.name} <span className="text-ink-400">× {it.qty}</span></p>
-                  <p className="text-xs text-ink-400">{colorName(it.color)} · {it.size}{it.reward && <span className="ml-1 font-semibold text-acid">· Reward</span>}</p>
+                <div className="flex min-w-0 flex-1 flex-wrap justify-between gap-x-3">
+                  <div className="min-w-0 grow basis-36 text-sm">
+                    <p className="font-semibold">{it.name} <span className="text-ink-400">× {it.qty}</span></p>
+                    <p className="text-xs text-ink-400">{colorName(it.color)} · {it.size}{it.reward && <span className="ml-1 font-semibold text-acid">· Reward</span>}</p>
+                  </div>
+                  <p className="text-sm font-semibold">{money(it.qty * it.unit_price)}</p>
                 </div>
-                <p className="text-sm font-semibold">{money(it.qty * it.unit_price)}</p>
               </li>
             ))}
           </ul>
           <div className="mt-5 space-y-2 border-t border-ink-800 pt-4 text-sm">
-            <div className="flex justify-between"><span className="text-ink-400">Subtotal</span><span>{money(sub)}</span></div>
-            <div className="flex justify-between"><span className="text-ink-400">Delivery</span><Tick value={shipping}>{shipping ? money(shipping) : 'Free'}</Tick></div>
-            {discount > 0 && <div className="flex justify-between text-acid"><span>Paradise Points credit</span><span>-{money(discount)}</span></div>}
-            <div className="flex justify-between pt-2 text-lg font-bold"><span>Total</span><Tick value={total}>{money(total)}</Tick></div>
+            <div className="flex flex-wrap justify-between gap-x-3"><span className="text-ink-400">Subtotal</span><span>{money(sub)}</span></div>
+            <div className="flex flex-wrap justify-between gap-x-3"><span className="text-ink-400">Delivery</span><Tick value={shipping}>{shipping ? money(shipping) : 'Free'}</Tick></div>
+            {discount > 0 && <div className="flex flex-wrap justify-between text-acid gap-x-3"><span>Paradise Points credit</span><span>-{money(discount)}</span></div>}
+            <div className="flex flex-wrap justify-between pt-2 text-lg font-bold gap-x-3"><span>Total</span><Tick value={total}>{money(total)}</Tick></div>
           </div>
           <Button size="lg" type="submit" className="mt-5 w-full" disabled={busy}>{busy ? <><Loader2 size={16} className="animate-spin" /> Placing order…</> : <><Lock size={16} /> Place order</>}</Button>
         </Card>

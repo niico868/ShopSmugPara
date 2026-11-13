@@ -37,7 +37,7 @@ export interface Product {
 
 export interface ProductVariant {
   id: string
-  /** e.g. "Oversized tee" or "Cropped vest". */
+  /** e.g. "Oversized tee" or "Cut sleeve vest". */
   style: string
   /** e.g. "Black / gold print". */
   color: string

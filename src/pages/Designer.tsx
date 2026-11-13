@@ -706,20 +706,20 @@ export default function Designer() {
               <p className="mt-1 text-xs text-ink-400">True to the size chart: the same print looks smaller on a bigger tee.</p>
             </div>
             <div className="space-y-1 text-sm">
-              <div className="flex justify-between text-ink-400"><span>Custom tee, {fitName(fit).toLowerCase()}, prints up to {inLabel(Math.round(settings.print_included_in))} long</span><span className="shrink-0">{money(settings.custom_base_price)}</span></div>
+              <div className="flex flex-wrap justify-between text-ink-400 gap-x-3"><span>Custom tee, {fitName(fit).toLowerCase()}, prints up to {inLabel(Math.round(settings.print_included_in))} long</span><span className="shrink-0">{money(settings.custom_base_price)}</span></div>
               {quote.lines.map((l) => (
-                <div key={l.area} className="flex justify-between gap-2 pl-3 text-xs text-ink-400">
+                <div key={l.area} className="flex flex-wrap justify-between gap-x-2 pl-3 text-xs text-ink-400">
                   <span>{AREAS[l.area].name} print</span>
                   <span className="shrink-0">{inLabel(l.inches)} long</span>
                 </div>
               ))}
               {quote.price > settings.custom_base_price && (
-                <div className="flex justify-between text-[#9a6a00]">
+                <div className="flex flex-wrap justify-between text-[#9a6a00] gap-x-3">
                   <span>Extra print length, {inLabel(quote.inches - settings.print_included_in)}</span>
                   <span className="shrink-0">+{money(quote.price - settings.custom_base_price)}</span>
                 </div>
               )}
-              {team && <div className="flex justify-between text-ink-400"><span>Team order</span><span>{roster.length} tees</span></div>}
+              {team && <div className="flex flex-wrap justify-between text-ink-400 gap-x-3"><span>Team order</span><span>{roster.length} tees</span></div>}
             </div>
             <p className="flex gap-2 rounded-lg bg-acid/10 p-2.5 text-xs text-ink-300">
               <Info size={14} className="mt-0.5 shrink-0 text-acid" />

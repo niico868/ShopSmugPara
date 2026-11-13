@@ -91,7 +91,7 @@ export default function Home() {
           <Link to="/shop" className="text-xs font-semibold uppercase tracking-[.2em] hover:text-acid">View all</Link>
         </div>
         {shown.length ? (
-          <div className="grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 lg:grid-cols-4">
             {shown.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
         ) : (
@@ -131,7 +131,7 @@ export default function Home() {
         <div {...huntSpot('home-studio')} className="grid items-center gap-8 overflow-hidden bg-ink-900 md:grid-cols-2">
           <div className="p-8 md:p-14">
             <p className="text-xs font-semibold uppercase tracking-[.3em] text-acid">Design studio</p>
-            <h2 className="mt-3 font-poster text-4xl uppercase leading-none sm:text-5xl">Got an idea?<br />Print it.</h2>
+            <h2 className="mt-3 font-poster text-4xl uppercase leading-none sm:text-5xl">Got an idea?<br />Bring it to life.</h2>
             <p className="mt-4 max-w-md text-ink-400">Pick a regular or oversized Shaka Wear tee in black, white, cream or grey. Upload your artwork, add text, or use the Smug Para pack of official marks and quotes. Preview it live and order in minutes.</p>
             <Link to="/design"><Button size="lg" className="mt-6">Open the designer <ArrowRight size={18} /></Button></Link>
           </div>
