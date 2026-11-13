@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { BellRing, Instagram, X } from 'lucide-react'
 import { INSTAGRAM } from '../lib/brand'
 import { Button } from './ui'
@@ -80,7 +81,9 @@ export function LookOut({ open, onClose }: { open: boolean; onClose: () => void 
     setAlerts(granted ? 'on' : currentAlertState() === 'blocked' ? 'blocked' : 'idle')
   }
 
-  return (
+  // Rendered on <body>: the page wrapper is animated with a transform, which would pin a
+  // fixed overlay to the wrapper instead of the screen.
+  return createPortal(
     <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 sm:items-center" onClick={onClose}>
       <div
         role="dialog"
@@ -153,6 +156,7 @@ export function LookOut({ open, onClose }: { open: boolean; onClose: () => void 
 
         <p className="mt-8 text-center font-pirate text-2xl">Faith rewards the brave. Alerts reward the ready.</p>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
