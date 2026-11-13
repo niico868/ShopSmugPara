@@ -34,17 +34,16 @@ export default function Home() {
   useEffect(() => { listProducts().then(setProducts).catch(() => {}) }, [])
   const featured = products.filter((p) => p.featured)
   const shown = (featured.length ? featured : products).slice(0, 8)
-  // Mon/Tue the closed drop drops out of the hero and another available piece takes its place.
-  const onSale = products.filter((p) => !saleEnded(p))
-  const lead = (featured.length ? featured : products).find((p) => !saleEnded(p)) ?? onSale[0]
-  const cargo = products.find((p) => p.sale_ends_at && !saleEnded(p)) ?? lead
-
   // The hero copy switches on its own with TT time; re-check every minute.
   const [drop, setDrop] = useState(() => dropPhase())
   useEffect(() => {
     const t = setInterval(() => setDrop(dropPhase()), 60_000)
     return () => clearInterval(t)
   }, [])
+
+  // While a cargo is on the dock it leads the hero. Mon/Tue (or once it closes) another available piece takes its place.
+  const cargo = products.find((p) => p.sale_ends_at && !saleEnded(p))
+  const lead = (drop.phase === 'live' && cargo) || (featured.length ? featured : products).find((p) => !saleEnded(p)) || products.find((p) => !saleEnded(p))
   const [lookOut, setLookOut] = useState(false)
   const closeLookOut = useCallback(() => setLookOut(false), [])
   const lookOutLink = (
