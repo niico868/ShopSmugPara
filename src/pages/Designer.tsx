@@ -19,6 +19,7 @@ import { designForRow, fillRoster, hasArt, mainArea, measurePrints } from '../li
 import { AddPanel } from '../components/designer/AddPanel'
 import { LayerPanel, dpiNote } from '../components/designer/LayerPanel'
 import { TeamPanel } from '../components/designer/TeamPanel'
+import { QuickColour, QuickMove } from '../components/designer/QuickTools'
 import { Dialog, RulesDialog } from '../components/designer/Controls'
 import { makeShareCard } from '../lib/shareCard'
 import { ShareButtons } from '../components/ShareButtons'
@@ -101,6 +102,8 @@ type Gesture =
   | { kind: 'rotate'; id: string; a0: number; rot0: number }
   | { kind: 'pinch'; id: string; d0: number; a0: number; mid0: Pt; size0: number; rot0: number; x0: number; y0: number }
 const storedRules = () => { try { return localStorage.getItem(RULES_KEY) } catch { return null } }
+
+const HOW_TO = 'Drag to move; it snaps to the centre. Pull a corner to resize and the top handle to rotate, or pinch and twist on a phone.'
 
 export default function Designer() {
   const { settings } = useSettings()
@@ -556,10 +559,8 @@ export default function Designer() {
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <h1 className="font-poster text-5xl">Design studio</h1>
-          <p className="text-sm text-ink-400">
-            {saved ? <>Editing <b className="text-black">{saved.name}</b>. </> : null}
-            Drag to move; it snaps to the centre. Pull a corner to resize and the top handle to rotate, or pinch and twist on a phone.
-          </p>
+          {saved && <p className="text-sm text-ink-400">Editing <b className="text-black">{saved.name}</b>.</p>}
+          <p className="text-sm text-ink-400 max-lg:hidden">{HOW_TO}</p>
         </div>
         <div className="flex flex-wrap gap-1">
           <Button variant="ghost" size="sm" onClick={undo} disabled={!past.length} title="Undo (Ctrl+Z)" aria-label="Undo"><Undo2 size={16} /></Button>
@@ -631,7 +632,7 @@ export default function Designer() {
               )
             })}
           </div>
-          <div className="relative rounded-3xl border border-ink-800 bg-[radial-gradient(circle_at_50%_30%,#ffffff,#ececea_75%)] p-4 sm:p-8">
+          <div className={cx('relative rounded-3xl border border-ink-800 bg-[radial-gradient(circle_at_50%_30%,#ffffff,#ececea_75%)] p-4 sm:p-8', selected && (selected.type === 'image' || selected.outline ? 'max-lg:pt-16' : 'max-lg:pt-12'))}>
             {stage && (
               <div role="status" className="absolute left-1/2 top-4 z-10 w-56 -translate-x-1/2 animate-rise rounded-2xl bg-black px-4 py-2.5 text-white shadow-xl">
                 <p className="flex items-center gap-2 text-xs font-semibold"><Loader2 size={13} className="animate-spin text-acid" /> {stage[0]}…</p>
@@ -643,6 +644,12 @@ export default function Designer() {
                   ))}
                 </div>
                 <p className="mt-1 text-[10px] text-white/50">Step {stage[1]} of {stage[2]}</p>
+              </div>
+            )}
+            {/* Phones: the colour adjuster floats over the top of the tee so changes show as you slide */}
+            {selected && (
+              <div className="absolute inset-x-2 top-2 z-[5] rounded-2xl bg-white/90 px-3 py-2 shadow-md ring-1 ring-ink-800 backdrop-blur-sm lg:hidden">
+                <QuickColour layer={selected} onPatch={(p, record) => patch(selected.id, p, record)} onCommit={() => commit((d) => d)} />
               </div>
             )}
             <TeeMockup
@@ -664,6 +671,21 @@ export default function Designer() {
               {snap.y && <line data-ui y1={PRINT.cy + canvasCentre.y} y2={PRINT.cy + canvasCentre.y} x1={0} x2={VIEW.w} stroke="#e8467c" strokeWidth={1 / zoom} pointerEvents="none" />}
             </TeeMockup>
           </div>
+          {/* Phones: the directional bar sits right under the tee, then everything else follows */}
+          {selected && (
+            <div className="mt-2 lg:hidden">
+              <QuickMove
+                layer={selected}
+                step={small ? 1 : 4}
+                onPatch={(p, record) => patch(selected.id, p, record)}
+                onCommit={() => commit((d) => d)}
+                onCentre={() => centreLayer(selected)}
+                onDuplicate={() => duplicate(selected)}
+                onRemove={() => remove(selected.id)}
+              />
+            </div>
+          )}
+          <p className="mt-2 text-center text-xs text-ink-400 lg:hidden">{HOW_TO}</p>
           <div className="mx-auto mt-4 grid max-w-sm grid-cols-2 gap-2">
             {FITS.map((f) => (
               <button key={f.id} onClick={() => { if (fit !== f.id) sfx('select'); commit((d) => ({ ...d, fit: f.id })) }} aria-pressed={fit === f.id} className={cx('rounded-xl border px-3 py-2 text-left transition active:scale-[.98]', fit === f.id ? 'border-black bg-black text-white' : 'border-ink-700 hover:border-ink-400')}>

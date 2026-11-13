@@ -69,3 +69,9 @@ input[type='number']::-webkit-inner-spin-button { opacity: .4; }
   aside, header { display: none !important; }
   .rounded-2xl { border-color: #ddd !important; background: #fff !important; }
 }
+
+/* Designer phone tools (components/designer/QuickTools.tsx): slim sliders, some with a colour strip as the track. */
+.slim-range { height: 22px; accent-color: #5caedb; }
+.slim-range--track { -webkit-appearance: none; appearance: none; height: 8px; border-radius: 9999px; border: 1px solid #dcdcd8; }
+.slim-range--track::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 9999px; background: #fff; border: 2px solid #111; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+.slim-range--track::-moz-range-thumb { width: 18px; height: 18px; border-radius: 9999px; background: #fff; border: 2px solid #111; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
