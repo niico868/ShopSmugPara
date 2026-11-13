@@ -7,7 +7,7 @@ import { canRemoveBackground } from '../../lib/bgRemoval'
 import { Field, Select, Textarea } from '../ui'
 import { Range, Toggle } from './Controls'
 
-const INK = ['#111111', '#ffffff', '#5caedb', '#d4a537', '#ff5c39', '#ffd23d', '#b48cff', '#5ee6c1', '#e8467c']
+export const INK = ['#111111', '#ffffff', '#5caedb', '#d4a537', '#ff5c39', '#ffd23d', '#b48cff', '#5ee6c1', '#e8467c']
 
 /** Print-quality verdict for an uploaded image at its current size. */
 export function dpiNote(l: Layer, fit?: Fit): { level: 'bad' | 'soft'; text: string } | null {
@@ -49,7 +49,8 @@ export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicat
           <Layers size={16} className="text-acid" />
           {layer.roster ? `Team ${layer.roster}` : layer.type === 'text' ? 'Text' : 'Image'}
         </p>
-        <div className="flex gap-1">
+        {/* On phones these live in the bar right under the tee */}
+        <div className="flex gap-1 max-lg:hidden">
           <button onClick={onCentre} className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-800 hover:text-black" title="Centre"><AlignCenter size={16} /></button>
           <button onClick={onDuplicate} className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-800 hover:text-black" title="Duplicate"><Copy size={16} /></button>
           <button onClick={onRemove} className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-800 hover:text-flame" title="Delete"><Trash2 size={16} /></button>
@@ -68,10 +69,13 @@ export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicat
               {FONTS.map((f) => <option key={f.name} value={f.name} style={{ fontFamily: f.css }}>{f.name}</option>)}
             </Select>
           </Field>
-          <Field label="Colour">
-            <ColourRow value={layer.fill ?? '#111111'} onPick={(c, rec) => onPatch({ fill: c }, rec)} />
-          </Field>
-          <Range label="Size" min={6} max={300} value={layer.size!} onChange={(v) => onPatch({ size: v }, false)} />
+          {/* Colour and size sit on and under the tee on phones, so they only show here on bigger screens */}
+          <div className="space-y-4 max-lg:hidden">
+            <Field label="Colour">
+              <ColourRow value={layer.fill ?? '#111111'} onPick={(c, rec) => onPatch({ fill: c }, rec)} />
+            </Field>
+            <Range label="Size" min={6} max={300} value={layer.size!} onChange={(v) => onPatch({ size: v }, false)} />
+          </div>
           <Range label="Weight" min={300} max={900} step={100} value={layer.weight ?? 400} onChange={(v) => onPatch({ weight: v }, false)} />
           <div className="space-y-3 border-t border-ink-800 pt-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-black">Effects</p>
@@ -97,16 +101,16 @@ export function LayerPanel({ layer, fit, onPatch, onCommit, onCentre, onDuplicat
 
       {layer.type === 'image' && (
         <>
-          {/* Colour first, so on a phone it sits right under the tee and changes can be watched as they happen */}
-          <ToneControls layer={layer} onPatch={onPatch} />
+          {/* On phones colour and size sit on and under the tee instead (QuickTools) */}
+          <div className="max-lg:hidden"><ToneControls layer={layer} onPatch={onPatch} /></div>
           {canRemoveBackground(layer.src) && <RemoveBgButtons onErase={onEraseBg} onAi={onRemoveBg} progress={removingBg} />}
-          <Range label="Width" min={10} max={520} value={layer.width!} onChange={(v) => onPatch({ width: v }, false)} />
+          <div className="max-lg:hidden"><Range label="Width" min={10} max={520} value={layer.width!} onChange={(v) => onPatch({ width: v }, false)} /></div>
           <DpiWarning layer={layer} fit={fit} />
           {layer.flagged && <p className="rounded-lg bg-ink-800 p-2.5 text-xs text-ink-400">Our team will take a closer look at this image before printing.</p>}
           <Toggle label="Drop shadow" checked={!!layer.shadow} onChange={(on) => onPatch({ shadow: on || undefined })} />
         </>
       )}
-      <Range label="Rotation" min={-180} max={180} value={layer.rotation} onChange={(v) => onPatch({ rotation: v }, false)} suffix="°" />
+      <div className="max-lg:hidden"><Range label="Rotation" min={-180} max={180} value={layer.rotation} onChange={(v) => onPatch({ rotation: v }, false)} suffix="°" /></div>
     </div>
   )
 }
@@ -147,15 +151,20 @@ function RemoveBgButtons({ onErase, onAi, progress }: { onErase: () => void; onA
 }
 
 // Hue turns the colour wheel; the strip shows where red lands at each point.
-const HUE_TRACK = `linear-gradient(to right, ${[-180, -120, -60, 0, 60, 120, 180].map((d) => `hsl(${d} 85% 55%)`).join(', ')})`
-const TONE_TRACK = 'linear-gradient(to right, #ffffff, #808080, #000000)'
+export const HUE_TRACK = `linear-gradient(to right, ${[-180, -120, -60, 0, 60, 120, 180].map((d) => `hsl(${d} 85% 55%)`).join(', ')})`
+export const TONE_TRACK = 'linear-gradient(to right, #ffffff, #808080, #000000)'
+
+/** How far brightness has moved from the art's own tone, in words. */
+export function toneLabel(tone: number, base: number) {
+  return tone === base ? 'Original' : `${Math.round(Math.abs(tone - base) / (tone > base ? 100 - base : base + 100) * 100)}% ${tone > base ? 'darker' : 'lighter'}`
+}
 
 /** Hue and brightness for uploaded art. Brightness runs white to black; the art starts where its own tone sits. */
 function ToneControls({ layer, onPatch }: { layer: Layer; onPatch: (p: Partial<Layer>, record?: boolean) => void }) {
   const base = layer.toneBase ?? 0
   const tone = layer.tone ?? base
   const hue = layer.hue ?? 0
-  const toneText = tone === base ? 'Original' : `${Math.round(Math.abs(tone - base) / (tone > base ? 100 - base : base + 100) * 100)}% ${tone > base ? 'darker' : 'lighter'}`
+  const toneText = toneLabel(tone, base)
   return (
     <div className="space-y-3 border-t border-ink-800 pt-3">
       <div className="flex items-center justify-between">
