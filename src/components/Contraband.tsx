@@ -80,7 +80,7 @@ export function HuntCoin() {
   )
 }
 
-/** The Hidden treasure button on the homepage. It opens a scroll with the day's clue. */
+/** The Hidden treasure button in the site footer. It opens a scroll with the day's clue. */
 export function TreasureMap({ className }: { className?: string }) {
   const hunt = usePoints((s) => s.hunt)
   const open = usePoints((s) => s.mapOpen)

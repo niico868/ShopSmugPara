@@ -4,19 +4,22 @@ import { money } from '../lib/format'
 import { shortLeft, useSaleLeft } from './SaleTimer'
 import { fitStyle, usePhotoFit } from '../lib/photoFit'
 import { cardLines } from '../lib/cardLines'
+import { useOnWhite } from '../lib/onWhite'
 
 /** `delay` staggers cards in a grid so they rise in one after another. */
 export function ProductCard({ product, delay = 0 }: { product: Product; delay?: number }) {
-  const back = product.images?.[0]
+  // Photos shot on black are shown on white like the rest (lib/onWhite).
+  const front = useOnWhite(product.image_url)
+  const back = useOnWhite(product.images?.[0])
   const left = useSaleLeft(product.sale_ends_at)
-  const frontFit = usePhotoFit(product.image_url)
+  const frontFit = usePhotoFit(front)
   const backFit = usePhotoFit(back)
   return (
     <Link to={`/shop/${product.slug}`} className="group block animate-rise transition active:scale-[.98]" style={{ animationDelay: `${Math.min(delay, 8) * 50}ms` }}>
       <div className="relative aspect-square overflow-hidden border border-ink-800 bg-white">
         {/* Photos are zoomed so the shirt fills the card instead of floating in white margin. */}
         <div className="absolute inset-0 transition duration-500 group-hover:scale-[1.04]">
-          <img src={product.image_url} alt={product.name} loading="lazy" decoding="async" style={fitStyle(frontFit)} className="absolute inset-0 h-full w-full object-contain transition-transform duration-300" />
+          {front && <img src={front} alt={product.name} loading="lazy" decoding="async" style={fitStyle(frontFit)} className="absolute inset-0 h-full w-full object-contain transition-transform duration-300" />}
           {back && (
             <img src={back} alt="" loading="lazy" decoding="async" style={fitStyle(backFit)} className="absolute inset-0 h-full w-full object-contain opacity-0 transition duration-500 group-hover:opacity-100" />
           )}
