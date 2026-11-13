@@ -97,7 +97,7 @@ export function LookOut({ open, onClose }: { open: boolean; onClose: () => void 
           <button type="button" onClick={onClose} aria-label="Close" className="-m-2 p-2 text-ink-400 hover:text-black"><X size={22} /></button>
         </div>
         <p className="mt-3 text-sm text-ink-400">
-          Cargo lands every Wednesday at noon till Christmas. Every run is limited, and when it&rsquo;s gone, it&rsquo;s gone.
+          A new shipment lands every Wednesday at noon till Christmas Eve. Every run is limited, and when it&rsquo;s gone, it&rsquo;s gone.
         </p>
 
         <ol className="mt-6 space-y-6">
