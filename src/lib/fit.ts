@@ -57,10 +57,10 @@ export const HOW_TO_MEASURE: [string, string][] = [
   ['Sleeve length', 'Lay the tee face down. Measure from the centre back of the neck to the shoulder seam, then along the outer edge to the sleeve end.'],
 ]
 
-/** Cropped looks (Sovereignty, the FRTB vest) use the cropped chart; everything else the standard one. */
+/** Cropped looks (Sovereignty, the FRTB cut sleeve vest) use the cropped chart; everything else the standard one. */
 export function fitOf(p: Product, v?: ProductVariant | null): Fit {
   const text = v ? v.style : `${p.name} ${p.description}`
-  return /crop/i.test(text) ? 'cropped' : 'standard'
+  return /crop|vest/i.test(text) ? 'cropped' : 'standard'
 }
 
 export const FABRIC = ['100% USA cotton, 16 singles', 'Max Heavyweight 7.5 oz (245–255 GSM)', 'Stretchy Lycra rib collar that keeps its shape', 'Low stretch, soft hand, structured drape']
