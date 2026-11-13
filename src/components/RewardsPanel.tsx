@@ -67,7 +67,7 @@ function EngagerProgress({ r, rules }: { r: MyRewards; rules: RewardRules }) {
         <p className="text-sm font-semibold text-[#f6b21a]">You&rsquo;ve earned a free standard tee. <Link to="/shop" className="underline">Add one to your bag</Link> (up to {rules.free_tee_max_price} TTD) and make it free at checkout, or let it ride along free with your first order.</p>
       ) : (
         <>
-          <div className="flex justify-between text-sm"><span>Free standard tee</span><span className="tabular-nums text-white/70">{fmtPts(Math.max(0, r.balance))} / {fmtPts(rules.free_tee_ep)} EP</span></div>
+          <div className="flex flex-wrap justify-between text-sm gap-x-3"><span>Free standard tee</span><span className="tabular-nums text-white/70">{fmtPts(Math.max(0, r.balance))} / {fmtPts(rules.free_tee_ep)} EP</span></div>
           <Bar value={r.balance} max={rules.free_tee_ep} className="mt-2" />
           <p className="mt-2 text-xs text-white/60">{fmtPts(toGo)} EP to go. Reach {fmtPts(rules.free_tee_ep)} and it rides along free with your first order.</p>
         </>
@@ -88,11 +88,11 @@ function BuyerProgress({ r, rules }: { r: MyRewards; rules: RewardRules }) {
     <div className="mt-6">
       {next ? (
         <>
-          <div className="flex justify-between gap-3 text-sm"><span>Next: {next.title}</span><span className="shrink-0 tabular-nums text-white/70">{fmtPts(Math.max(0, r.balance))} / {fmtPts(next.cost)} PP</span></div>
+          <div className="flex flex-wrap justify-between gap-x-3 text-sm"><span>Next: {next.title}</span><span className="shrink-0 tabular-nums text-white/70">{fmtPts(Math.max(0, r.balance))} / {fmtPts(next.cost)} PP</span></div>
           <Bar value={r.balance} max={next.cost} className="mt-2" />
         </>
       ) : <p className="text-sm font-semibold text-[#f6b21a]">Every reward on the ladder is within reach.</p>}
-      <div className="mt-4 flex justify-between text-sm"><span>Paid custom tees</span><span className="tabular-nums text-white/70">{Math.min(r.paid_custom_tees, rules.custom_tee_min_paid)} of {rules.custom_tee_min_paid}</span></div>
+      <div className="mt-4 flex flex-wrap justify-between text-sm gap-x-3"><span>Paid custom tees</span><span className="tabular-nums text-white/70">{Math.min(r.paid_custom_tees, rules.custom_tee_min_paid)} of {rules.custom_tee_min_paid}</span></div>
       <Bar value={r.paid_custom_tees} max={rules.custom_tee_min_paid} className="mt-2" />
       <ul className="mt-5 space-y-2">
         {steps.map((s) => {
