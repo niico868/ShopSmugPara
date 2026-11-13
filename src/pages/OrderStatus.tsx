@@ -38,7 +38,6 @@ export default function OrderStatus() {
     </div>
   )
 
-  const wa = `${settings.whatsapp ? `https://wa.me/${settings.whatsapp.replace(/\D/g, '')}` : WHATSAPP}?text=${encodeURIComponent(`Hi! Question about order ${order.code}`)}`
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
@@ -109,7 +108,8 @@ export default function OrderStatus() {
         <Card>
           <h3 className="mb-4 font-display font-bold">Updates</h3>
           <EventList order={order} />
-          {wa && <a href={wa} target="_blank" rel="noreferrer"><Button variant="outline" className="mt-6 w-full">Message us on WhatsApp</Button></a>}
+          <a href={WHATSAPP} target="_blank" rel="noreferrer"><Button variant="outline" className="mt-6 w-full">Message us on WhatsApp</Button></a>
+          <p className="mt-2 text-center text-xs text-ink-400">Quote your order code, {order.code}, so we can find it fast.</p>
         </Card>
       </div>
       {zoomed && <ItemViewer item={zoomed} onClose={() => setZoomed(null)} />}

@@ -184,10 +184,11 @@ export interface Settings {
   price_per_inch_after: number
   shipping_fee: number
   free_shipping_over: number
+  /** Unused: the brand WhatsApp link lives in brand.ts. Kept so saved settings rows still load. */
   whatsapp: string
   announcement: string
   payment_instructions: string
-  /** Invite link to the community group that any rewards badge unlocks. Empty: members ask on WhatsApp. */
+  /** Invite link to the community group that any rewards badge unlocks. Empty: the Smuggler World Community group (brand.ts). */
   community_url: string
 }
 
