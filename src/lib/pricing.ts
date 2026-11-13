@@ -43,3 +43,25 @@ export function quoteCustom(d: Design, s: Settings): CustomQuote {
 }
 
 export const customPrice = (d: Design, s: Settings) => quoteCustom(d, s).price
+
+/** Print sizes customers know, in inches of print length (one side, full print width). */
+export const PRINT_SIZES = { full: 22, mid: 15 }
+
+/** Inches for customer copy: whole inches, or one decimal when it matters (e.g. 4.5 in). */
+export const inLabel = (n: number) => `${Math.round(n * 2) / 2} in`
+
+/**
+ * The custom-tee price points in plain words, as print length on each side (never square inches):
+ * a full print is about 22 in long, a mid print about 15 in long. Used by the design studio and the FAQ.
+ */
+export function priceGuide(s: Settings, money: (n: number) => string) {
+  const full = Math.round(s.print_included_in)
+  const tierExtra = Math.max(0, Math.round(s.price_tier_in - s.print_included_in))
+  const maxExtra = Math.max(0, Math.round(s.price_max_in - s.print_included_in))
+  return [
+    { price: money(s.custom_base_price), text: `covers prints up to ${full} in long in total: one full print (${full} in long) on the front or back.` },
+    { price: money(s.price_at_tier), text: `for ${Math.round(s.price_tier_in)} in of print in total, e.g. a full print on one side and a small ${tierExtra} in print on the other.` },
+    { price: money(s.price_at_max), text: `for ${Math.round(s.price_max_in)} in of print in total, e.g. a full print on the front and a ${maxExtra} in print on the back.` },
+    { price: money(s.price_per_inch_after), text: 'for every extra inch of print length after that.' },
+  ]
+}

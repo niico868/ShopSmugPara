@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Anchor, Check, Compass, Gift, ImagePlus, Lock, Send, Telescope } from 'lucide-react'
+import { Anchor, Check, Compass, Gift, ImagePlus, Lock, Send, Telescope, Users } from 'lucide-react'
+import { useSettings } from '../lib/settings'
+import { WHATSAPP } from '../lib/brand'
 import { usePoints } from '../lib/points'
 import {
-  CURRENCY, MILESTONES, fmtPts, ladder, ledgerTitle, myLedger, mySubmissions, submitSocial,
+  BADGE_PERK, CURRENCY, MILESTONES, fmtPts, ladder, ledgerTitle, myLedger, mySubmissions, submitSocial,
   type LedgerRow, type MyRewards, type RewardRules, type SocialKind, type Submission,
 } from '../lib/rewards'
 import { uploadMedia } from '../lib/api'
@@ -22,21 +24,34 @@ function Bar({ value, max, className }: { value: number; max: number; className?
 
 const BADGE_ICONS = [Telescope, Compass, Anchor]
 
-/** Lookout, Navigator and Smuggler's World: given on reaching each total of Engagement Points, never spent. */
+/** Lookout, Navigator and Smuggler's World: given on reaching each total of Engagement Points, never spent. Any badge opens the community group. */
 function Badges({ lifetime }: { lifetime: number }) {
+  const { settings } = useSettings()
+  const earned = MILESTONES.filter((m) => lifetime >= m.at)
+  const best = earned[earned.length - 1]
+  // Until a group invite link is set in admin settings, members ask for the invite on WhatsApp.
+  const join = settings.community_url || `${WHATSAPP}?text=${encodeURIComponent(`Hi! I've unlocked the ${best?.name ?? ''} badge. Please add me to the community group.`)}`
   return (
-    <ul className="mt-4 grid gap-2 sm:grid-cols-3">
-      {MILESTONES.map((m, i) => {
-        const got = lifetime >= m.at
-        const Icon = BADGE_ICONS[i]
-        return (
-          <li key={m.at} className={cx('flex items-center gap-3 rounded-xl border p-3 text-sm', got ? 'border-[#f6b21a] bg-[#f6b21a]/10' : 'border-white/15 text-white/50')}>
-            <span className={cx('grid h-9 w-9 shrink-0 place-items-center rounded-full', got ? 'bg-[#f6b21a] text-black' : 'bg-white/10')}>{got ? <Icon size={18} /> : <Lock size={14} />}</span>
-            <span><b className="block">{m.name}</b><span className="text-xs opacity-75">{got ? m.perk : `At ${fmtPts(m.at)} EP`}</span></span>
-          </li>
-        )
-      })}
-    </ul>
+    <div className="mt-4">
+      <p className="text-xs text-white/60">Badges are never spent. Unlock any badge to join our community group.</p>
+      <ul className="mt-2 grid gap-2 sm:grid-cols-3">
+        {MILESTONES.map((m, i) => {
+          const got = lifetime >= m.at
+          const Icon = BADGE_ICONS[i]
+          return (
+            <li key={m.at} className={cx('flex items-center gap-3 rounded-xl border p-3 text-sm', got ? 'border-[#f6b21a] bg-[#f6b21a]/10' : 'border-white/15 text-white/50')}>
+              <span className={cx('grid h-9 w-9 shrink-0 place-items-center rounded-full', got ? 'bg-[#f6b21a] text-black' : 'bg-white/10')}>{got ? <Icon size={18} /> : <Lock size={14} />}</span>
+              <span><b className="block">{m.name}</b><span className="text-xs opacity-75">{got ? BADGE_PERK : `At ${fmtPts(m.at)} EP`}</span></span>
+            </li>
+          )
+        })}
+      </ul>
+      {best && (
+        <a href={join} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#f6b21a] px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110 active:scale-95">
+          <Users size={16} /> Join our community group
+        </a>
+      )}
+    </div>
   )
 }
 

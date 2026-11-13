@@ -187,6 +187,8 @@ export interface Settings {
   whatsapp: string
   announcement: string
   payment_instructions: string
+  /** Invite link to the community group that any rewards badge unlocks. Empty: members ask on WhatsApp. */
+  community_url: string
 }
 
 export interface CheckoutInput {

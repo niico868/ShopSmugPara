@@ -83,7 +83,7 @@ export const seedProducts = (): Product[] => [
     variants: [
       { id: 'tee-gold', style: "Oversized tee (men's)", color: 'Black / gold print', swatch: '#111111', print: '#F2B91A', images: ['/products/frtb-tee-gold-front.jpg', '/products/frtb-tee-gold-back.jpg'] },
       { id: 'tee-red', style: "Oversized tee (men's)", color: 'Black / red print', swatch: '#111111', print: '#E12124', images: ['/products/frtb-tee-red-front.jpg', '/products/frtb-tee-red-back.jpg'] },
-      { id: 'tee-white', style: "Oversized tee (men's)", color: 'White / black print', swatch: '#FFFFFF', print: '#111111', images: ['/products/frtb-tee-white-front.jpg', '/products/frtb-tee-white-back.jpg'] },
+      { id: 'tee-white', style: "Oversized tee (men's)", color: 'White / black print', swatch: '#FFFFFF', print: '#111111', images: ['/products/frtb-tee-white2-front.jpg', '/products/frtb-tee-white2-back.jpg'] },
       { id: 'vest-gold', style: "Cropped vest (women's)", color: 'Black / gold print', swatch: '#111111', print: '#F2B91A', images: ['/products/frtb-vest-gold-front.jpg', '/products/frtb-vest-gold-back.jpg'] },
       { id: 'vest-red', style: "Cropped vest (women's)", color: 'Black / red print', swatch: '#111111', print: '#E12124', images: ['/products/frtb-vest-red-front.jpg', '/products/frtb-vest-red-back.jpg'] },
       { id: 'vest-white', style: "Cropped vest (women's)", color: 'White / black print', swatch: '#FFFFFF', print: '#111111', images: ['/products/frtb-vest-white-front.jpg', '/products/frtb-vest-white-back.jpg'] },
@@ -105,7 +105,8 @@ export const defaultSettings = (): Settings => ({
   free_shipping_over: 0,
   whatsapp: '',
   announcement: 'New drop: Sovereignty. Ultra heavyweight 400gsm.',
-  payment_instructions: 'Bank transfer is preferred: use your order code as the reference. Paying cash on collection? Make the 50% down payment first, at any Paywise outlet nationwide.',
+  community_url: '',
+  payment_instructions: 'Pay by bank transfer (preferred), using your order code as the reference, or at any Paywise outlet nationwide. Pay in full, or a 50% deposit now with the balance before you collect or we deliver.',
 })
 
 const NAMES = ['Thabo M.', 'Aisha K.', 'Jordan P.', 'Lerato S.', 'Mike D.', 'Zanele N.', 'Chris O.', 'Naledi B.', 'Sam W.', 'Kea T.', 'Priya R.', 'Liam F.']

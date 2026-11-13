@@ -104,7 +104,7 @@ export default function Checkout() {
           </Field>
           <p className="rounded-xl bg-ink-800 p-3 text-sm text-ink-200">{settings.payment_instructions}</p>
           <div className="space-y-1.5 rounded-xl border border-acid/40 bg-acid/10 p-3 text-sm">
-            <p className="font-semibold">50% down payment required</p>
+            <p className="font-semibold">Deposit or full payment required</p>
             <p className="text-ink-300">{DEPOSIT_NOTE}</p>
             <p className="text-ink-300">{READY_NOTE}</p>
           </div>

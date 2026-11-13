@@ -13,6 +13,7 @@ const Account = lazy(() => import('./pages/Account'))
 const SharedDesign = lazy(() => import('./pages/SharedDesign'))
 const Checkout = lazy(() => import('./pages/Checkout'))
 const Track = lazy(() => import('./pages/Track'))
+const Faq = lazy(() => import('./pages/Faq'))
 const OrderStatus = lazy(() => import('./pages/OrderStatus'))
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'))
 const Dashboard = lazy(() => import('./pages/admin/Dashboard'))
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="d/:id" element={<SharedDesign />} />
           <Route path="checkout" element={<Checkout />} />
           <Route path="track" element={<Track />} />
+          <Route path="faq" element={<Faq />} />
           <Route path="order/:code" element={<OrderStatus />} />
           <Route path="*" element={<NotFound />} />
         </Route>

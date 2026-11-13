@@ -2,7 +2,7 @@
 // The admin picks a page and spots from this list, so new hunts never need code.
 // To add a spot, mark the element (see huntSpot below) and list it here.
 
-export type SpotPage = '/' | '/shop' | '/shop/:slug' | '/track' | '*'
+export type SpotPage = '/' | '/shop' | '/shop/:slug' | '/track' | '/faq' | '*'
 
 export const SPOTS: { id: string; page: SpotPage; label: string }[] = [
   { id: 'home-headline', page: '/', label: 'Home: the "Made for the Brave" headline' },
@@ -21,6 +21,7 @@ export const SPOTS: { id: string; page: SpotPage; label: string }[] = [
   { id: 'product-photo', page: '/shop/:slug', label: 'Product: the main photo' },
   { id: 'product-size-guide', page: '/shop/:slug', label: 'Product: "Size guide"' },
   { id: 'track-title', page: '/track', label: 'Track order: the heading' },
+  { id: 'faq-title', page: '/faq', label: 'FAQ: the "Questions, answered" heading' },
   { id: 'footer-tagline', page: '*', label: 'Any page, footer: the tagline' },
   { id: 'footer-whatsapp', page: '*', label: 'Any page, footer: "WhatsApp us"' },
   { id: 'footer-instagram', page: '*', label: 'Any page, footer: the Instagram link' },
@@ -31,12 +32,13 @@ export const PAGES: { page: SpotPage; label: string }[] = [
   { page: '/shop', label: 'Shop' },
   { page: '/shop/:slug', label: 'A product page' },
   { page: '/track', label: 'Track order' },
+  { page: '/faq', label: 'FAQ' },
   { page: '*', label: 'Every page (footer)' },
 ]
 
 /** Which kind of page a hunt's path is, e.g. "/shop/sovereignty" is a product page. */
 export const pageKind = (path: string): SpotPage =>
-  path === '*' || path === '/' || path === '/shop' || path === '/track' ? (path as SpotPage) : path.startsWith('/shop/') ? '/shop/:slug' : '*'
+  path === '*' || path === '/' || path === '/shop' || path === '/track' || path === '/faq' ? (path as SpotPage) : path.startsWith('/shop/') ? '/shop/:slug' : '*'
 
 /** Spots that can be used on a hunt's page. Footer spots work everywhere. */
 export const spotsFor = (path: string) => SPOTS.filter((s) => s.page === pageKind(path) || s.page === '*')

@@ -72,7 +72,8 @@ export const STATUS_META: Record<OrderStatus, { label: string; color: string; bl
 export const statusLabel = (s: OrderStatus, fulfillment?: 'delivery' | 'pickup') =>
   s === 'delivered' && fulfillment === 'pickup' ? 'Collected' : STATUS_META[s].label
 
-export const PAYMENT_METHODS = ['Bank transfer (preferred)', 'Cash on collection (50% down payment required)']
+/** Every order is paid up front: in full, or a 50% deposit with the balance before collection or delivery. */
+export const PAYMENT_METHODS = ['Full payment', '50% deposit now, balance before collection or delivery']
 /** Turnaround promise, used across the site. */
 export const READY_NOTE = 'Ready 2-5 work days after payment is made.'
-export const DEPOSIT_NOTE = 'Design work and printing only start once a 50% down payment is made. Down payments can be made at Paywise outlets nationwide.'
+export const DEPOSIT_NOTE = 'Every order needs a 50% deposit or full payment. Design work and printing only start once it is made, and any balance is due before collection or delivery.'

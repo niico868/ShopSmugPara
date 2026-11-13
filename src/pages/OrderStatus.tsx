@@ -71,7 +71,7 @@ export default function OrderStatus() {
         <Card className="mt-4 border-acid/40">
           <p className="text-sm font-semibold text-acid">Payment: {order.payment_method}</p>
           <p className="mt-1 text-sm text-ink-200">{settings.payment_instructions}</p>
-          <p className="mt-2 text-sm">Amount due: <b>{money(order.total)}</b> · 50% down payment: <b>{money(Math.ceil(order.total / 2))}</b> · Reference: <b className="font-mono">{order.code}</b></p>
+          <p className="mt-2 text-sm">Amount due: <b>{money(order.total)}</b> · 50% deposit: <b>{money(Math.ceil(order.total / 2))}</b> · Reference: <b className="font-mono">{order.code}</b></p>
           <p className="mt-2 text-sm text-ink-400">{DEPOSIT_NOTE} {READY_NOTE}</p>
         </Card>
       )}
