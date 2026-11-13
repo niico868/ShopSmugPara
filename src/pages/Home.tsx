@@ -9,11 +9,11 @@ import { Button } from '../components/ui'
 import { useSettings } from '../lib/settings'
 import { INSTAGRAM, brandMark } from '../lib/brand'
 import { huntSpot } from '../lib/contraband'
-import { TreasureMap } from '../components/Contraband'
 import { XrayScan, scanFrames } from '../components/XrayScan'
 import { saleEnded, useSaleLeft, shortLeft } from '../components/SaleTimer'
 import { cargoNo, dropPhase } from '../lib/dropSchedule'
 import { LookOut } from '../components/LookOut'
+import { ProductImg } from '../components/ProductImg'
 
 const STEPS = [
   { t: 'Pick a tee', d: 'Shop a drop, or choose a regular or oversized blank.' },
@@ -102,7 +102,6 @@ export default function Home() {
               <Link to={lead ? `/shop/${lead.slug}` : '/shop'}><Button size="lg" className="!bg-white !text-black hover:!bg-acid hover:!text-white">{lead ? `Shop ${lead.name}` : 'Shop now'} <ArrowRight size={18} /></Button></Link>
               <Link to="/design"><Button size="lg" variant="outline" className="!border-white !text-white hover:!bg-white hover:!text-black"><Brush size={18} /> Design your own</Button></Link>
             </div>
-            <TreasureMap className="mt-6" />
           </div>
           <div className="relative mx-auto w-full max-w-xl">
             {drop && frames.length > 1 ? (
@@ -117,7 +116,7 @@ export default function Home() {
               </Link>
             ) : lead ? (
               <Link {...huntSpot('home-drop')} to={`/shop/${lead.slug}`} className="group block bg-white p-2 text-black transition hover:-translate-y-1 sm:p-3">
-                <img src={lead.image_url} alt={lead.name} className="aspect-square w-full scale-[1.04] object-contain" />
+                <ProductImg src={lead.image_url} alt={lead.name} className="block aspect-square w-full scale-[1.04] object-contain" />
                 <span className="mt-2 flex items-baseline justify-between gap-3 border-t border-black px-1 pt-3 sm:mt-3">
                   <span className="text-[11px] font-semibold uppercase tracking-[.25em] text-acid">{dock.phase === 'closed' ? 'On the shelf' : 'New drop'}</span>
                   <span className="font-pirate text-2xl">{lead.name}</span>

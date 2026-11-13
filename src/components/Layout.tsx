@@ -10,7 +10,7 @@ import { CartDrawer } from './CartDrawer'
 import { Pirogue } from './Pirogue'
 import { PointsBin, PointsFx } from './Points'
 import { syncPoints } from '../lib/points'
-import { HuntCoin } from './Contraband'
+import { HuntCoin, TreasureMap } from './Contraband'
 import { huntSpot } from '../lib/contraband'
 import { SoundToggle } from './Intro'
 import { WhatsAppIcon } from './icons'
@@ -158,6 +158,8 @@ export default function Layout() {
             <a className="mt-3 flex w-max items-center gap-2 text-white/60 hover:text-white" href={PHONE_HREF}><Phone size={16} /> {PHONE}</a>
             <a {...huntSpot('footer-instagram')} className="mt-3 flex w-max items-center gap-2 text-white/60 hover:text-white" href={INSTAGRAM} target="_blank" rel="noreferrer"><Instagram size={16} /> @smugglerparadise</a>
             <SfxToggle className="mt-3 text-white/60 hover:text-white" />
+            {/* The daily Contraband hunt lives here, so it's on every page without crowding the homepage hero. */}
+            <TreasureMap className="mt-5" />
             <p className="mt-4"><Link to="/admin" className="text-white/30 hover:text-white/60">Staff login</Link></p>
           </div>
         </div>
