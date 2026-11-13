@@ -107,7 +107,19 @@ const done = new Map<string, string>()
  * The photo to show: the original, or the same photo with its black backdrop repainted white.
  * Undefined while it's being checked (a moment, the first time), so a black square never flashes up.
  */
-export function useOnWhite(src?: string | null): string | undefined {
+/**
+ * Photos that were replaced by a new file. If the database still names the old file (its SQL wasn't run, or an old
+ * order line kept it), the new one is shown anyway, so a browser's cached old copy can never come back.
+ */
+const RENAMED: Record<string, string> = {
+  '/products/sovereignty-fm-front.jpg': '/products/sovereignty-fm-white-front.jpg',
+  '/products/sovereignty-fm-back.jpg': '/products/sovereignty-fm-white-back.jpg',
+}
+export const currentPhoto = <T extends string | null | undefined>(src: T): T =>
+  (src ? (RENAMED[src.replace(/^https?:\/\/[^/]+/, '').split('?')[0]] ?? src) : src) as T
+
+export function useOnWhite(raw?: string | null): string | undefined {
+  const src = currentPhoto(raw)
   const [out, setOut] = useState<string | undefined>(() => (src ? done.get(src) : undefined))
   useEffect(() => {
     if (!src) { setOut(undefined); return }

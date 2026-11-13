@@ -12,7 +12,9 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/d/*", "/shop/*", "/api/*"]
+    // The Worker sees every request except the build's hashed files, so it can send www.smugpara.com, http:// and the
+    // old workers.dev address to https://smugpara.com before anything is served.
+    "run_worker_first": ["/*", "!/assets/*"]
   },
   "ai": { "binding": "AI" },
   // Pull requests build a preview with `wrangler preview`, which needs this block (it can stay empty).

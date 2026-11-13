@@ -1,5 +1,6 @@
-// Cloudflare Worker in front of the static site. It only runs for the paths in run_worker_first
-// (wrangler.jsonc); everything else is served straight from ./dist.
+// Cloudflare Worker in front of the static site. It runs for every path except the build's hashed /assets/ files
+// (run_worker_first in wrangler.jsonc): it sends other addresses to https://smugpara.com, then hands plain pages and
+// files straight to ./dist.
 // - Shared design links (/d/<id>): it looks the design up in Supabase and writes its name and
 //   picture into the page's Open Graph tags, so WhatsApp, Facebook, Instagram DMs, iMessage and the
 //   like unfurl the link into a tappable photo card. People still get the normal app; crawlers that
@@ -183,20 +184,28 @@ async function aiArt(req: Request, env: Env, origin: string): Promise<Response> 
   }
 }
 
-// The old Cloudflare address. Visits there (old bookmarks, shared links, home-screen icons)
-// are sent to the same page on the shop's own domain. Preview builds use other workers.dev names.
+// One address for the shop: https://smugpara.com. Every other way in (www.smugpara.com, plain http://, the old
+// Cloudflare workers.dev address from old bookmarks, shared links and home-screen icons) is sent to the same page
+// there, so sign-ins, saved bags and shared links all live on one domain. Preview builds use other workers.dev
+// names and are left alone.
 const OLD_HOST = 'shop-smug-para.neikoliaugustine.workers.dev'
-const HOME = 'https://smugpara.com'
+const MAIN_HOST = 'smugpara.com'
+const HOME = `https://${MAIN_HOST}`
+const SEND_HOME = new Set([OLD_HOST, `www.${MAIN_HOST}`])
 
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url)
-    if (url.hostname === OLD_HOST && (req.method === 'GET' || req.method === 'HEAD')) {
-      return Response.redirect(`${HOME}${url.pathname}${url.search}`, 301)
+    const elsewhere = SEND_HOME.has(url.hostname) || (url.hostname === MAIN_HOST && url.protocol === 'http:')
+    if (elsewhere) {
+      // 301 for page visits; 308 keeps the method and body for anything else (e.g. a POST from an old open tab).
+      return Response.redirect(`${HOME}${url.pathname}${url.search}`, req.method === 'GET' || req.method === 'HEAD' ? 301 : 308)
     }
     if (url.pathname === '/api/ai-art') {
       return req.method === 'POST' ? aiArt(req, env, url.origin) : json({ error: 'Use POST.' }, 405)
     }
+    const special = /^\/(shop|d)\//.test(url.pathname)
+    if (!special) return env.ASSETS.fetch(req) // every other page and file, served as before
     const page = await env.ASSETS.fetch(new Request(`${url.origin}/`, req))
     const slug = url.pathname.match(/^\/shop\/([a-z0-9-]+)\/?$/i)?.[1]
     if (slug && req.method === 'GET') return productPage(page, env, url, slug)
