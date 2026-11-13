@@ -32,6 +32,29 @@ input[type='number']::-webkit-inner-spin-button { opacity: .4; }
 /* Every pressable thing shows a clear focus ring for keyboard users. */
 :where(button, a, [role='radio'], input[type='checkbox']):focus-visible { outline: 2px solid #5caedb; outline-offset: 2px; }
 
+/* Homepage X-ray scanner (components/XrayScan.tsx). The film is the photo as a cold blue negative: the white
+   backdrop goes black, the dark tee glows and the print reads as bone. */
+.xray-film { filter: grayscale(1) invert(1) contrast(1.35) brightness(1.05) sepia(.9) hue-rotate(165deg) saturate(2.6); mix-blend-mode: screen; }
+.xray-glow { filter: drop-shadow(0 0 6px rgba(120, 200, 255, .45)); }
+.xray-lines {
+  background:
+    repeating-linear-gradient(to bottom, rgba(130, 210, 255, .09) 0 1px, transparent 1px 3px),
+    linear-gradient(to right, rgba(92, 174, 219, .12) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(to bottom, rgba(92, 174, 219, .12) 1px, transparent 1px) 0 0 / 24px 24px;
+}
+.xray-beam {
+  background: linear-gradient(to right, transparent, #c9f0ff 12%, #ffffff 50%, #c9f0ff 88%, transparent);
+  box-shadow: 0 0 6px 2px rgba(150, 225, 255, .95), 0 0 22px 6px rgba(92, 174, 219, .75), 0 -26px 40px 4px rgba(92, 174, 219, .25);
+}
+.xray-corners {
+  background:
+    linear-gradient(#111, #111) top left / 18px 2px no-repeat, linear-gradient(#111, #111) top left / 2px 18px no-repeat,
+    linear-gradient(#111, #111) top right / 18px 2px no-repeat, linear-gradient(#111, #111) top right / 2px 18px no-repeat,
+    linear-gradient(#111, #111) bottom left / 18px 2px no-repeat, linear-gradient(#111, #111) bottom left / 2px 18px no-repeat,
+    linear-gradient(#111, #111) bottom right / 18px 2px no-repeat, linear-gradient(#111, #111) bottom right / 2px 18px no-repeat;
+  opacity: .55;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee { animation: none !important; }
   .animate-tick, .animate-shake, .animate-page, .animate-pop-check, .animate-shimmer { animation: none !important; }

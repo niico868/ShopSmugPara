@@ -53,8 +53,8 @@ export function CartDrawer() {
                 <li key={it.id} className={cx('flex gap-4 p-5 transition duration-200', it.id === lastAdded && 'animate-glow', leaving === it.id && 'translate-x-8 opacity-0')}>
                   <ItemThumb item={it} className="h-24 w-20 shrink-0" />
                   <div className="flex flex-1 flex-col">
-                    <div className="flex justify-between gap-2">
-                      <p className="font-semibold">{it.name}</p>
+                    <div className="flex flex-wrap justify-between gap-x-2">
+                      <p className="min-w-0 grow basis-28 font-semibold">{it.name}</p>
                       <Tick value={it.unit_price * it.qty} className="font-semibold">{money(it.unit_price * it.qty)}</Tick>
                     </div>
                     <p className="text-xs text-ink-400">{colorName(it.color)} · {it.size}{it.kind === 'custom' && ' · Custom print'}{it.reward && <span className="font-semibold text-acid"> · Reward tee</span>}</p>
@@ -71,7 +71,7 @@ export function CartDrawer() {
               ))}
             </ul>
             <div className="border-t border-ink-800 p-5">
-              <div className="mb-4 flex justify-between text-lg font-bold"><span>Subtotal</span><Tick value={sub}>{money(sub)}</Tick></div>
+              <div className="mb-4 flex flex-wrap justify-between text-lg font-bold gap-x-3"><span>Subtotal</span><Tick value={sub}>{money(sub)}</Tick></div>
               <Button size="lg" className="w-full" onClick={() => { setOpen(false); nav('/checkout') }}>Checkout</Button>
               <p className="mt-3 text-center text-xs text-ink-400">{READY_NOTE}</p>
             </div>

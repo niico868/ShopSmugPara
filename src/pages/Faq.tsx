@@ -162,7 +162,7 @@ export default function Faq() {
       <section className="bg-black text-white">
         <div className="mx-auto max-w-4xl px-4 py-10 md:py-20">
           <p className="text-xs font-semibold uppercase tracking-[.3em] text-acid">Help &middot; FAQ</p>
-          <h1 {...huntSpot('faq-title')} className="mt-3 w-max max-w-full font-poster text-4xl uppercase leading-none sm:text-6xl">Questions, answered</h1>
+          <h1 {...huntSpot('faq-title')} className="mt-3 w-max max-w-full font-poster text-4xl uppercase leading-none sm:text-6xl">Your questions, answered.</h1>
           <p className={cx('mt-4 max-w-xl text-white/70', searching && 'max-sm:hidden')}>Everything on the site, page by page: shopping, the design studio, paying, tracking, rewards, the pirogue and the hidden treasure.</p>
 
           <div className="relative mt-8">

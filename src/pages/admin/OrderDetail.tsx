@@ -86,10 +86,10 @@ export default function OrderDetail() {
               {order.items.map((it) => <ItemRow key={it.id} item={it} code={order.code} />)}
             </ul>
             <div className="mt-6 space-y-1 border-t border-ink-800 pt-4 text-sm">
-              <div className="flex justify-between text-ink-400"><span>Subtotal</span><span>{money(order.subtotal)}</span></div>
-              <div className="flex justify-between text-ink-400"><span>{order.fulfillment === 'pickup' ? 'Pickup' : 'Delivery'}</span><span>{money(order.shipping)}</span></div>
-              {!!order.discount && Number(order.discount) > 0 && <div className="flex justify-between text-ink-400"><span>Paradise Points credit</span><span>-{money(Number(order.discount))}</span></div>}
-              <div className="flex justify-between text-lg font-bold"><span>Total</span><span>{money(order.total)}</span></div>
+              <div className="flex flex-wrap justify-between text-ink-400 gap-x-3"><span>Subtotal</span><span>{money(order.subtotal)}</span></div>
+              <div className="flex flex-wrap justify-between text-ink-400 gap-x-3"><span>{order.fulfillment === 'pickup' ? 'Pickup' : 'Delivery'}</span><span>{money(order.shipping)}</span></div>
+              {!!order.discount && Number(order.discount) > 0 && <div className="flex flex-wrap justify-between text-ink-400 gap-x-3"><span>Paradise Points credit</span><span>-{money(Number(order.discount))}</span></div>}
+              <div className="flex flex-wrap justify-between text-lg font-bold gap-x-3"><span>Total</span><span>{money(order.total)}</span></div>
             </div>
           </Card>
         </div>
@@ -174,7 +174,7 @@ function ItemRow({ item, code }: { item: OrderItem; code: string }) {
         </div>
       </div>
       <div className="min-w-0">
-        <div className="flex justify-between gap-2">
+        <div className="flex flex-wrap justify-between gap-x-2">
           <p className="font-semibold">{item.name} <span className="ml-1 rounded-full bg-acid/15 px-2 py-0.5 text-[11px] font-semibold text-acid-dark">Custom</span></p>
           <p className="shrink-0 font-semibold">{money(item.unit_price * item.qty)}</p>
         </div>

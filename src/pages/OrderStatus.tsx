@@ -38,7 +38,6 @@ export default function OrderStatus() {
     </div>
   )
 
-  const wa = `${settings.whatsapp ? `https://wa.me/${settings.whatsapp.replace(/\D/g, '')}` : WHATSAPP}?text=${encodeURIComponent(`Hi! Question about order ${order.code}`)}`
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
@@ -89,25 +88,28 @@ export default function OrderStatus() {
                 <button onClick={() => setZoomed(it)} className="shrink-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-acid" aria-label={`View ${it.name} larger`}>
                   <ItemThumb item={it} className="h-24 w-20 cursor-zoom-in" />
                 </button>
-                <div className="flex-1 text-sm">
-                  <p className="font-semibold">{it.name}</p>
-                  <p className="text-ink-400">{colorName(it.color)} · {it.size} · Qty {it.qty}</p>
+                <div className="flex min-w-0 flex-1 flex-wrap justify-between gap-x-3">
+                  <div className="min-w-0 grow basis-36 text-sm">
+                    <p className="font-semibold">{it.name}</p>
+                    <p className="text-ink-400">{colorName(it.color)} · {it.size} · Qty {it.qty}</p>
+                  </div>
+                  <p className="font-semibold">{money(it.unit_price * it.qty)}</p>
                 </div>
-                <p className="font-semibold">{money(it.unit_price * it.qty)}</p>
               </li>
             ))}
           </ul>
           <div className="mt-5 space-y-1 border-t border-ink-800 pt-4 text-sm">
-            <div className="flex justify-between text-ink-400"><span>Subtotal</span><span>{money(order.subtotal)}</span></div>
-            <div className="flex justify-between text-ink-400"><span>{order.fulfillment === 'pickup' ? 'Collection' : 'Delivery'}</span><span>{order.shipping ? money(order.shipping) : 'Free'}</span></div>
-            {!!order.discount && Number(order.discount) > 0 && <div className="flex justify-between text-acid"><span>Paradise Points credit</span><span>-{money(Number(order.discount))}</span></div>}
-            <div className="flex justify-between text-base font-bold"><span>Total</span><span>{money(order.total)}</span></div>
+            <div className="flex flex-wrap justify-between text-ink-400 gap-x-3"><span>Subtotal</span><span>{money(order.subtotal)}</span></div>
+            <div className="flex flex-wrap justify-between text-ink-400 gap-x-3"><span>{order.fulfillment === 'pickup' ? 'Collection' : 'Delivery'}</span><span>{order.shipping ? money(order.shipping) : 'Free'}</span></div>
+            {!!order.discount && Number(order.discount) > 0 && <div className="flex flex-wrap justify-between text-acid gap-x-3"><span>Paradise Points credit</span><span>-{money(Number(order.discount))}</span></div>}
+            <div className="flex flex-wrap justify-between text-base font-bold gap-x-3"><span>Total</span><span>{money(order.total)}</span></div>
           </div>
         </Card>
         <Card>
           <h3 className="mb-4 font-display font-bold">Updates</h3>
           <EventList order={order} />
-          {wa && <a href={wa} target="_blank" rel="noreferrer"><Button variant="outline" className="mt-6 w-full">Message us on WhatsApp</Button></a>}
+          <a href={WHATSAPP} target="_blank" rel="noreferrer"><Button variant="outline" className="mt-6 w-full">Message us on WhatsApp</Button></a>
+          <p className="mt-2 text-center text-xs text-ink-400">Quote your order code, {order.code}, so we can find it fast.</p>
         </Card>
       </div>
       {zoomed && <ItemViewer item={zoomed} onClose={() => setZoomed(null)} />}

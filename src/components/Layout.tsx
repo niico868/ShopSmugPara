@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Suspense, useEffect, useState } from 'react'
-import { ArrowUp, Check, Copy, Instagram, Menu, ShoppingBag, X, Sparkles, User } from 'lucide-react'
+import { ArrowUp, Instagram, Menu, Phone, ShoppingBag, X, Sparkles, User } from 'lucide-react'
 import { useAccount } from '../lib/auth'
 import { useCart, cartCount } from '../store/cart'
 import { useSettings } from '../lib/settings'
@@ -14,8 +14,15 @@ import { HuntCoin } from './Contraband'
 import { huntSpot } from '../lib/contraband'
 import { SoundToggle } from './Intro'
 import { WhatsAppIcon } from './icons'
-import { BRAND_LINE, INSTAGRAM, TAGLINE, WHATSAPP } from '../lib/brand'
+import { BRAND_LINE, INSTAGRAM, PHONE, PHONE_HREF, TAGLINE, WHATSAPP } from '../lib/brand'
 import { RouteProgress, SfxToggle, Tick, TopProgress } from './Feedback'
+
+const HELP_LINKS = [
+  { to: '/faq', label: 'FAQ' },
+  { to: '/returns', label: 'Return policy' },
+  { to: '/terms', label: 'Terms of service' },
+  { to: '/privacy', label: 'Privacy policy' },
+]
 
 const links = [
   { to: '/shop', label: 'Shop' },
@@ -127,7 +134,7 @@ export default function Layout() {
       <HuntCoin />
 
       <footer className="mt-24 bg-black text-white">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-3">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 md:grid-cols-4">
           <div>
             <Logo />
             <p className="mt-3 max-w-xs text-sm text-white/60">Streetwear for the bold, from Smuggler&rsquo;s Paradise in Trinidad and Tobago. Custom designs made to order, ready 2&ndash;5 work days after payment is made.</p>
@@ -136,57 +143,28 @@ export default function Layout() {
           <div className="text-sm">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid">Shop</p>
             <ul className="space-y-2 text-white/60">
-              {links.map((l) => <li key={l.to}><Link className="hover:text-white" to={l.to}>{l.label}</Link></li>)}
+              {links.filter((l) => l.to !== '/faq').map((l) => <li key={l.to}><Link className="hover:text-white" to={l.to}>{l.label}</Link></li>)}
+            </ul>
+          </div>
+          <div className="text-sm">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid">Help</p>
+            <ul className="space-y-2 text-white/60">
+              {HELP_LINKS.map((l) => <li key={l.to}><Link className="hover:text-white" to={l.to}>{l.label}</Link></li>)}
             </ul>
           </div>
           <div className="text-sm">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid">Get in touch</p>
             <a {...huntSpot('footer-whatsapp')} className="flex w-max items-center gap-2 text-white/60 hover:text-white" href={WHATSAPP} target="_blank" rel="noreferrer"><WhatsAppIcon size={16} /> WhatsApp us</a>
+            <a className="mt-3 flex w-max items-center gap-2 text-white/60 hover:text-white" href={PHONE_HREF}><Phone size={16} /> {PHONE}</a>
             <a {...huntSpot('footer-instagram')} className="mt-3 flex w-max items-center gap-2 text-white/60 hover:text-white" href={INSTAGRAM} target="_blank" rel="noreferrer"><Instagram size={16} /> @smugglerparadise</a>
             <SfxToggle className="mt-3 text-white/60 hover:text-white" />
             <p className="mt-4"><Link to="/admin" className="text-white/30 hover:text-white/60">Staff login</Link></p>
           </div>
         </div>
-        <div className="space-y-3 pb-8">
-          {FOOTER_LINKS.map((link) => <FooterCopyLink key={link} link={link} />)}
-        </div>
         <p className="border-t border-white/10 py-5 text-center text-xs text-white/40">© {new Date().getFullYear()} {settings.store_name}. All rights reserved.{DEMO && ' · Demo mode: data stays in this browser'}</p>
       </footer>
 
       <CartDrawer />
-    </div>
-  )
-}
-
-const FOOTER_LINKS = [
-  'https://we.tl/t-1tiCpQLgvvesVVhu',
-  'https://we.tl/t-KgFC0tKKUZx3ijD8',
-]
-
-function FooterCopyLink({ link }: { link: string }) {
-  const [copied, setCopied] = useState(false)
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(link)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Clipboard can be blocked; the link stays selectable on the page.
-    }
-  }
-
-  return (
-    <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-3 px-4 text-sm">
-      <code className="max-w-full select-all break-all text-white/60">{link}</code>
-      <button
-        type="button"
-        onClick={copy}
-        className="inline-flex items-center gap-1.5 rounded border border-white/20 px-3 py-1.5 text-xs font-semibold text-white hover:border-white/50"
-      >
-        {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-        {copied ? 'Copied' : 'Copy'}
-      </button>
     </div>
   )
 }
