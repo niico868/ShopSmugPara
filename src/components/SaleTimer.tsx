@@ -36,7 +36,11 @@ export function shortLeft(ms: number) {
 export function SaleCountdown({ endsAt, className }: { endsAt: string; className?: string }) {
   const left = useSaleLeft(endsAt)
   if (left === null) return null
-  const ends = new Date(endsAt).toLocaleString(undefined, { weekday: 'long', hour: 'numeric', minute: '2-digit', timeZone: 'America/Port_of_Spain' })
+  // Always "Sunday 11:59pm", in Trinidad time, the same wording as the rest of the site.
+  const end = new Date(endsAt)
+  const day = end.toLocaleString('en-US', { weekday: 'long', timeZone: 'America/Port_of_Spain' })
+  const time = end.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/Port_of_Spain' }).replace(/\s/g, '').toLowerCase()
+  const ends = `${day} ${time}`
   if (left === 0) {
     return (
       <div className={cx('border border-ink-700 bg-ink-900 p-4 text-sm', className)}>
@@ -54,7 +58,7 @@ export function SaleCountdown({ endsAt, className }: { endsAt: string; className
         {[[d, 'days'], [h, 'hrs'], [m, 'min'], [s, 'sec']].map(([n, label]) => (
           <div key={label as string} className="min-w-0 text-[clamp(1.6rem,9cqw,2.25rem)] sm:text-4xl">
             {pad(n as number)}
-            <span className="mt-1 block font-sans text-[10px] font-semibold uppercase tracking-widest text-white/60 sm:ml-1 sm:mt-0 sm:inline">{label}</span>
+            <span className="mt-1 block font-sans text-[11px] font-semibold uppercase tracking-widest text-white/60 sm:ml-1 sm:mt-0 sm:inline">{label}</span>
           </div>
         ))}
       </div>

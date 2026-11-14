@@ -35,7 +35,7 @@ export default {
           '6%, 65%': { opacity: '1', transform: 'translateY(0)' },
           '100%': { opacity: '0', transform: 'translateY(calc(-100vh + 10rem))' },
         },
-        // The shared-design tip pops in under the "Design yours" link.
+        // The shared-design tip pops in under the "Design your own" link.
         'pop-in': { from: { opacity: '0', transform: 'translateY(-8px) scale(.85)' }, to: { opacity: '1', transform: 'none' } },
         // The hidden Contraband coin bobs and glints so a sharp eye spots it.
         bob: { '0%, 100%': { transform: 'translateY(0) rotate(-6deg)' }, '50%': { transform: 'translateY(-4px) rotate(6deg)' } },

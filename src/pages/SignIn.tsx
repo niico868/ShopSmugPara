@@ -47,6 +47,7 @@ export default function SignIn() {
         <>
           <p className="text-xs font-semibold uppercase tracking-[.3em] text-acid">Design studio</p>
           <h1 className="mt-2 font-poster text-4xl uppercase leading-none">Sign in to design</h1>
+          <p className="mt-3 text-sm text-ink-200">Pick a regular or oversized tee, add your artwork and text front and back, and see it on the tee as you build. We review it, send you a proof, then print it.</p>
           <p className="mt-3 text-sm text-ink-400">Your designs and orders are saved to your account. No password needed.</p>
         </>
       )}

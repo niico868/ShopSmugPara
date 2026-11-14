@@ -9,7 +9,7 @@ import { huntSpot } from '../lib/contraband'
 import { WhatsAppIcon } from '../components/icons'
 import { WHATSAPP } from '../lib/brand'
 
-const SUGGESTIONS = ['pirogue', 'hidden treasure', 'free tee', 'payment', 'pricing', 'proof', 'size', 'expire']
+const SUGGESTIONS = ['pirogue', 'hidden treasure', 'rewards', 'payment', 'pricing', 'proof', 'size', 'expire']
 
 const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/'/g, "['’]")
 
@@ -172,7 +172,7 @@ export default function Faq() {
               type="search"
               value={q}
               onChange={(e) => { setQ(e.target.value); reset() }}
-              placeholder="Search, e.g. boat limit, free tee, deposit"
+              placeholder="Search, e.g. boat limit, rewards, deposit"
               aria-label="Search the FAQ"
               aria-describedby="faq-hint"
               className="w-full rounded-full bg-white py-4 pl-12 pr-12 text-base text-black outline-none ring-acid placeholder:text-black/40 focus:ring-4 [&::-webkit-search-cancel-button]:hidden"
@@ -191,7 +191,7 @@ export default function Faq() {
             <ul className="mt-3 grid gap-x-6 gap-y-1.5 rounded-xl bg-white/10 p-4 text-sm text-white/80 sm:grid-cols-2">
               <li><code className="text-acid">boat limit</code> &nbsp;answers with both words</li>
               <li><code className="text-acid">boat OR treasure</code> &nbsp;either word (or <code className="text-acid">boat|treasure</code>)</li>
-              <li><code className="text-acid">"free tee"</code> &nbsp;that exact phrase</li>
+              <li><code className="text-acid">"order code"</code> &nbsp;that exact phrase</li>
               <li><code className="text-acid">points -expire</code> &nbsp;leave out a word</li>
               <li className="sm:col-span-2 text-white/60">Part words work too: <code className="text-acid-light">pay</code> finds pay, payment and Paywise. Press <kbd className="rounded border border-white/30 px-1">/</kbd> to jump to the search box.</li>
             </ul>

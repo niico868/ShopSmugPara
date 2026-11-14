@@ -25,7 +25,7 @@ body { @apply font-sans antialiased; }
 ::selection { background: #F34949; color: #ffffff; }
 input[type='number']::-webkit-inner-spin-button { opacity: .4; }
 
-/* Shared design links: "Design yours" blinks with a blue outline, tint and outer glow until it's used. */
+/* Shared design links: "Design your own" blinks with a blue outline, tint and outer glow until it's used. */
 @keyframes beacon {
   0%, 100% { box-shadow: 0 0 0 2px #F34949, 0 0 4px 1px rgba(243, 73, 73, .35); background-color: rgba(243, 73, 73, .08); }
   50% { box-shadow: 0 0 0 2px #F34949, 0 0 26px 9px rgba(243, 73, 73, .9); background-color: rgba(243, 73, 73, .32); }

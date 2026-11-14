@@ -1,6 +1,7 @@
-let currency = 'USD'
+// TTD from the very first paint, so a price never shows as "$450.00" while the shop's settings load.
+let currency = 'TTD'
 export const setCurrency = (c: string) => {
-  currency = c || 'USD'
+  currency = c || 'TTD'
 }
 export const money = (n: number) => {
   try {

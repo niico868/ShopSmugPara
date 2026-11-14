@@ -11,7 +11,7 @@ export const SPOTS: { id: string; page: SpotPage; label: string }[] = [
   { id: 'home-code-1', page: '/', label: 'Home: first brand code (Sovereignty)' },
   { id: 'home-code-2', page: '/', label: 'Home: second brand code (Risk)' },
   { id: 'home-code-3', page: '/', label: 'Home: third brand code (Purpose)' },
-  { id: 'home-who', page: '/', label: 'Home: "Who are we"' },
+  { id: 'home-who', page: '/', label: 'Home: "Who We Are"' },
   { id: 'home-way-of-life', page: '/', label: 'Home: "That’s a way of life" line' },
   { id: 'home-studio', page: '/', label: 'Home: design studio panel' },
   { id: 'home-step-3', page: '/', label: 'Home: step 3, "We print it"' },

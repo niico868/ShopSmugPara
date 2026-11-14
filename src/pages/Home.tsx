@@ -7,7 +7,9 @@ import { ProductCard } from '../components/ProductCard'
 import { TeeMockup } from '../components/TeeMockup'
 import { Button } from '../components/ui'
 import { useSettings } from '../lib/settings'
-import { INSTAGRAM, brandMark } from '../lib/brand'
+import { CORE_MESSAGE, INSTAGRAM, TIKTOK, brandMark } from '../lib/brand'
+import { TikTokIcon } from '../components/icons'
+import { cx } from '../lib/format'
 import { huntSpot } from '../lib/contraband'
 import { XrayScan, scanFrames } from '../components/XrayScan'
 import { saleEnded, useSaleLeft, shortLeft } from '../components/SaleTimer'
@@ -24,9 +26,11 @@ const STEPS: { t: string; d: ReactNode }[] = [
 
 const CODES = [
   { t: 'Sovereignty', d: 'No handouts. No masters. No outside control.\nWe answer to who we rely on.' },
-  { t: 'Risk', d: 'Risk is the tax on freedom.\nWe pay it willingly. Every time.' },
+  { t: 'Risk', d: 'No Risk No Reward.\nRisk is the tax on freedom. We pay it willingly. Every time.' },
   { t: 'Purpose', d: 'Every move answers to something.\nOurs isn\u2019t random.' },
 ]
+
+const FOLLOW = 'inline-flex items-center gap-2 border border-black px-6 py-3 text-xs font-semibold uppercase tracking-[.2em] transition hover:bg-black hover:text-white'
 
 export default function Home() {
   const { settings } = useSettings()
@@ -43,7 +47,7 @@ export default function Home() {
   const [lookOut, setLookOut] = useState(false)
   const closeLookOut = useCallback(() => setLookOut(false), [])
   const lookOutLink = (
-    <button type="button" onClick={() => setLookOut(true)} className="font-semibold text-white underline decoration-acid-light decoration-2 underline-offset-4 hover:text-acid-light">
+    <button type="button" onClick={() => setLookOut(true)} className="inline py-2.5 font-semibold text-white underline decoration-acid-light decoration-2 underline-offset-4 hover:text-acid-light">
       Look out.
     </button>
   )
@@ -78,9 +82,9 @@ export default function Home() {
             ) : (
               <>
                 {/* Cargo manifest label */}
-                <p className="mb-5 font-mono text-xs font-semibold uppercase leading-relaxed tracking-[.25em] text-acid">
+                <p className="mb-5 text-xs font-semibold uppercase leading-relaxed tracking-[.25em] text-acid">
                   {dock.phase === 'live' ? (
-                    <>Cargo {cargoNo(dock.cargo)}{cargo ? <> &mdash; &ldquo;{cargo.name}&rdquo;</> : null}<br />On the dock until {dock.last ? 'Christmas Eve' : 'Sunday'}, 11:59pm</>
+                    <>Cargo {cargoNo(dock.cargo)}{cargo ? <> &mdash; &ldquo;{cargo.name}&rdquo;</> : null}<br />On the dock until {dock.last ? 'Christmas Eve' : 'Sunday'} 11:59pm</>
                   ) : (
                     <>Dock closed<br />Next cargo lands Wednesday, 12pm</>
                   )}
@@ -91,8 +95,8 @@ export default function Home() {
                 <p className="mt-6 max-w-md text-base text-white/70">
                   {dock.phase === 'live'
                     ? dock.last
-                      ? <>This drop leaves the dock on Christmas Eve at midnight. It&rsquo;s the last shipment before Christmas. </>
-                      : <>This drop leaves the dock on Sunday at midnight. A new shipment lands every Wednesday at noon till Christmas Eve. </>
+                      ? <>This drop leaves the dock on Christmas Eve at 11:59pm. It&rsquo;s the last shipment before Christmas. </>
+                      : <>This drop leaves the dock on Sunday at 11:59pm. A new shipment lands every Wednesday at noon till Christmas Eve. </>
                     : <>Last week&rsquo;s cargo is gone for good. The next one lands Wednesday at noon. </>}
                   {lookOutLink}
                 </p>
@@ -108,7 +112,7 @@ export default function Home() {
               <Link {...huntSpot('home-drop')} to={`/shop/${drop.slug}`} className="group block bg-white p-2 text-black transition hover:-translate-y-1 sm:p-3">
                 <XrayScan frames={frames} />
                 <span className="mt-2 flex items-baseline justify-between gap-3 border-t border-black px-1 pt-3 sm:mt-3">
-                  <span className="text-[10px] font-semibold uppercase tracking-[.2em] text-acid sm:text-[11px] sm:tracking-[.25em]">
+                  <span className="text-[11px] font-semibold uppercase tracking-[.15em] text-acid sm:tracking-[.25em]">
                     Limited drop{dropLeft ? ` · ${shortLeft(dropLeft)} left` : ''}
                   </span>
                   <span className="shrink-0 whitespace-nowrap font-pirate text-2xl">{drop.name}</span>
@@ -132,12 +136,17 @@ export default function Home() {
 
       <section className="mx-auto max-w-7xl px-4 pt-16">
         <div className="mb-8 flex items-end justify-between border-b border-black pb-3">
-          <h2 {...huntSpot('home-arrivals')} className="font-poster text-2xl uppercase tracking-wide">New arrivals</h2>
-          <Link to="/shop" className="text-xs font-semibold uppercase tracking-[.2em] hover:text-acid">View all</Link>
+          <h2 {...huntSpot('home-arrivals')} className="font-poster text-2xl uppercase tracking-wide sm:text-4xl">New arrivals</h2>
+          <Link to="/shop" className="-my-3.5 shrink-0 py-3.5 text-xs font-semibold uppercase tracking-[.2em] hover:text-acid">View all</Link>
         </div>
         {shown.length ? (
-          <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 lg:grid-cols-4">
-            {shown.map((p) => <ProductCard key={p.id} product={p} />)}
+          // Three pieces fill three columns on desktop; on phones an odd last card sits centred instead of alone on the left.
+          <div className={cx('grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5', shown.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4')}>
+            {shown.map((p, i) => (
+              <div key={p.id} className={cx(shown.length % 2 === 1 && i === shown.length - 1 && 'max-lg:col-span-2 max-lg:mx-auto max-lg:w-[calc(50%-0.375rem)] sm:max-lg:w-[calc(50%-0.625rem)]')}>
+                <ProductCard product={p} />
+              </div>
+            ))}
           </div>
         ) : (
           <p className="py-10 text-center text-sm text-ink-400">New pieces are on the way.</p>
@@ -147,7 +156,8 @@ export default function Home() {
       <section className="mt-24 bg-black text-white">
         <div className="mx-auto max-w-7xl px-4 py-16">
           <p className="text-center text-xs font-semibold uppercase tracking-[.3em] text-acid">Brand codes</p>
-          <div className="mt-10 grid gap-10 text-center md:grid-cols-3">
+          <p className="mx-auto mt-4 max-w-3xl text-center font-pirate text-3xl leading-tight sm:text-4xl">{CORE_MESSAGE}</p>
+          <div className="mt-12 grid gap-10 text-center md:grid-cols-3">
             {CODES.map((c, i) => (
               <div key={c.t}>
                 <p {...huntSpot(`home-code-${i + 1}`)} className="mx-auto w-max font-pirate text-5xl">{c.t}</p>
@@ -160,25 +170,31 @@ export default function Home() {
 
       <section className="mx-auto max-w-2xl px-4 pt-20 text-center">
         <span aria-hidden className="mx-auto block h-20 w-20" style={brandMark('/brand/sp-monogram.svg', '#F34949')} />
-        <h2 {...huntSpot('home-who')} className="mx-auto mt-6 w-max font-pirate text-5xl">Who are we</h2>
+        <h2 {...huntSpot('home-who')} className="mx-auto mt-6 w-max font-pirate text-4xl">Who We Are</h2>
         <p className="mt-5 text-ink-400">
           Smuggler&rsquo;s Paradise wasn&rsquo;t born as a brand. It began on the beaches of Trinidad and Tobago, in the places the system forgot,
           where we moved in the gaps, built in the margins and carved our own road. It&rsquo;s for those who treat freedom, wealth and risk
           as part of the same language.
         </p>
         <p {...huntSpot('home-way-of-life')} className="mt-5 font-pirate text-3xl">That&rsquo;s not a brand story. That&rsquo;s a way of life.</p>
-        <a href={INSTAGRAM} target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 border border-black px-6 py-3 text-xs font-semibold uppercase tracking-[.2em] transition hover:bg-black hover:text-white">
-          <Instagram size={16} /> Follow @smugglerparadise
-        </a>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <a href={INSTAGRAM} target="_blank" rel="noreferrer" className={FOLLOW}>
+            <Instagram size={16} /> Instagram
+          </a>
+          <a href={TIKTOK} target="_blank" rel="noreferrer" className={FOLLOW}>
+            <TikTokIcon size={16} /> TikTok
+          </a>
+        </div>
+        <p className="mt-3 text-xs font-semibold uppercase tracking-[.2em] text-ink-400">Follow @smugglerparadise</p>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pt-24">
         <div {...huntSpot('home-studio')} className="grid items-center gap-8 overflow-hidden bg-ink-900 md:grid-cols-2">
           <div className="p-8 md:p-14">
             <p className="text-xs font-semibold uppercase tracking-[.3em] text-acid">Design studio</p>
-            <h2 className="mt-3 font-poster text-4xl uppercase leading-none sm:text-5xl">Got an idea?<br />Bring it to life.</h2>
+            <h2 className="mt-3 font-poster text-4xl uppercase leading-none">Got an idea?<br />Bring it to life.</h2>
             <p className="mt-4 max-w-md text-ink-400">Pick a regular or oversized Shaka Wear tee in black, white, cream or grey. Upload your artwork, add text, or use the Smug Para pack of official marks and quotes. Preview it live and order in minutes.</p>
-            <Link to="/design"><Button size="lg" className="mt-6">Open the designer <ArrowRight size={18} /></Button></Link>
+            <Link to="/design"><Button size="lg" className="mt-6">Design your own <ArrowRight size={18} /></Button></Link>
           </div>
           <div className="flex justify-center gap-2 px-6 pb-8 md:pb-0">
             <TeeMockup color="#111111" fit="oversized" className="w-1/2 max-w-[260px]" />

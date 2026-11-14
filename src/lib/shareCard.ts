@@ -101,7 +101,7 @@ export async function makeShareCard(views: string[], name: string, sub: string):
   ctx.fillStyle = '#ffffff'
   ctx.font = '700 26px "Creato Display", Inter, sans-serif'
   ctx.textAlign = 'center'
-  ctx.fillText('Tap to view & design yours', left + width / 2, pillY + 44)
+  ctx.fillText('Tap to view & design your own', left + width / 2, pillY + 44)
 
   return c.toDataURL('image/jpeg', 0.86)
 }

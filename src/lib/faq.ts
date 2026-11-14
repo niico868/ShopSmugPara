@@ -63,7 +63,7 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
             [
               'The **hero**: our latest drop, with buttons to shop it or open the design studio.',
               '**New arrivals**: the tees currently featured.',
-              '**Brand codes** and **Who are we**: the story behind the brand.',
+              '**Brand codes** and **Who We Are**: the story behind the brand.',
               'The **design studio** panel and the four steps of a custom order: pick a tee, make it yours, we print it, track it live.',
             ],
             'Keep an eye on the water while you browse: a pirogue crosses the screen now and then, and catching it earns points. See [The pirogue](#cat-pirogue).',
@@ -112,7 +112,7 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
               'Pick your **size**, and open the **Size guide** to compare chest and length measurements.',
               'Set the **quantity** and press **Add to bag**. The button shows the total for the quantity you picked.',
             ],
-            'Under the button you’ll see that every tee is printed to order and can be delivered or collected for free. More tees you might like are at the bottom of the page.',
+            'Under the button you’ll see that every tee is printed to order and can be delivered or collected. More tees you might like are at the bottom of the page.',
           ],
           tags: 'product details photos variant colour color style quantity',
         },

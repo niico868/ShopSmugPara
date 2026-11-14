@@ -3,7 +3,7 @@ import { FONTS } from './constants'
 /**
  * The T-shirt editor's Google fonts. They are not in index.html, so they don't hold up the first
  * paint of every page. They load in the background once the page is up, straight away when someone
- * heads for the designer (hover, tap or focus on a "Design yours" link), and whenever a design with
+ * heads for the designer (hover, tap or focus on a "Design your own" link), and whenever a design with
  * text is shown. Export (svgToPng) waits for them, so printed files always carry the right font.
  */
 export const EDITOR_FONTS_HREF =

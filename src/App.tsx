@@ -1,9 +1,12 @@
-import { lazy, Suspense } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { lazy, Suspense, useEffect } from 'react'
+import { Link, Route, Routes, useLocation } from 'react-router-dom'
 import Layout from './components/Layout'
 import { RouteProgress } from './components/Feedback'
 import { RequireAccount } from './components/RequireAccount'
 import Home from './pages/Home'
+import { Button } from './components/ui'
+import { NOT_FOUND_META } from './lib/pageMeta'
+import { applyPageMeta } from './lib/usePageMeta'
 
 const Shop = lazy(() => import('./pages/Shop'))
 const Product = lazy(() => import('./pages/Product'))
@@ -27,9 +30,15 @@ const Rewards = lazy(() => import('./pages/admin/Rewards'))
 const ContrabandAdmin = lazy(() => import('./pages/admin/Contraband'))
 
 function NotFound() {
+  const { pathname } = useLocation()
+  useEffect(() => applyPageMeta(NOT_FOUND_META, pathname), [pathname])
   return (
     <div className="grid min-h-[60vh] place-items-center text-center">
-      <div><p className="font-poster text-9xl text-acid">404</p><p className="text-ink-400">This page wandered off.</p></div>
+      <div>
+        <p className="font-poster text-9xl text-acid">404</p>
+        <p className="text-ink-400">This page wandered off.</p>
+        <Link to="/shop" className="mt-6 inline-block"><Button size="lg">Back to shop</Button></Link>
+      </div>
     </div>
   )
 }

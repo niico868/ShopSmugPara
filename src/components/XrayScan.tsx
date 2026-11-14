@@ -108,22 +108,22 @@ export function XrayScan({ frames, className }: { frames: ScanFrame[]; className
     <div ref={box} className={cx('xray relative aspect-square w-full overflow-hidden bg-white', className)} style={{ ['--p' as string]: '0' }}>
       {/* Every flat lay, stacked; only the look on show is visible */}
       {frames.map((f, k) => (
-        <img key={f.src} src={f.src} alt={k === i ? f.label : ''} aria-hidden={k !== i} draggable={false} decoding="async"
+        <img key={f.src} src={f.src} alt={f.label} aria-hidden={k !== i} draggable={false} decoding="async"
           className={cx(photo, k === i ? 'opacity-100' : 'opacity-0')} />
       ))}
 
       {/* The next look, developed, everywhere the X-ray window has already passed */}
       <div aria-hidden className="absolute inset-0" style={{ WebkitMaskImage: develop, maskImage: develop }}>
         {frames.map((f, k) => (
-          <img key={f.src} src={f.src} alt="" draggable={false} className={cx(photo, k === nextIdx ? 'opacity-100' : 'opacity-0')} />
+          <img key={f.src} src={f.src} alt={f.label} draggable={false} className={cx(photo, k === nextIdx ? 'opacity-100' : 'opacity-0')} />
         ))}
       </div>
 
       {/* The X-ray window: the next look as a glowing blue negative, riding just above the beam */}
       <div aria-hidden className={cx('absolute inset-0 bg-[#02060b]', !scanning && 'invisible')} style={{ WebkitMaskImage: window_, maskImage: window_ }}>
         {frames.map((f, k) => (films[f.src]
-          ? <img key={f.src} src={films[f.src]} alt="" draggable={false} className={cx(photo, 'xray-glow', k === nextIdx ? 'opacity-100' : 'opacity-0')} />
-          : <img key={f.src} src={f.src} alt="" draggable={false} className={cx(photo, 'xray-film', k === nextIdx ? 'opacity-100' : 'opacity-0')} />))}
+          ? <img key={f.src} src={films[f.src]} alt={f.label} draggable={false} className={cx(photo, 'xray-glow', k === nextIdx ? 'opacity-100' : 'opacity-0')} />
+          : <img key={f.src} src={f.src} alt={f.label} draggable={false} className={cx(photo, 'xray-film', k === nextIdx ? 'opacity-100' : 'opacity-0')} />))}
         {/* Fine scan lines and a faint grid over the film */}
         <span className="xray-lines absolute inset-0" />
       </div>
@@ -133,14 +133,14 @@ export function XrayScan({ frames, className }: { frames: ScanFrame[]; className
 
       {/* Scanner frame: corner brackets and readouts */}
       <span aria-hidden className="xray-corners pointer-events-none absolute inset-2.5" />
-      <span className="pointer-events-none absolute left-5 top-5 flex items-center gap-1.5 bg-black px-2 py-1 text-[10px] font-semibold uppercase tracking-[.2em] text-white">
+      <span className="pointer-events-none absolute left-5 top-5 flex items-center gap-1.5 bg-black px-2 py-1 text-[11px] font-semibold uppercase tracking-[.2em] text-white">
         <span className={cx('h-1.5 w-1.5 rounded-full', scanning ? 'animate-pulse bg-acid' : 'bg-flame')} />
         {scanning ? 'Scanning' : 'X-ray'}
       </span>
-      <span className="pointer-events-none absolute right-5 top-5 bg-white/85 px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-black">
+      <span className="pointer-events-none absolute right-5 top-5 bg-white/85 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-black">
         {pos}<span className="text-black/40">/{total}</span>
       </span>
-      <span aria-live="polite" className="pointer-events-none absolute bottom-4 left-1/2 max-w-[calc(100%-4rem)] -translate-x-1/2 truncate whitespace-nowrap bg-white/80 px-2 py-0.5 text-center text-[10px] font-semibold uppercase tracking-[.2em] text-black/60 sm:text-[11px]">
+      <span aria-live="polite" className="pointer-events-none absolute bottom-4 left-1/2 max-w-[calc(100%-4rem)] -translate-x-1/2 truncate whitespace-nowrap bg-white/80 px-2 py-0.5 text-center text-[11px] font-semibold uppercase tracking-[.15em] text-black/60 sm:tracking-[.2em]">
         {(scanning ? next : cur).label}
       </span>
     </div>
