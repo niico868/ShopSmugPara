@@ -41,7 +41,7 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
           id: 'who-are-we',
           q: 'Who is Smuggler’s Paradise?',
           a: [
-            'Smuggler’s Paradise (Smug Para for short) is a streetwear brand from Trinidad and Tobago. It began on the beaches, in the places the system forgot, for people who treat freedom, wealth and risk as part of the same language. Our tagline is **Faith Rewards The Brave**.',
+            'Smuggler’s Paradise (Smug Para for short) is a streetwear brand that started on the coasts of Trinidad and Tobago, made for the go-getters, hustlers, risk takers, the ones done with the rat race and getting it out the mud. The tag started as ours, a way to rep where we’re from and how we move, and people who saw themselves in it made it theirs too. Our tagline is **Faith Rewards The Brave**.',
             'We make heavyweight tees in limited drops, and run a design studio where you can print your own.',
           ],
           tags: 'brand story smug para trinidad tobago tt caribbean',

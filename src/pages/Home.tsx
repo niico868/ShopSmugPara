@@ -172,9 +172,12 @@ export default function Home() {
         <span aria-hidden className="mx-auto block h-20 w-20" style={brandMark('/brand/sp-monogram.svg', '#F34949')} />
         <h2 {...huntSpot('home-who')} className="mx-auto mt-6 w-max font-pirate text-4xl">Who We Are</h2>
         <p className="mt-5 text-ink-400">
-          Smuggler&rsquo;s Paradise wasn&rsquo;t born as a brand. It began on the beaches of Trinidad and Tobago, in the places the system forgot,
-          where we moved in the gaps, built in the margins and carved our own road. It&rsquo;s for those who treat freedom, wealth and risk
-          as part of the same language.
+          Smuggler&rsquo;s Paradise started on the coasts of Trinidad and Tobago. Made for the go-getters, hustlers, risk takers,
+          the ones done with the rat race and getting it out the mud.
+        </p>
+        <p className="mt-4 text-ink-400">
+          The tag started as ours, a way to rep where we&rsquo;re from and how we move. Nobody planned for it to spread. But people saw
+          themselves in it: the same hunger, the same risk, the same refusal to settle. They weren&rsquo;t buying a tee. They were claiming a side.
         </p>
         <p {...huntSpot('home-way-of-life')} className="mt-5 font-pirate text-3xl">That&rsquo;s not a brand story. That&rsquo;s a way of life.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
