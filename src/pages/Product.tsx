@@ -14,6 +14,7 @@ import { sfx } from '../lib/feedback'
 import { Tick } from '../components/Feedback'
 import { SaleCountdown, useSaleLeft } from '../components/SaleTimer'
 import { ProductImg } from '../components/ProductImg'
+import { applyPageMeta } from '../lib/usePageMeta'
 
 const GUIDE = [['S', '91', '71'], ['M', '97', '74'], ['L', '104', '76'], ['XL', '112', '79'], ['2XL', '120', '81'], ['3XL', '128', '84']]
 
@@ -43,7 +44,12 @@ export default function Product() {
     setShot(0)
     getProduct(slug).then((x) => {
       setP(x)
-      if (x) { setColor(x.colors[0]); setVariant(x.variants?.[0] ?? null); setSize(x.sizes.includes('M') ? 'M' : x.sizes[0]) }
+      if (x) {
+        setColor(x.colors[0]); setVariant(x.variants?.[0] ?? null); setSize(x.sizes.includes('M') ? 'M' : x.sizes[0])
+        // Same wording the Worker writes for a first visit, so the tab title is right after moving here from another page.
+        const blurb = (x.description || '').replace(/\s+/g, ' ').trim()
+        applyPageMeta({ title: `${x.name} | Smug Para heavyweight tee`, description: `${blurb ? `${blurb} ` : ''}TTD ${x.price.toFixed(2)}. Heavyweight streetwear from Trinidad and Tobago.` }, `/shop/${x.slug}`)
+      }
     }).catch(() => setP(null))
     listProducts().then((all) => setMore(all.filter((x) => x.slug !== slug).slice(0, 4))).catch(() => {})
   }, [slug])
@@ -71,7 +77,7 @@ export default function Product() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
-      <button onClick={() => nav(-1)} className="mb-6 inline-flex items-center gap-2 text-sm text-ink-400 hover:text-black"><ArrowLeft size={16} /> Back</button>
+      <button onClick={() => nav(-1)} className="-mt-3 mb-3 inline-flex items-center gap-2 py-3 text-sm text-ink-400 hover:text-black"><ArrowLeft size={16} /> Back</button>
       <div className="grid gap-10 md:grid-cols-2 [&>*]:min-w-0">
         <div>
           <div {...huntSpot('product-photo')} className="aspect-square border border-ink-800 bg-white">
@@ -81,7 +87,7 @@ export default function Product() {
             <div className="mt-3 flex flex-wrap gap-3">
               {photos.map((src, i) => (
                 <button key={src + i} onClick={() => setShot(i)} className={cx('h-20 w-20 border bg-white p-1 transition active:scale-95', i === shot ? 'border-black' : 'border-transparent hover:border-ink-600')} aria-label={`Photo ${i + 1}`}>
-                  <ProductImg src={src} alt="" className="block h-full w-full object-contain" />
+                  <ProductImg src={src} alt={`${p.name}, photo ${i + 1}`} className="block h-full w-full object-contain" />
                 </button>
               ))}
             </div>
@@ -125,7 +131,7 @@ export default function Product() {
           <div className="mt-8">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm font-semibold">Size</p>
-              <button {...huntSpot('product-size-guide')} onClick={() => setGuide(!guide)} className="inline-flex items-center gap-1 text-xs text-ink-400 hover:text-black"><Ruler size={14} /> Size guide</button>
+              <button {...huntSpot('product-size-guide')} onClick={() => setGuide(!guide)} className="-my-3.5 inline-flex items-center gap-1 py-3.5 text-xs text-ink-400 hover:text-black"><Ruler size={14} /> Size guide</button>
             </div>
             <div className="flex flex-wrap gap-2">
               {p.sizes.map((s) => (
@@ -152,7 +158,7 @@ export default function Product() {
           </div>
 
           <div className="mt-8 grid gap-3 text-sm text-ink-400 sm:grid-cols-2">
-            <p className="flex items-center gap-2"><Truck size={16} className="text-acid" /> Delivery or free pickup</p>
+            <p className="flex items-center gap-2"><Truck size={16} className="text-acid" /> Delivery or pickup</p>
             <p className="flex items-center gap-2"><ShieldCheck size={16} className="text-acid" /> Printed to order, ready 2-5 work days after payment</p>
           </div>
         </div>

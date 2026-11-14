@@ -7,6 +7,12 @@
 //   don't run JavaScript get the tags.
 // - AI art (POST /api/ai-art): draws artwork from a customer's prompt with Workers AI (FLUX schnell).
 //   Supabase's claim_ai_art() checks the customer is signed in and under the daily limit first.
+// - Plain pages (/shop, /faq, /track ...): each gets its own title, description and share address from
+//   src/lib/pageMeta.ts, instead of all sharing the home page's.
+// - Wrong addresses: the app still loads and shows its 404 screen, but the reply is marked 404 so Google
+//   doesn't list it as a real page.
+
+import { NOT_FOUND_META, OTHER_ROUTES, PAGE_META, cleanPath, type PageMeta } from '../src/lib/pageMeta'
 
 interface Env {
   ASSETS: { fetch: (req: Request | string) => Promise<Response> }
@@ -129,6 +135,38 @@ async function productPage(page: Response, env: Env, url: URL, slug: string): Pr
   return rewrite(page, title, tags)
 }
 
+/** The app's page file, asked for fresh (no "only if changed" headers), so it can be rewritten or sent with another status. */
+const appPage = (env: Env, origin: string) => env.ASSETS.fetch(new Request(`${origin}/`, { headers: { Accept: 'text/html' } }))
+
+/** A plain page (/shop, /faq ...) with its own title, description and share address. */
+function metaPage(page: Response, origin: string, path: string, m: PageMeta): Response {
+  const canonical = `${origin}${path}`
+  const logo = `${origin}/brand/logo.png`
+  const tags = [
+    ['og:type', 'website'], ['og:site_name', 'Smug Para'], ['og:url', canonical],
+    ['og:title', m.title], ['og:description', m.description],
+    ['og:image', logo], ['og:image:alt', "Smuggler's Paradise logo"],
+  ].map(([k, c]) => `<meta property="${k}" content="${esc(c)}" />`)
+  tags.push(
+    `<meta name="description" content="${esc(m.description)}" />`,
+    `<meta name="twitter:card" content="summary" />`,
+    `<meta name="twitter:title" content="${esc(m.title)}" />`,
+    `<meta name="twitter:description" content="${esc(m.description)}" />`,
+    `<meta name="twitter:image" content="${esc(logo)}" />`,
+    `<link rel="canonical" href="${esc(canonical)}" />`,
+  )
+  return rewrite(page, m.title, tags)
+}
+
+/** A wrong address: the app (which shows its 404 screen) with a real 404 status, and kept out of search results. */
+function notFoundPage(page: Response): Response {
+  const out = rewrite(page, NOT_FOUND_META.title, [
+    `<meta name="description" content="${esc(NOT_FOUND_META.description)}" />`,
+    `<meta name="robots" content="noindex" />`,
+  ], 'no-store')
+  return new Response(out.body, { status: 404, headers: out.headers })
+}
+
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } })
 
@@ -205,7 +243,17 @@ export default {
       return req.method === 'POST' ? aiArt(req, env, url.origin) : json({ error: 'Use POST.' }, 405)
     }
     const special = /^\/(shop|d)\//.test(url.pathname)
-    if (!special) return env.ASSETS.fetch(req) // every other page and file, served as before
+    if (!special) {
+      const path = cleanPath(url.pathname)
+      // Page addresses have no file extension. Files (photos, fonts, scripts, .json) go straight through.
+      const isPage = req.method === 'GET' && path !== '/' && !/\.[a-z0-9]+$/i.test(path)
+      if (isPage) {
+        const meta = Object.hasOwn(PAGE_META, path) ? PAGE_META[path] : null
+        if (meta) return metaPage(await appPage(env, url.origin), url.origin, path, meta)
+        if (!OTHER_ROUTES.test(path)) return notFoundPage(await appPage(env, url.origin))
+      }
+      return env.ASSETS.fetch(req) // the home page, admin, order pages and every file, served as before
+    }
     const page = await env.ASSETS.fetch(new Request(`${url.origin}/`, req))
     const slug = url.pathname.match(/^\/shop\/([a-z0-9-]+)\/?$/i)?.[1]
     if (slug && req.method === 'GET') return productPage(page, env, url, slug)

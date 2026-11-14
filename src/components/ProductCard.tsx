@@ -21,11 +21,11 @@ export function ProductCard({ product, delay = 0 }: { product: Product; delay?: 
         <div className="absolute inset-0 transition duration-500 group-hover:scale-[1.04]">
           {front && <img src={front} alt={product.name} loading="lazy" decoding="async" style={fitStyle(frontFit)} className="absolute inset-0 h-full w-full object-contain transition-transform duration-300" />}
           {back && (
-            <img src={back} alt="" loading="lazy" decoding="async" style={fitStyle(backFit)} className="absolute inset-0 h-full w-full object-contain opacity-0 transition duration-500 group-hover:opacity-100" />
+            <img src={back} alt={`${product.name}, back`} loading="lazy" decoding="async" style={fitStyle(backFit)} className="absolute inset-0 h-full w-full object-contain opacity-0 transition duration-500 group-hover:opacity-100" />
           )}
         </div>
         {left !== null && (
-          <span className={left === 0 ? 'absolute left-2 top-2 bg-ink-800 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-ink-400' : 'absolute left-2 top-2 bg-black px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-white'}>
+          <span className={left === 0 ? 'absolute left-2 top-2 max-w-[calc(100%-1rem)] bg-ink-800 px-2 py-1 text-[11px] font-bold uppercase leading-tight tracking-wide text-ink-400' : 'absolute left-2 top-2 max-w-[calc(100%-1rem)] bg-black px-2 py-1 text-[11px] font-bold uppercase leading-tight tracking-wide text-white'}>
             {left === 0 ? 'Drop closed' : `Limited · ${shortLeft(left)} left`}
           </span>
         )}

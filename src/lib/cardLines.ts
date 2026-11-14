@@ -5,8 +5,8 @@ import type { Product } from './types'
  * Set per product here; any product not listed shows its category and how many looks it comes in.
  */
 const LINES: Record<string, (p: Product) => [string, string]> = {
-  sovereignty: () => ['Wide Fit', 'Ultra Heavy Weight'],
-  'sovereignty-fm': () => ['Cropped Tee', 'Ultra Heavy Weight'],
+  sovereignty: () => ['Oversized Tee', 'Ultra Heavyweight'],
+  'sovereignty-fm': () => ['Cropped Tee', 'Ultra Heavyweight'],
   '11-11-frtb': (p) => ['Oversized Tee', `Limited Availability · ${p.variants?.length || 6} looks`],
 }
 

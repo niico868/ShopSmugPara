@@ -60,7 +60,7 @@ export function PointsBin() {
         className="flex items-center gap-1.5 rounded-full border border-black/10 py-1 pl-1 pr-2.5 text-sm font-bold tabular-nums hover:border-acid">
         <span key={landed} className={cx('inline-flex', bump)}><Coin className="h-6 w-6" /></span>
         {loading ? '…' : fmtPts(shown)}
-        <span className="text-[10px] font-semibold tracking-wider text-ink-400">{cur}</span>
+        <span className="text-[11px] font-semibold tracking-wider text-ink-400">{cur}</span>
       </Link>
     )
   }

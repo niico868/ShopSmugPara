@@ -68,7 +68,7 @@ export const seedProducts = (): Product[] => [
     premium: true,
   },
   {
-    ...p('sovereignty-fm', 'Sovereignty (Female)', 425, 'Oversized', ['#FFFFFF'], '/products/sovereignty-fm-white-front.jpg',
+    ...p('sovereignty-fm', 'Sovereignty (Female)', 425, 'Cropped Tee', ['#FFFFFF'], '/products/sovereignty-fm-white-front.jpg',
       'Things money can\'t buy back. White oversized, extra cropped tee with a pink print front and back. Ultra heavyweight 400gsm cotton.', true),
     images: ['/products/sovereignty-fm-white-back.jpg'],
     sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
@@ -76,7 +76,7 @@ export const seedProducts = (): Product[] => [
   },
   {
     ...p('11-11-frtb', '11/11 FRTB', 350, 'Limited', ['#111111', '#FFFFFF'], '/products/frtb-tee-gold-front.jpg',
-      "Faith Rewards The Brave. Limited 11/11 drop, on sale until Sunday night only. Unisex. Pick the oversized tee or the regular-size cut sleeve vest. Black with a yellow-gold or red print, or white with a black print. 240gsm heavyweight cotton.", true),
+      "Faith Rewards The Brave. Limited 11/11 drop, on sale until Sunday 11:59pm. Unisex. Pick the oversized tee or the regular-size cut sleeve vest. Black with a gold or red print, or white with a black print. 240gsm heavyweight cotton.", true),
     images: ['/products/frtb-tee-gold-back.jpg'],
     sizes: ['S', 'M', 'L', 'XL'],
     sale_ends_at: '2026-11-16T03:59:59Z',

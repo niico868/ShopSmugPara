@@ -1,9 +1,9 @@
-import { useEffect, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { Phone } from 'lucide-react'
+import { Mail, Phone } from 'lucide-react'
 import { WhatsAppIcon } from '../components/icons'
 import { cx } from '../lib/format'
-import { PHONE, PHONE_HREF, WHATSAPP } from '../lib/brand'
+import { EMAIL, EMAIL_HREF, PHONE, PHONE_HREF, WHATSAPP } from '../lib/brand'
 
 // Simple store policies: terms of service, privacy and returns. One page, three documents.
 
@@ -12,6 +12,7 @@ export type PolicyId = 'terms' | 'privacy' | 'returns'
 const UPDATED = '13 November 2026'
 
 const WA = <a href={WHATSAPP} target="_blank" rel="noreferrer">WhatsApp</a>
+const MAIL = <a href={EMAIL_HREF}>{EMAIL}</a>
 
 interface Doc { title: string; intro: ReactNode; sections: { h: string; body: ReactNode }[] }
 
@@ -94,7 +95,7 @@ const DOCS: Record<PolicyId, Doc> = {
       },
       {
         h: 'Your choices',
-        body: <p>You can ask us to see, correct or delete your details at any time on {WA} or by phone. We keep order records for as long as we need them for our accounts.</p>,
+        body: <p>You can ask us to see, correct or delete your details at any time on {WA}, by email at {MAIL} or by phone. We keep order records for as long as we need them for our accounts.</p>,
       },
     ],
   },
@@ -124,7 +125,7 @@ const DOCS: Record<PolicyId, Doc> = {
       },
       {
         h: 'How to ask',
-        body: <p>Message us on {WA} or call with your order code and a photo of the item, including its tags. We&rsquo;ll let you know if it qualifies and how to get it back to us.</p>,
+        body: <p>Message us on {WA}, email {MAIL} or call with your order code and a photo of the item, including its tags. We&rsquo;ll let you know if it qualifies and how to get it back to us.</p>,
       },
     ],
   },
@@ -138,7 +139,6 @@ const TABS: { id: PolicyId; label: string }[] = [
 
 export default function Policy({ doc }: { doc: PolicyId }) {
   const d = DOCS[doc]
-  useEffect(() => { document.title = `${d.title} · Smug Para` }, [d.title])
 
   return (
     <>
@@ -177,6 +177,9 @@ export default function Policy({ doc }: { doc: PolicyId }) {
             </a>
             <a href={PHONE_HREF} className="inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-3 text-sm font-semibold transition hover:border-white">
               <Phone size={16} /> {PHONE}
+            </a>
+            <a href={EMAIL_HREF} className="inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-3 text-sm font-semibold transition hover:border-white">
+              <Mail size={16} /> Email us
             </a>
           </div>
         </div>

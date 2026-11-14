@@ -1,7 +1,13 @@
 import type { CSSProperties } from 'react'
 
 export const INSTAGRAM = 'https://www.instagram.com/smugglerparadise/'
+export const TIKTOK = 'https://www.tiktok.com/@smugglerparadise'
+/** Brand email, shown in the footer and on the policy pages. */
+export const EMAIL = 'smugglersparadisehq@gmail.com'
+export const EMAIL_HREF = `mailto:${EMAIL}`
 export const TAGLINE = 'Faith Rewards The Brave'
+/** The brand's core message. */
+export const CORE_MESSAGE = 'Choose bravery or succumb to slavery.'
 export const BRAND_LINE = "Smuggler's Paradise: Baddest Brand In The Tropics"
 /** Brand WhatsApp direct chat (a WhatsApp Business link, so it can't carry a pre-filled message). */
 export const WHATSAPP = 'https://wa.me/message/AOEKBZDXW2VOE1'
