@@ -45,7 +45,7 @@ export function Logo({ className, light }: { className?: string; light?: boolean
 function DesignTip({ onClose, align }: { onClose: () => void; align: 'center' | 'right' }) {
   const centre = align === 'center'
   return (
-    <div role="note" className={cx('absolute top-full z-50 mt-8 w-60 animate-pop-in rounded-2xl bg-black p-4 pr-9 text-left text-white shadow-[0_10px_40px_rgba(193,18,31,.45)] ring-2 ring-acid', centre ? 'left-1/2 -ml-[7.5rem]' : '-right-1')}>
+    <div role="note" className={cx('absolute top-full z-50 mt-8 w-60 animate-pop-in rounded-2xl bg-black p-4 pr-9 text-left text-white shadow-[0_10px_40px_rgba(243,73,73,.45)] ring-2 ring-acid', centre ? 'left-1/2 -ml-[7.5rem]' : '-right-1')}>
       <span aria-hidden className={cx('absolute -top-2 h-4 w-4 rotate-45 bg-black ring-2 ring-acid [clip-path:polygon(0_0,100%_0,0_100%)]', centre ? 'left-1/2 -ml-2' : 'right-4')} />
       <ArrowUp aria-hidden size={18} className={cx('absolute -top-7 animate-bounce text-acid', centre ? 'left-1/2 -ml-[9px]' : 'right-[15px]')} />
       <p className="font-poster text-sm uppercase tracking-wider">Like this tee?</p>
@@ -137,7 +137,7 @@ export default function Layout() {
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 md:grid-cols-4">
           <div>
             <Logo light />
-            <p className="mt-3 max-w-xs text-sm text-white/60">Streetwear for the bold, from Smuggler&rsquo;s Paradise in Trinidad and Tobago. Custom designs made to order, ready 2&ndash;5 work days after payment is made.</p>
+            <p className="mt-3 max-w-xs text-sm text-white/60">Streetwear for the bold, from Smuggler&rsquo;s Paradise in Trinidad and Tobago. Custom designs made to order, ready 5 work days after payment is made.</p>
             <p {...huntSpot('footer-tagline')} className="mt-4 w-max max-w-full font-pirate text-2xl text-white">{TAGLINE}</p>
           </div>
           <div className="text-sm">

@@ -102,7 +102,7 @@ export function CheckoutRewards({ items, products, credit, setCredit }: {
     if (free >= rules.credit_pp || credit) {
       body.push(
         <label key="credit" className="flex items-center gap-3 rounded-xl border border-ink-700 p-3 text-sm">
-          <input type="checkbox" checked={credit} onChange={(e) => setCredit(e.target.checked)} className="h-4 w-4 accent-[#C1121F]" />
+          <input type="checkbox" checked={credit} onChange={(e) => setCredit(e.target.checked)} className="h-4 w-4 accent-[#F34949]" />
           <span>Use <b>{fmtPts(rules.credit_pp)} PP</b> for <b>{money(rules.credit_ttd)} off</b> this order</span>
         </label>,
       )

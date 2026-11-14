@@ -68,8 +68,8 @@ Use these responsive patterns. Pick the one that fits the content; don't just sh
 **Prefer container queries** (`@container`) for components that appear in different-width spots (e.g. a product card in a grid vs. a sidebar), so the component responds to its own space, not just the screen.
 
 # Logo assets
-- Brand red: #C1121F. Use for the logo mark and as the primary accent.
-- Header logo: /brand/logo-mark.svg (solid red SP mark with boat + palms).
+- Brand coral red: #F34949. Use for the logo mark and as the primary accent.
+- Header logo: /brand/logo-mark.svg (solid coral red SP mark with boat + palms).
   - Desktop: logo mark + "SMUGGLERS PARADISE" as live text beside it; mark alone if the nav is busy.
   - Tablet and phone: logo mark only, 36–44px tall.
   - Sticky/scrolled header: logo mark only, at every width.
@@ -77,7 +77,7 @@ Use these responsive patterns. Pick the one that fits the content; don't just sh
 - Dark backgrounds / over photos: /brand/logo-mark-white.svg.
 - Full badge: /brand/logo-full.png (rifles, skull, wordmark, tagline). NEVER in the header or nav. Hero, footer and About page only, minimum 240px wide.
 - Gradient marks (coral, teal, blue): not for site chrome. Product/collection imagery only.
-- Favicons are in /brand/ (favicon.ico, favicon-32.png, apple-touch-icon.png); files live in public/brand/ in the repo. Make sure every page's <head> links them and sets <meta name="theme-color" content="#C1121F">.
+- Favicons are in /brand/ (favicon.ico, favicon-32.png, apple-touch-icon.png); files live in public/brand/ in the repo. Make sure every page's <head> links them and sets <meta name="theme-color" content="#F34949">.
 
 # Rules
 - Mobile-first CSS: base styles for small screens, `min-width` media queries to add complexity.

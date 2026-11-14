@@ -57,7 +57,7 @@ export default function Products() {
               <div className="mt-1 flex gap-1">{p.colors.map((c) => <span key={c} className="h-3 w-3 rounded-full border border-ink-600" style={{ background: c }} />)}</div>
               <div className="mt-auto flex items-center gap-2 pt-3">
                 <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-400">
-                  <input type="checkbox" checked={p.active} onChange={() => toggle(p, 'active')} className="accent-[#C1121F]" /> Live
+                  <input type="checkbox" checked={p.active} onChange={() => toggle(p, 'active')} className="accent-[#F34949]" /> Live
                 </label>
                 <button onClick={() => setEdit(p)} className="ml-auto rounded-lg p-1.5 text-ink-400 hover:bg-ink-800 hover:text-black" aria-label="Edit"><Pencil size={15} /></button>
                 <button onClick={() => del(p)} className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-800 hover:text-flame" aria-label="Delete"><Trash2 size={15} /></button>
@@ -143,9 +143,9 @@ function Editor({ product, onClose, onSaved }: { product: Product; onClose: () =
               </div>
             </Field>
             <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-              <label className="flex items-center gap-2"><input type="checkbox" checked={p.active} onChange={(e) => set('active', e.target.checked)} className="accent-[#C1121F]" /> Live in shop</label>
-              <label className="flex items-center gap-2"><input type="checkbox" checked={p.featured} onChange={(e) => set('featured', e.target.checked)} className="accent-[#C1121F]" /> Featured on home</label>
-              <label className="flex items-center gap-2" title="Premium drops can't be claimed as a free reward tee"><input type="checkbox" checked={!!p.premium} onChange={(e) => set('premium', e.target.checked)} className="accent-[#C1121F]" /> Premium drop (no free tees)</label>
+              <label className="flex items-center gap-2"><input type="checkbox" checked={p.active} onChange={(e) => set('active', e.target.checked)} className="accent-[#F34949]" /> Live in shop</label>
+              <label className="flex items-center gap-2"><input type="checkbox" checked={p.featured} onChange={(e) => set('featured', e.target.checked)} className="accent-[#F34949]" /> Featured on home</label>
+              <label className="flex items-center gap-2" title="Premium drops can't be claimed as a free reward tee"><input type="checkbox" checked={!!p.premium} onChange={(e) => set('premium', e.target.checked)} className="accent-[#F34949]" /> Premium drop (no free tees)</label>
             </div>
           </div>
         </div>

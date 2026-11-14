@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { ArrowRight, Brush, Instagram } from 'lucide-react'
 import { listProducts } from '../lib/api'
 import type { Product } from '../lib/types'
@@ -15,10 +15,10 @@ import { cargoNo, dropPhase } from '../lib/dropSchedule'
 import { LookOut } from '../components/LookOut'
 import { ProductImg } from '../components/ProductImg'
 
-const STEPS = [
+const STEPS: { t: string; d: ReactNode }[] = [
   { t: 'Pick a tee', d: 'Shop a drop, or choose a regular or oversized blank.' },
   { t: 'Make it yours', d: 'Add text and artwork, front and back.' },
-  { t: 'We print it', d: 'Printed to order and ready 2-5 work days after payment is made.' },
+  { t: 'We redesign and print', d: <>Your design is <em>elevated</em>, printed and ready 5 work days after payment is made.</> },
   { t: 'Track it live', d: 'Follow each step with your order code.' },
 ]
 
@@ -159,7 +159,7 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-2xl px-4 pt-20 text-center">
-        <span aria-hidden className="mx-auto block h-20 w-20" style={brandMark('/brand/sp-monogram.svg', '#C1121F')} />
+        <span aria-hidden className="mx-auto block h-20 w-20" style={brandMark('/brand/sp-monogram.svg', '#F34949')} />
         <h2 {...huntSpot('home-who')} className="mx-auto mt-6 w-max font-pirate text-5xl">Who are we</h2>
         <p className="mt-5 text-ink-400">
           Smuggler&rsquo;s Paradise wasn&rsquo;t born as a brand. It began on the beaches of Trinidad and Tobago, in the places the system forgot,

@@ -349,7 +349,7 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
         {
           id: 'turnaround',
           q: 'How long until my order is ready?',
-          a: ['Orders are printed to order and are **ready 2 to 5 work days after payment is made**. Need it for a date? Put it in the notes at checkout, or WhatsApp us before ordering.'],
+          a: ['Orders are printed to order and are **ready 5 work days after payment is made**. Need it for a date? Put it in the notes at checkout, or WhatsApp us before ordering.'],
           tags: 'how long time turnaround ready days delivery date when production',
         },
         {
