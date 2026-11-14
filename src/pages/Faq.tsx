@@ -193,7 +193,7 @@ export default function Faq() {
               <li><code className="text-acid">boat OR treasure</code> &nbsp;either word (or <code className="text-acid">boat|treasure</code>)</li>
               <li><code className="text-acid">"free tee"</code> &nbsp;that exact phrase</li>
               <li><code className="text-acid">points -expire</code> &nbsp;leave out a word</li>
-              <li className="sm:col-span-2 text-white/60">Part words work too: <code className="text-acid">pay</code> finds pay, payment and Paywise. Press <kbd className="rounded border border-white/30 px-1">/</kbd> to jump to the search box.</li>
+              <li className="sm:col-span-2 text-white/60">Part words work too: <code className="text-acid-light">pay</code> finds pay, payment and Paywise. Press <kbd className="rounded border border-white/30 px-1">/</kbd> to jump to the search box.</li>
             </ul>
           )}
           {!searching && (

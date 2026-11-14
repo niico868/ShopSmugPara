@@ -31,7 +31,7 @@ const DOCS: Record<PolicyId, Doc> = {
         h: 'Payment',
         body: <>
           <p>Every order needs a 50% deposit or full payment by bank transfer (or at a Paywise outlet), using your order code as the reference. We don&rsquo;t take cash on collection. Any balance is due before you collect or we deliver.</p>
-          <p>Orders are ready 2&ndash;5 work days after payment is made. These are estimates, not guarantees, and big drops or busy periods can add time. We&rsquo;ll keep your order status up to date on the <Link to="/track">Track order</Link> page.</p>
+          <p>Orders are ready 5 work days after payment is made. These are estimates, not guarantees, and big drops or busy periods can add time. We&rsquo;ll keep your order status up to date on the <Link to="/track">Track order</Link> page.</p>
         </>,
       },
       {
