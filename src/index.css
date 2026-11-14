@@ -22,18 +22,18 @@ html, body { background: #ffffff; color: #111111; }
 html, body { overflow-x: clip; }
 @supports not (overflow: clip) { html, body { overflow-x: hidden; } }
 body { @apply font-sans antialiased; }
-::selection { background: #5caedb; color: #ffffff; }
+::selection { background: #F34949; color: #ffffff; }
 input[type='number']::-webkit-inner-spin-button { opacity: .4; }
 
 /* Shared design links: "Design your own" blinks with a blue outline, tint and outer glow until it's used. */
 @keyframes beacon {
-  0%, 100% { box-shadow: 0 0 0 2px #5caedb, 0 0 4px 1px rgba(92, 174, 219, .35); background-color: rgba(92, 174, 219, .08); }
-  50% { box-shadow: 0 0 0 2px #5caedb, 0 0 26px 9px rgba(92, 174, 219, .9); background-color: rgba(92, 174, 219, .32); }
+  0%, 100% { box-shadow: 0 0 0 2px #F34949, 0 0 4px 1px rgba(243, 73, 73, .35); background-color: rgba(243, 73, 73, .08); }
+  50% { box-shadow: 0 0 0 2px #F34949, 0 0 26px 9px rgba(243, 73, 73, .9); background-color: rgba(243, 73, 73, .32); }
 }
 .beacon { border-radius: 9999px; color: #111111 !important; animation: beacon 1s ease-in-out infinite; }
 
 /* Every pressable thing shows a clear focus ring for keyboard users. */
-:where(button, a, [role='radio'], input[type='checkbox']):focus-visible { outline: 2px solid #5caedb; outline-offset: 2px; }
+:where(button, a, [role='radio'], input[type='checkbox']):focus-visible { outline: 2px solid #F34949; outline-offset: 2px; }
 
 /* Homepage X-ray scanner (components/XrayScan.tsx). The film is the photo as a cold blue negative: the white
    backdrop goes black, the dark tee glows and the print reads as bone. */
@@ -42,12 +42,12 @@ input[type='number']::-webkit-inner-spin-button { opacity: .4; }
 .xray-lines {
   background:
     repeating-linear-gradient(to bottom, rgba(130, 210, 255, .09) 0 1px, transparent 1px 3px),
-    linear-gradient(to right, rgba(92, 174, 219, .12) 1px, transparent 1px) 0 0 / 24px 24px,
-    linear-gradient(to bottom, rgba(92, 174, 219, .12) 1px, transparent 1px) 0 0 / 24px 24px;
+    linear-gradient(to right, rgba(243, 73, 73, .12) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(to bottom, rgba(243, 73, 73, .12) 1px, transparent 1px) 0 0 / 24px 24px;
 }
 .xray-beam {
   background: linear-gradient(to right, transparent, #c9f0ff 12%, #ffffff 50%, #c9f0ff 88%, transparent);
-  box-shadow: 0 0 6px 2px rgba(150, 225, 255, .95), 0 0 22px 6px rgba(92, 174, 219, .75), 0 -26px 40px 4px rgba(92, 174, 219, .25);
+  box-shadow: 0 0 6px 2px rgba(255, 170, 170, .95), 0 0 22px 6px rgba(243, 73, 73, .75), 0 -26px 40px 4px rgba(243, 73, 73, .25);
 }
 .xray-corners {
   background:
@@ -61,7 +61,7 @@ input[type='number']::-webkit-inner-spin-button { opacity: .4; }
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee { animation: none !important; }
   .animate-tick, .animate-shake, .animate-page, .animate-pop-check, .animate-shimmer { animation: none !important; }
-  .beacon { animation: none; box-shadow: 0 0 0 2px #5caedb, 0 0 18px 5px rgba(92, 174, 219, .6); background-color: rgba(92, 174, 219, .2); }
+  .beacon { animation: none; box-shadow: 0 0 0 2px #F34949, 0 0 18px 5px rgba(243, 73, 73, .6); background-color: rgba(243, 73, 73, .2); }
 }
 
 @media print {
@@ -71,7 +71,7 @@ input[type='number']::-webkit-inner-spin-button { opacity: .4; }
 }
 
 /* Designer phone tools (components/designer/QuickTools.tsx): slim sliders, some with a colour strip as the track. */
-.slim-range { height: 22px; accent-color: #5caedb; }
+.slim-range { height: 22px; accent-color: #F34949; }
 .slim-range--track { -webkit-appearance: none; appearance: none; height: 8px; border-radius: 9999px; border: 1px solid #dcdcd8; }
 .slim-range--track::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 9999px; background: #fff; border: 2px solid #111; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
 .slim-range--track::-moz-range-thumb { width: 18px; height: 18px; border-radius: 9999px; background: #fff; border: 2px solid #111; box-shadow: 0 1px 4px rgba(0,0,0,.3); }

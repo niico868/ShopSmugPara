@@ -75,5 +75,5 @@ export const statusLabel = (s: OrderStatus, fulfillment?: 'delivery' | 'pickup')
 /** Every order is paid up front: in full, or a 50% deposit with the balance before collection or delivery. */
 export const PAYMENT_METHODS = ['Full payment', '50% deposit now, balance before collection or delivery']
 /** Turnaround promise, used across the site. */
-export const READY_NOTE = 'Ready 2-5 work days after payment is made.'
+export const READY_NOTE = 'Ready 5 work days after payment is made.'
 export const DEPOSIT_NOTE = 'Every order needs a 50% deposit or full payment. Design work and printing only start once it is made, and any balance is due before collection or delivery.'

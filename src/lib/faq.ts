@@ -63,7 +63,7 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
             [
               'The **hero**: our latest drop, with buttons to shop it or open the design studio.',
               '**New arrivals**: the tees currently featured.',
-              '**Brand codes** and **Who are we**: the story behind the brand.',
+              '**Brand codes** and **Who We Are**: the story behind the brand.',
               'The **design studio** panel and the four steps of a custom order: pick a tee, make it yours, we print it, track it live.',
             ],
             'Keep an eye on the water while you browse: a pirogue crosses the screen now and then, and catching it earns points. See [The pirogue](#cat-pirogue).',
@@ -349,7 +349,7 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
         {
           id: 'turnaround',
           q: 'How long until my order is ready?',
-          a: ['Orders are printed to order and are **ready 2 to 5 work days after payment is made**. Need it for a date? Put it in the notes at checkout, or WhatsApp us before ordering.'],
+          a: ['Orders are printed to order and are **ready 5 work days after payment is made**. Need it for a date? Put it in the notes at checkout, or WhatsApp us before ordering.'],
           tags: 'how long time turnaround ready days delivery date when production',
         },
         {
