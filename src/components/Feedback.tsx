@@ -35,7 +35,7 @@ export function TopProgress() {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 z-[90] h-[3px]">
       <div
-        className={cx('h-full origin-left bg-acid shadow-[0_0_10px_rgba(92,174,219,.8)]', phase === 'idle' ? 'opacity-0' : 'opacity-100')}
+        className={cx('h-full origin-left bg-acid shadow-[0_0_10px_rgba(193,18,31,.8)]', phase === 'idle' ? 'opacity-0' : 'opacity-100')}
         style={{
           transform: `scaleX(${phase === 'run' ? 0.85 : phase === 'end' ? 1 : 0})`,
           transition: phase === 'run' ? 'transform 8s cubic-bezier(.1,.7,.2,1), opacity .2s' : phase === 'end' ? 'transform .25s ease-out, opacity .3s ease .2s' : 'none',

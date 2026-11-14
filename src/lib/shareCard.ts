@@ -57,7 +57,7 @@ export async function makeShareCard(views: string[], name: string, sub: string):
   await Promise.all(['64px "Akira Expanded"', '700 30px "Creato Display"', '40px "Jack Pirate"'].map((f) => document.fonts?.load(f).catch(() => null)))
   const [shots, logo] = await Promise.all([
     Promise.all(views.slice(0, 2).map((v) => loadImage(v).catch(() => null))),
-    loadImage('/brand/logo.png').catch(() => null),
+    loadImage('/brand/logo-mark-white.svg').catch(() => null),
   ])
   const imgs = shots.filter((i): i is HTMLImageElement => !!i)
 
@@ -79,7 +79,7 @@ export async function makeShareCard(views: string[], name: string, sub: string):
   ctx.font = '22px "Akira Expanded", "Archivo Black", Impact, sans-serif'
   ctx.fillText('SMUG PARA', left + (logo ? 88 : 0), 94)
 
-  ctx.fillStyle = '#5caedb'
+  ctx.fillStyle = '#C1121F'
   ctx.font = '700 22px "Creato Display", Inter, sans-serif'
   ctx.fillText('SHARED DESIGN', left, 190)
 
@@ -94,7 +94,7 @@ export async function makeShareCard(views: string[], name: string, sub: string):
 
   // Call to action pill
   const pillY = 500
-  ctx.fillStyle = '#5caedb'
+  ctx.fillStyle = '#C1121F'
   ctx.beginPath()
   ctx.roundRect(left, pillY, width, 70, 35)
   ctx.fill()

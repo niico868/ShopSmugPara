@@ -45,11 +45,11 @@ export function Logo({ className, light }: { className?: string; light?: boolean
 function DesignTip({ onClose, align }: { onClose: () => void; align: 'center' | 'right' }) {
   const centre = align === 'center'
   return (
-    <div role="note" className={cx('absolute top-full z-50 mt-8 w-60 animate-pop-in rounded-2xl bg-black p-4 pr-9 text-left text-white shadow-[0_10px_40px_rgba(92,174,219,.45)] ring-2 ring-acid', centre ? 'left-1/2 -ml-[7.5rem]' : '-right-1')}>
+    <div role="note" className={cx('absolute top-full z-50 mt-8 w-60 animate-pop-in rounded-2xl bg-black p-4 pr-9 text-left text-white shadow-[0_10px_40px_rgba(193,18,31,.45)] ring-2 ring-acid', centre ? 'left-1/2 -ml-[7.5rem]' : '-right-1')}>
       <span aria-hidden className={cx('absolute -top-2 h-4 w-4 rotate-45 bg-black ring-2 ring-acid [clip-path:polygon(0_0,100%_0,0_100%)]', centre ? 'left-1/2 -ml-2' : 'right-4')} />
       <ArrowUp aria-hidden size={18} className={cx('absolute -top-7 animate-bounce text-acid', centre ? 'left-1/2 -ml-[9px]' : 'right-[15px]')} />
       <p className="font-poster text-sm uppercase tracking-wider">Like this tee?</p>
-      <p className="mt-1 text-sm text-white/70">Make one that&rsquo;s all yours with <b className="text-acid">Design yours</b>.</p>
+      <p className="mt-1 text-sm text-white/70">Make one that&rsquo;s all yours with <b className="text-acid-light">Design yours</b>.</p>
       <button onClick={onClose} className="absolute right-2 top-2 rounded-full p-1 text-white/60 hover:bg-white/10 hover:text-white" aria-label="Hide tip"><X size={16} /></button>
     </div>
   )
@@ -73,7 +73,7 @@ export default function Layout() {
       <div className="overflow-hidden bg-black py-2 text-[11px] font-semibold uppercase tracking-[.25em] text-white">
         <div className="flex w-max animate-marquee gap-12 whitespace-nowrap">
           {Array.from({ length: 8 }).map((_, i) => (
-            <span key={i} className="flex items-center gap-2"><Sparkles size={12} className="text-acid" />{i % 2 ? BRAND_LINE : settings.announcement || TAGLINE}</span>
+            <span key={i} className="flex items-center gap-2"><Sparkles size={12} className="text-acid-light" />{i % 2 ? BRAND_LINE : settings.announcement || TAGLINE}</span>
           ))}
         </div>
       </div>
@@ -141,19 +141,19 @@ export default function Layout() {
             <p {...huntSpot('footer-tagline')} className="mt-4 w-max max-w-full font-pirate text-2xl text-white">{TAGLINE}</p>
           </div>
           <div className="text-sm">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid">Shop</p>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid-light">Shop</p>
             <ul className="space-y-2 text-white/60">
               {links.filter((l) => l.to !== '/faq').map((l) => <li key={l.to}><Link className="hover:text-white" to={l.to}>{l.label}</Link></li>)}
             </ul>
           </div>
           <div className="text-sm">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid">Help</p>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid-light">Help</p>
             <ul className="space-y-2 text-white/60">
               {HELP_LINKS.map((l) => <li key={l.to}><Link className="hover:text-white" to={l.to}>{l.label}</Link></li>)}
             </ul>
           </div>
           <div className="text-sm">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid">Get in touch</p>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[.2em] text-acid-light">Get in touch</p>
             <a {...huntSpot('footer-whatsapp')} className="flex w-max items-center gap-2 text-white/60 hover:text-white" href={WHATSAPP} target="_blank" rel="noreferrer"><WhatsAppIcon size={16} /> WhatsApp us</a>
             <a className="mt-3 flex w-max items-center gap-2 text-white/60 hover:text-white" href={PHONE_HREF}><Phone size={16} /> {PHONE}</a>
             <a {...huntSpot('footer-instagram')} className="mt-3 flex w-max items-center gap-2 text-white/60 hover:text-white" href={INSTAGRAM} target="_blank" rel="noreferrer"><Instagram size={16} /> @smugglerparadise</a>

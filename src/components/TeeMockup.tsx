@@ -273,13 +273,13 @@ function Handles({ layer, box, ui }: { layer: Layer; box: DOMRect; ui: number })
   const stem = 26 * ui
   return (
     <>
-      <rect data-ui x={x} y={y} width={w} height={h} fill="none" stroke="#5caedb" strokeWidth={2 * ui} strokeDasharray={`${6 * ui} ${4 * ui}`} rx={4 * ui} pointerEvents="none" />
-      <line data-ui x1={x + w / 2} y1={y} x2={x + w / 2} y2={y - stem} stroke="#5caedb" strokeWidth={1.5 * ui} pointerEvents="none" />
+      <rect data-ui x={x} y={y} width={w} height={h} fill="none" stroke="#C1121F" strokeWidth={2 * ui} strokeDasharray={`${6 * ui} ${4 * ui}`} rx={4 * ui} pointerEvents="none" />
+      <line data-ui x1={x + w / 2} y1={y} x2={x + w / 2} y2={y - stem} stroke="#C1121F" strokeWidth={1.5 * ui} pointerEvents="none" />
       <g data-ui data-handle="rotate" transform={`translate(${x + w / 2} ${y - stem}) scale(${ui})`} style={{ cursor: 'grab' }}>
         <title>Rotate</title>
         <circle r="14" fill="transparent" />
-        <circle r="8" fill="#ffffff" stroke="#5caedb" strokeWidth="2" />
-        <path d="M -3.5 -1 A 4 4 0 1 1 -1 3.6" fill="none" stroke="#5caedb" strokeWidth="1.6" strokeLinecap="round" />
+        <circle r="8" fill="#ffffff" stroke="#C1121F" strokeWidth="2" />
+        <path d="M -3.5 -1 A 4 4 0 1 1 -1 3.6" fill="none" stroke="#C1121F" strokeWidth="1.6" strokeLinecap="round" />
       </g>
       {HANDLES.map(([fx, fy], i) => {
         // Hit areas are bigger than the dots, for fingers.
@@ -288,8 +288,8 @@ function Handles({ layer, box, ui }: { layer: Layer; box: DOMRect; ui: number })
           <g key={i} data-ui data-handle="scale" transform={`translate(${x + fx * w} ${y + fy * h}) scale(${ui})`} style={{ cursor }}>
             <circle r="13" fill="transparent" />
             {fx === 0.5 || fy === 0.5
-              ? <rect x="-4" y="-4" width="8" height="8" rx="2" fill="#ffffff" stroke="#5caedb" strokeWidth="2" />
-              : <circle r="5.5" fill="#ffffff" stroke="#5caedb" strokeWidth="2" />}
+              ? <rect x="-4" y="-4" width="8" height="8" rx="2" fill="#ffffff" stroke="#C1121F" strokeWidth="2" />
+              : <circle r="5.5" fill="#ffffff" stroke="#C1121F" strokeWidth="2" />}
           </g>
         )
       })}

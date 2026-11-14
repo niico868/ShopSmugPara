@@ -14,7 +14,7 @@ export function Range({ label, value, onChange, min, max, step = 1, suffix = '',
     <label className={cx('block', disabled && 'opacity-40')}>
       <span className="mb-1 flex justify-between text-xs font-semibold uppercase tracking-wider text-ink-400"><span>{label}</span><span className="text-black">{shown ?? `${value}${suffix}`}</span></span>
       {track && <span className="mb-0.5 block h-2 rounded-full border border-ink-700" style={{ background: track }} />}
-      <input type="range" min={min} max={max} step={step} value={value} disabled={disabled} onChange={(e) => onChange(Number(e.target.value))} className="w-full accent-[#5caedb]" />
+      <input type="range" min={min} max={max} step={step} value={value} disabled={disabled} onChange={(e) => onChange(Number(e.target.value))} className="w-full accent-[#C1121F]" />
     </label>
   )
 }
@@ -24,7 +24,7 @@ export function Toggle({ label, checked, onChange, children }: { label: string; 
     <div className="space-y-2">
       <label className="flex cursor-pointer items-center justify-between text-xs font-semibold uppercase tracking-wider text-ink-400">
         {label}
-        <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="accent-[#5caedb]" />
+        <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="accent-[#C1121F]" />
       </label>
       {checked && children}
     </div>

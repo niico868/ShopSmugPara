@@ -43,7 +43,7 @@ export default function Home() {
   const [lookOut, setLookOut] = useState(false)
   const closeLookOut = useCallback(() => setLookOut(false), [])
   const lookOutLink = (
-    <button type="button" onClick={() => setLookOut(true)} className="font-semibold text-white underline decoration-acid decoration-2 underline-offset-4 hover:text-acid">
+    <button type="button" onClick={() => setLookOut(true)} className="font-semibold text-white underline decoration-acid-light decoration-2 underline-offset-4 hover:text-acid-light">
       Look out.
     </button>
   )
@@ -159,7 +159,7 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-2xl px-4 pt-20 text-center">
-        <span aria-hidden className="mx-auto block h-20 w-20" style={brandMark('/brand/sp-monogram.svg', '#5caedb')} />
+        <span aria-hidden className="mx-auto block h-20 w-20" style={brandMark('/brand/sp-monogram.svg', '#C1121F')} />
         <h2 {...huntSpot('home-who')} className="mx-auto mt-6 w-max font-pirate text-5xl">Who are we</h2>
         <p className="mt-5 text-ink-400">
           Smuggler&rsquo;s Paradise wasn&rsquo;t born as a brand. It began on the beaches of Trinidad and Tobago, in the places the system forgot,
