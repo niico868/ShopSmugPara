@@ -31,11 +31,11 @@ const links = [
   { to: '/faq', label: 'FAQ' },
 ]
 
-export function Logo({ className }: { className?: string }) {
+export function Logo({ className, light }: { className?: string; light?: boolean }) {
   const { settings } = useSettings()
   return (
-    <Link to="/" className={cx('group flex items-center gap-2.5', className)}>
-      <img src="/brand/logo.png" alt="" className="h-9 w-auto sm:h-10 transition group-hover:-rotate-6" />
+    <Link to="/" aria-label="Smugglers Paradise home" className={cx('group flex items-center gap-2.5', className)}>
+      <img src={light ? '/brand/logo-mark-white.svg' : '/brand/logo-mark.svg'} alt="" className="h-9 w-auto sm:h-10 transition group-hover:-rotate-6" />
       <span className="whitespace-nowrap font-poster text-sm uppercase tracking-wider max-[379px]:hidden min-[400px]:text-base sm:text-lg">{settings.store_name}</span>
     </Link>
   )
@@ -136,7 +136,7 @@ export default function Layout() {
       <footer className="mt-24 bg-black text-white">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 md:grid-cols-4">
           <div>
-            <Logo />
+            <Logo light />
             <p className="mt-3 max-w-xs text-sm text-white/60">Streetwear for the bold, from Smuggler&rsquo;s Paradise in Trinidad and Tobago. Custom designs made to order, ready 2&ndash;5 work days after payment is made.</p>
             <p {...huntSpot('footer-tagline')} className="mt-4 w-max max-w-full font-pirate text-2xl text-white">{TAGLINE}</p>
           </div>
