@@ -17,7 +17,7 @@ Tools: Playwright (site recordings), Remotion (motion graphics), ffmpeg + MovieP
 - [x] **You** recording: local copy with sample data. I design the custom tees myself in the designer.
 - [x] **Me** install Remotion + MoviePy (done)
 - [x] **Me** build the brand motion kit: type styles, coral flash, scan-line glitch, stamp, callout label, end card. Render a 5s style reel.
-- [ ] **You** approve the style reel. **Gate: nothing else gets made until this looks right.**
+- [x] **You** approve the style reel. **Gate: nothing else gets made until this looks right.**
 
 ## Phase 1: Capability test (2 frames)
 - [ ] **Me** frame 1 HOOK: record the X-ray hero, add glitch + logo stamp

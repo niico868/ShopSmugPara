@@ -9,7 +9,7 @@ import { usePoints } from '../lib/points'
 import { codeOff, type RewardCode } from '../lib/rewards'
 import { checkPromo, promoOff, type PromoCheck } from '../lib/promo'
 import { CheckoutRewards } from '../components/CheckoutRewards'
-import { DEPOSIT_NOTE, PAYMENT_METHODS, READY_NOTE, colorName } from '../lib/constants'
+import { CUSTOM_NOTE, DEPOSIT_NOTE, PAYMENT_METHODS, colorName } from '../lib/constants'
 import { cx, money } from '../lib/format'
 import { Button, Card, Empty, Field, Input, Select, Textarea } from '../components/ui'
 import { ItemThumb } from '../components/ItemThumb'
@@ -120,11 +120,9 @@ export default function Checkout() {
           <Field label="How would you like to pay?">
             <Select value={f.payment_method} onChange={set('payment_method')}>{PAYMENT_METHODS.map((m) => <option key={m}>{m}</option>)}</Select>
           </Field>
-          <p className="rounded-xl bg-ink-800 p-3 text-sm text-ink-200">{settings.payment_instructions}</p>
           <div className="space-y-1.5 rounded-xl border border-acid/40 bg-acid/10 p-3 text-sm">
-            <p className="font-semibold">Deposit or full payment required</p>
-            <p className="text-ink-300">{DEPOSIT_NOTE}</p>
-            <p className="text-ink-300">{READY_NOTE}</p>
+            <p className="font-semibold">{DEPOSIT_NOTE}</p>
+            {items.some((i) => i.kind === 'custom') && <p className="text-ink-300">{CUSTOM_NOTE}</p>}
           </div>
         </Card>
       </div>

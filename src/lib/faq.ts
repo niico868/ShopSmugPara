@@ -342,14 +342,14 @@ export function buildFaq(s: Settings, r: RewardRules, money: (n: number) => stri
               'At any **Paywise** outlet nationwide.',
             ],
             'Every order needs **full payment** or a **50% deposit** up front; any balance is due before you collect or we deliver. We don’t take cash on collection.',
-            'After you order, the order page shows the amount due, the 50% deposit and your reference. Design work and printing only start once your payment is made.',
+            'After you order, the order page shows the amount due, the 50% deposit and your reference. For custom designs, design work and printing only start once your payment is made.',
           ],
           tags: 'pay payment bank transfer cash deposit down payment full paywise reference card online collection',
         },
         {
           id: 'turnaround',
           q: 'How long until my order is ready?',
-          a: ['Orders are printed to order and are **ready 5 work days after payment is made**. Need it for a date? Put it in the notes at checkout, or WhatsApp us before ordering.'],
+          a: ['Custom designs are printed to order and are **ready 5 work days after payment is made**. Need it for a date? Put it in the notes at checkout, or WhatsApp us before ordering.'],
           tags: 'how long time turnaround ready days delivery date when production',
         },
         {
