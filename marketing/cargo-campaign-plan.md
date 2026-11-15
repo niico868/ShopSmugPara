@@ -32,8 +32,8 @@ Tools: Playwright (site recordings), Remotion (motion graphics), ffmpeg + MovieP
 - [x] **Me** 6 CREATE: designer, name typed, colour change, front/back flip (phone-sized)
 - [x] **Me** 7 AI WOW: "Create with AI" prompt → art on tee
 - [x] **Me** 8 SQUAD: team panel rows, tees multiplying into a grid
-- [ ] **Me** 9 TRUST: order tracking timeline lighting up, "5 work days" badge
-- [ ] **Me** 10 PLAY: pirogue crossing + catch, points pop, Contraband coin spin
+- [x] **Me** 9 TRUST: order tracking timeline lighting up, "5 work days" badge
+- [x] **Me** 10 PLAY: pirogue crossing + catch, points pop, Contraband coin spin
 - [ ] **Me** 11 BELONG: badge ladder Lookout → Navigator → Smuggler's World
 - [ ] **Me** 12 CTA: end card, countdown, smugpara.com, offer
 - [ ] **You** review in batches of 3. I revise.

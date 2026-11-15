@@ -10,9 +10,10 @@ Code: `marketing/motion/src/lux.tsx` (the kit), `frames.tsx` (frames), `index.ts
 1. **Ease everything.** No linear moves, no springs.
    - Entrances: `EXPO` = cubic-bezier(0.16, 1, 0.3, 1). Quick start, long silky settle.
    - Moves between two states: `SMOOTH` = cubic-bezier(0.65, 0, 0.35, 1).
-2. **Slow.** Entrances take 30-40 frames (1-1.3s at 30fps). Each beat holds 2.5-4s. End cards hold 3-4s.
-3. **Never static.** Footage and phones keep a slow constant push (about 1.00 → 1.07 over the shot) and a slight lift.
-4. **Never cheap.** Banned: bounce/overshoot, shake, rubber-stamp slams, full-screen colour flashes,
+2. **Text reads 2-3s each.** Each line holds at least 2s, at most 3s, before it dissolves into the next.
+3. **Slow.** Entrances take 30-40 frames (1-1.3s at 30fps). Each beat holds 2.5-4s. End cards hold 3-4s.
+4. **Never static.** Footage and phones keep a slow constant push (about 1.00 → 1.07 over the shot) and a slight lift.
+5. **Never cheap.** Banned: bounce/overshoot, shake, rubber-stamp slams, full-screen colour flashes,
    typewriter text with cursors, hard cuts, split-flap digit flips.
 
 ## Building blocks (lux.tsx)
@@ -24,7 +25,8 @@ Code: `marketing/motion/src/lux.tsx` (the kit), `frames.tsx` (frames), `index.ts
 | `Settle` | Fade in, scale 1.08 → 1, blur 12px → 0 | Logo, badges, product shots (replaces "stamp") |
 | `SoftClock` | Countdown digits cross-fade and drift up | Any countdown |
 | `Finish` | Vignette + fine animated film grain (6%) | On top of every frame |
-| `FadeEdges` | Soft fade from and to black | Start and end of every frame |
+| `FadeEdges` | Soft fade from black (and to black when there's no outro) | Start of every frame |
+| `LogoOutro` | Picture fades to black, coral logo settles in the centre (last ~1.7s) | **End of every frame** (approved 16 Nov) |
 | `Phone` (frames.tsx) | iPhone frame around a 1170x2532 site recording | All site recordings |
 
 ## Transitions

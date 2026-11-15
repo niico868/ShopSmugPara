@@ -1,7 +1,7 @@
 // Luxury motion kit: slow expo easing, masked blur reveals, tightening letter-spacing, hairlines,
 // constant slow camera drift, soft fades, vignette + grain. No bounce, shake or flash.
 import React from 'react';
-import { AbsoluteFill, Easing, interpolate, useCurrentFrame } from 'remotion';
+import { AbsoluteFill, Easing, Img, interpolate, staticFile, useCurrentFrame } from 'remotion';
 import { C } from './kit';
 
 export const EXPO = Easing.bezier(0.16, 1, 0.3, 1);      // entrances: fast start, long silky settle
@@ -57,9 +57,9 @@ export const Finish: React.FC = () => {
 };
 
 /** Fades the whole frame in from black and out to black. */
-export const FadeEdges: React.FC<{ total: number; len?: number }> = ({ total, len = 14 }) => {
+export const FadeEdges: React.FC<{ total: number; len?: number; noOut?: boolean }> = ({ total, len = 14, noOut }) => {
   const f = useCurrentFrame();
-  const o = Math.max(1 - prog(f, 0, len, SMOOTH), prog(f, total - len, total, SMOOTH));
+  const o = Math.max(1 - prog(f, 0, len, SMOOTH), noOut ? 0 : prog(f, total - len, total, SMOOTH));
   return <AbsoluteFill style={{ background: '#000', opacity: o, pointerEvents: 'none' }} />;
 };
 
@@ -85,5 +85,19 @@ export const SoftClock: React.FC<{ from: number; start: number; every?: number; 
         </div>
       ))}
     </div>
+  );
+};
+
+/** Ending used on every frame: the picture softly fades to black and the coral logo settles in the centre. */
+export const LogoOutro: React.FC<{ total: number; len?: number }> = ({ total, len = 50 }) => {
+  const f = useCurrentFrame();
+  const start = total - len;
+  if (f < start) return null;
+  const black = prog(f, start, start + 22, SMOOTH);
+  const p = prog(f, start + 12, start + 42);
+  return (
+    <AbsoluteFill style={{ background: `rgba(0,0,0,${black})`, justifyContent: 'center', alignItems: 'center' }}>
+      <Img src={staticFile('logo-mark.svg')} style={{ width: 300, opacity: p, transform: `scale(${1.08 - p * 0.08})`, filter: `blur(${(1 - p) * 12}px)` }} />
+    </AbsoluteFill>
   );
 };
