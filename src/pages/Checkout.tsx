@@ -83,17 +83,17 @@ export default function Checkout() {
   }
 
   return (
-    <form onSubmit={submit} onInvalidCapture={(e) => { sfx('error'); nudge(e.target, false) }} className="mx-auto grid max-w-6xl gap-8 px-4 py-12 lg:grid-cols-[1fr_400px]">
-      <div className="space-y-6">
+    <form onSubmit={submit} onInvalidCapture={(e) => { sfx('error'); nudge(e.target, false) }} className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-12 lg:grid-cols-[minmax(0,1fr)_400px]">
+      <div className="min-w-0 space-y-6">
         <h1 className="font-poster text-5xl">Checkout</h1>
         <ol className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider" aria-label={`${ready} of ${steps.length} sections complete`}>
           {steps.map((s, i) => (
-            <li key={s.name} className="flex flex-1 items-center gap-2">
+            <li key={s.name} className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2">
               <span className={cx('grid h-6 w-6 shrink-0 place-items-center rounded-full border-2 transition duration-300', s.done ? 'border-acid bg-acid text-white' : 'border-ink-700 text-ink-400')}>
                 {s.done ? <Check size={13} strokeWidth={3} className="animate-pop-check" /> : i + 1}
               </span>
-              <span className={cx('transition-colors', s.done ? 'text-black' : 'text-ink-400')}>{s.name}</span>
-              {i < steps.length - 1 && <span className="h-0.5 flex-1 overflow-hidden rounded-full bg-ink-800"><span className={cx('block h-full origin-left bg-acid transition-transform duration-500', s.done ? 'scale-x-100' : 'scale-x-0')} /></span>}
+              <span className={cx('truncate tracking-normal transition-colors sm:tracking-wider', s.done ? 'text-black' : 'text-ink-400')}>{s.name}</span>
+              {i < steps.length - 1 && <span className="h-0.5 min-w-2 flex-1 overflow-hidden rounded-full bg-ink-800"><span className={cx('block h-full origin-left bg-acid transition-transform duration-500', s.done ? 'scale-x-100' : 'scale-x-0')} /></span>}
             </li>
           ))}
         </ol>
@@ -131,7 +131,7 @@ export default function Checkout() {
         </Card>
       </div>
 
-      <aside className="lg:sticky lg:top-24 lg:self-start">
+      <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
         <Card>
           <h2 className="mb-4 font-display text-lg font-bold">Order summary</h2>
           <ul className="max-h-80 space-y-4 overflow-y-auto">

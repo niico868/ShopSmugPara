@@ -70,3 +70,27 @@ export function fitLayerToCrop(l: Layer, k: Crop): Partial<Layer> {
     px: l.px ? Math.round((l.px * cw) / k.w) : undefined,
   }
 }
+
+/** Smallest side, in pixels, an AI drawing is kept at: what gets saved with an order. */
+export const AI_MIN_PX = 500
+
+/**
+ * Scales an image up (smoothly) so its shorter side is at least `min` pixels. Images already big enough come back as they are.
+ * Returns the source to use and its size.
+ */
+export async function ensureMinSize(src: string, min = AI_MIN_PX): Promise<{ src: string; w: number; h: number }> {
+  const img = new Image()
+  img.src = src
+  await img.decode()
+  const w = img.naturalWidth, h = img.naturalHeight
+  const short = Math.min(w, h)
+  if (!short || short >= min) return { src, w, h }
+  const k = min / short
+  const c = document.createElement('canvas')
+  c.width = Math.round(w * k); c.height = Math.round(h * k)
+  const ctx = c.getContext('2d')!
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(img, 0, 0, c.width, c.height)
+  return { src: c.toDataURL('image/png'), w: c.width, h: c.height }
+}

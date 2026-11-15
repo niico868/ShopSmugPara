@@ -40,12 +40,12 @@ export const RULES = [
 export const RULES_FOOTNOTE =
   'Every design is reviewed by our team before printing and must fit the Smug Para brand. Management may decline any design, and declined orders are refunded in full.'
 
-export function RulesDialog({ onClose, onAgree }: { onClose: () => void; onAgree: () => void }) {
+export function RulesDialog({ onClose, onAgree, forAi }: { onClose: () => void; onAgree: () => void; forAi?: boolean }) {
   return (
-    <Dialog onClose={onClose} title={<><ShieldAlert className="text-acid" /> Before you upload</>}>
+    <Dialog onClose={onClose} title={<><ShieldAlert className="text-acid" /> {forAi ? 'Before you create' : 'Before you upload'}</>}>
       <ul className="mt-4 list-disc space-y-1.5 pl-5 text-sm">{RULES.map((r) => <li key={r}>{r}</li>)}</ul>
       <p className="mt-4 text-sm text-ink-400">{RULES_FOOTNOTE} Uploads are also checked automatically for nudity.</p>
-      <Button size="lg" className="mt-6 w-full" onClick={onAgree}>I agree, choose a file</Button>
+      <Button size="lg" className="mt-6 w-full" onClick={onAgree}>{forAi ? 'I agree' : 'I agree, choose a file'}</Button>
     </Dialog>
   )
 }
