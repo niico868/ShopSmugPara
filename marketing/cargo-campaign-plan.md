@@ -16,7 +16,7 @@ Tools: Playwright (site recordings), Remotion (motion graphics), ffmpeg + MovieP
 - [x] **You** frame-12 offer, both, earned: create an account → points; create an account **and** complete a custom → discount code for that product only. (The product-locked code doesn't exist on the site yet, see Phase 6.)
 - [x] **You** recording: local copy with sample data. I design the custom tees myself in the designer.
 - [x] **Me** install Remotion + MoviePy (done)
-- [ ] **Me** build the brand motion kit: type styles, coral flash, scan-line glitch, stamp, callout label, end card. Render a 5s style reel.
+- [x] **Me** build the brand motion kit: type styles, coral flash, scan-line glitch, stamp, callout label, end card. Render a 5s style reel.
 - [ ] **You** approve the style reel. **Gate: nothing else gets made until this looks right.**
 
 ## Phase 1: Capability test (2 frames)
