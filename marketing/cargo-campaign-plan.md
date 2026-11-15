@@ -20,8 +20,8 @@ Tools: Playwright (site recordings), Remotion (motion graphics), ffmpeg + MovieP
 - [x] **You** approve the style reel. **Gate: nothing else gets made until this looks right.**
 
 ## Phase 1: Capability test (2 frames)
-- [ ] **Me** frame 1 HOOK: record the X-ray hero, add glitch + logo stamp
-- [ ] **Me** frame 4 SCARCITY: record the product countdown, add flip clock + "LEAVES THE DOCK" stamp
+- [x] **Me** frame 1 HOOK: record the X-ray hero, add glitch + logo stamp
+- [x] **Me** frame 4 SCARCITY: record the product countdown, add flip clock + "LEAVES THE DOCK" stamp
 - [ ] **You** review both on your phone. Notes on speed, text size, vibe.
 - [ ] **Me** revise. This sets the template for the other 10.
 
