@@ -1,6 +1,7 @@
 import React from 'react';
 import { registerRoot, Composition, AbsoluteFill, Img, Sequence, staticFile, useCurrentFrame, interpolate } from 'remotion';
 import { Frame1, Frame4 } from './frames';
+import { StyleReelLux } from './reel';
 import { BODY, C, Callout, Flash, FlipClock, Fonts, POSTER, Rise, Scan, Stamp, Typewriter } from './kit';
 
 const FPS = 30;
@@ -60,6 +61,7 @@ const StyleReel: React.FC = () => {
 registerRoot(() => (
   <>
     <Composition id="StyleReel" component={StyleReel} durationInFrames={492} fps={FPS} width={1080} height={1920} />
+    <Composition id="StyleReelLux" component={StyleReelLux} durationInFrames={495} fps={FPS} width={1080} height={1920} />
     <Composition id="Frame1" component={Frame1} durationInFrames={240} fps={FPS} width={1080} height={1920} />
     <Composition id="Frame4" component={Frame4} durationInFrames={270} fps={FPS} width={1080} height={1920} />
   </>
