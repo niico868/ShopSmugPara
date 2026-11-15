@@ -205,4 +205,6 @@ export interface CheckoutInput {
   use_credit?: boolean
   /** A 20% custom-order code from the account (see RewardCode). */
   reward_code?: string
+  /** A promo code such as FIRST11 (see src/lib/promo.ts). */
+  promo_code?: string
 }

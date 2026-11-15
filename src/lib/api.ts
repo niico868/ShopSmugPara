@@ -4,6 +4,7 @@ import { AREA_ORDER } from './pricing'
 import { defaultSettings, seedOrders, seedProducts } from './seed'
 import { orderCode, uid } from './format'
 import { demoOrderChanged, demoSpendRewards } from './rewards'
+import { demoFreePromo, demoUsePromo } from './promo'
 import { currentPhoto } from './onWhite'
 
 // ---------------------------------------------------------------------------
@@ -136,13 +137,14 @@ export async function placeOrder(input: CheckoutInput, settings: Settings): Prom
     const freeShip = settings.free_shipping_over > 0 && subtotal >= settings.free_shipping_over
     const shipping = input.fulfillment === 'pickup' || freeShip ? 0 : settings.shipping_fee
     const created = new Date().toISOString()
-    const { use_credit, reward_code, ...rest } = input
+    const { use_credit, reward_code, promo_code, ...rest } = input
     const order: Order = {
       ...rest, items, id: uid(), code: orderCode(), created_at: created, status: 'pending',
       payment_status: 'unpaid', subtotal, shipping, total: subtotal + shipping,
       events: [{ id: uid(), created_at: created, status: 'pending', note: 'Order placed' }],
     }
     order.discount = demoSpendRewards(order, !!use_credit, reward_code)
+    if (promo_code) order.discount += demoUsePromo(order, promo_code, !!localStorage.getItem('sp.account'))
     order.total -= order.discount
     write(K.orders, [order, ...demoOrders()])
     return { code: order.code }
@@ -191,6 +193,7 @@ export async function updateOrder(
     write(K.orders, all)
     const after = all.find((o) => o.id === id)
     if (before && after) demoOrderChanged(before, after)
+    if (after && (patch.status === 'cancelled' || patch.payment_status === 'refunded')) demoFreePromo(id)
     return
   }
   if (Object.keys(patch).length) must(await supabase!.from('orders').update(patch).eq('id', id))

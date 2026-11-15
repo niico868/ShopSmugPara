@@ -5,6 +5,9 @@ import {
   type LedgerRow, type MemberRow, type RewardCode, type Submission,
 } from '../../lib/rewards'
 import { usePoints } from '../../lib/points'
+import { listPromos, savePromo, setPromoActive, type Promo } from '../../lib/promo'
+import { listProducts } from '../../lib/api'
+import type { Product } from '../../lib/types'
 import { Button, Card, Empty, Input, PageLoader } from '../../components/ui'
 import { cx, dateShort, dateTime } from '../../lib/format'
 import { toast } from '../../components/Toast'
@@ -14,7 +17,7 @@ const run = async (fn: () => Promise<unknown>, ok: string, then: () => void) => 
 }
 
 export default function Rewards() {
-  const [tab, setTab] = useState<'queue' | 'members' | 'codes'>('queue')
+  const [tab, setTab] = useState<'queue' | 'members' | 'codes' | 'promos'>('queue')
   return (
     <div className="space-y-6">
       <div>
@@ -22,11 +25,55 @@ export default function Rewards() {
         <p className="max-w-2xl text-sm text-ink-400">Reshares and wear-and-tag posts wait here for you to approve. Boat catches, Contraband, the welcome bonus and purchase points are automatic. Corrections need a written reason.</p>
       </div>
       <div className="flex gap-2">
-        {([['queue', 'Review queue'], ['members', 'Members'], ['codes', '20% codes']] as const).map(([k, l]) => (
+        {([['queue', 'Review queue'], ['members', 'Members'], ['codes', '20% codes'], ['promos', 'Promo codes']] as const).map(([k, l]) => (
           <button key={k} onClick={() => setTab(k)} className={cx('rounded-full px-4 py-2 text-sm font-medium', tab === k ? 'bg-black text-white' : 'bg-ink-800 hover:bg-ink-700')}>{l}</button>
         ))}
       </div>
-      {tab === 'queue' ? <Queue /> : tab === 'members' ? <Members /> : <Codes />}
+      {tab === 'queue' ? <Queue /> : tab === 'members' ? <Members /> : tab === 'codes' ? <Codes /> : <Promos />}
+    </div>
+  )
+}
+
+/** Promo codes like FIRST11: a percent off one tee of one product, for the first N people to order with it. */
+function Promos() {
+  const [rows, setRows] = useState<Promo[] | null>(null)
+  const [products, setProducts] = useState<Product[]>([])
+  const blank = { code: '', percent: 11, product_id: '' as string, max_uses: 1, needs_account: true, note: '' }
+  const [f, setF] = useState(blank)
+  const load = () => listPromos().then(setRows).catch((e) => { toast.error(e.message); setRows([]) })
+  useEffect(() => { load(); listProducts(true).then(setProducts).catch(() => {}) }, [])
+  const name = (id: string | null) => (id ? products.find((p) => p.id === id)?.name ?? 'a removed product' : 'any shop tee')
+  const create = (e: React.FormEvent) => {
+    e.preventDefault()
+    run(() => savePromo({ ...f, product_id: f.product_id || null, active: true }), `Promo ${f.code.toUpperCase()} is live`, () => { setF(blank); load() })
+  }
+  if (!rows) return <PageLoader />
+  return (
+    <div className="space-y-4">
+      <Card>
+        <form onSubmit={create} className="grid gap-3 sm:grid-cols-2">
+          <h2 className="font-display text-lg font-bold sm:col-span-2">New promo code</h2>
+          <label className="text-sm">Code<Input required value={f.code} onChange={(e) => setF({ ...f, code: e.target.value.toUpperCase() })} placeholder="FIRST11" className="mt-1 uppercase" /></label>
+          <label className="text-sm">Percent off<Input required type="number" min={1} max={100} value={f.percent} onChange={(e) => setF({ ...f, percent: Number(e.target.value) })} className="mt-1" /></label>
+          <label className="text-sm">For<select value={f.product_id} onChange={(e) => setF({ ...f, product_id: e.target.value })} className="mt-1 w-full rounded-xl border border-ink-700 bg-white px-3 py-2.5">
+            <option value="">Any shop tee</option>{products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+          <label className="text-sm">How many people can use it<Input required type="number" min={1} value={f.max_uses} onChange={(e) => setF({ ...f, max_uses: Number(e.target.value) })} className="mt-1" /></label>
+          <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" checked={f.needs_account} onChange={(e) => setF({ ...f, needs_account: e.target.checked })} className="accent-[#F34949]" /> Needs an account</label>
+          <p className="text-xs text-ink-400 sm:col-span-2">Takes the percent off one tee. With 1 use, the first person to place an order with it gets it; if that order is cancelled, it opens up again.</p>
+          <Button type="submit" className="sm:col-span-2">Create code</Button>
+        </form>
+      </Card>
+      {rows.length === 0 ? <Empty title="No promo codes yet" /> : rows.map((p) => (
+        <Card key={p.code} className="flex flex-wrap items-center justify-between gap-3 text-sm">
+          <span className="min-w-0"><b className="font-mono text-base">{p.code}</b> · {p.percent}% off {name(p.product_id)}
+            <span className="block text-ink-400">{p.used ?? 0} of {p.max_uses} used{p.needs_account ? ' · account needed' : ''}</span></span>
+          <span className="flex items-center gap-2">
+            {(p.used ?? 0) >= p.max_uses ? <span className="rounded-full bg-black px-3 py-1 text-xs font-semibold text-white">Claimed</span>
+              : <span className={cx('rounded-full px-3 py-1 text-xs font-semibold', p.active ? 'bg-acid/15 text-acid-dark' : 'bg-ink-800 text-ink-400')}>{p.active ? 'Live' : 'Paused'}</span>}
+            <Button size="sm" variant="ghost" onClick={() => run(() => setPromoActive(p.code, !p.active), p.active ? 'Paused' : 'Live again', load)}>{p.active ? 'Pause' : 'Resume'}</Button>
+          </span>
+        </Card>
+      ))}
     </div>
   )
 }
