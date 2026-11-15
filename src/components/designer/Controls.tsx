@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import type { ReactNode } from 'react'
 import { ShieldAlert, X } from 'lucide-react'
 import { Button } from '../ui'
@@ -49,8 +50,12 @@ export function RulesDialog({ onClose, onAgree }: { onClose: () => void; onAgree
   )
 }
 
+/**
+ * A centred pop-up. Rendered on <body>: pages animate in with a transform, which would pin a fixed
+ * overlay to the page (opening it mid-page, often off screen) instead of the screen.
+ */
 export function Dialog({ title, onClose, children, wide }: { title: ReactNode; onClose: () => void; children: ReactNode; wide?: boolean }) {
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={onClose}>
       <div className={cx('max-h-[92vh] w-full overflow-y-auto rounded-2xl bg-white p-6', wide ? 'max-w-3xl' : 'max-w-md')} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div className="flex items-start justify-between gap-4">
@@ -59,6 +64,7 @@ export function Dialog({ title, onClose, children, wide }: { title: ReactNode; o
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
