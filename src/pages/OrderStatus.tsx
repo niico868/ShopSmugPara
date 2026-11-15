@@ -9,12 +9,14 @@ import { ItemThumb } from '../components/ItemThumb'
 import { AREAS, TeeMockup } from '../components/TeeMockup'
 import { Dialog } from '../components/designer/Controls'
 import { AREA_ORDER } from '../lib/pricing'
+import { useSettings } from '../lib/settings'
 import { CUSTOM_NOTE, DEPOSIT_NOTE, colorName } from '../lib/constants'
 import { dateTime, money } from '../lib/format'
 import { WHATSAPP } from '../lib/brand'
 import { toast } from '../components/Toast'
 
 export default function OrderStatus() {
+  const { settings } = useSettings()
   const { code = '' } = useParams()
   const [q] = useSearchParams()
   const email = q.get('email') ?? ''
@@ -38,6 +40,7 @@ export default function OrderStatus() {
 
 
   const custom = order.items.some((i) => i.kind === 'custom')
+  // Bank details only once the order is confirmed (any status after Pending).
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
       {isNew && (
@@ -68,6 +71,14 @@ export default function OrderStatus() {
       {order.payment_status === 'unpaid' && order.status !== 'cancelled' && (
         <Card className="mt-4 border-acid/40">
           <p className="text-sm font-semibold text-acid">{DEPOSIT_NOTE}</p>
+          {order.status === 'pending'
+            ? <p className="mt-2 text-sm text-ink-400">Bank details for payment appear here as soon as we confirm your order.</p>
+            : settings.payment_instructions && (
+              <div className="mt-3 rounded-xl bg-ink-800 p-3 text-sm">
+                <p className="font-semibold">Pay by bank transfer</p>
+                <p className="mt-1 whitespace-pre-line text-ink-200">{settings.payment_instructions}</p>
+              </div>
+            )}
           <p className="mt-2 text-sm">Amount due: <b>{money(order.total)}</b> · 50% deposit: <b>{money(Math.ceil(order.total / 2))}</b> · Reference: <b className="font-mono">{order.code}</b></p>
           {custom && <p className="mt-2 text-sm text-ink-400">{CUSTOM_NOTE}</p>}
         </Card>

@@ -45,7 +45,7 @@ export default function SettingsPage() {
         <Field label="Free delivery over" hint="0 turns this off"><Input type="number" step="0.01" value={s.free_shipping_over} onChange={set('free_shipping_over', true)} /></Field>
       </Card>
       <Card>
-        <Field label="Payment instructions" hint="Shown at checkout and on the customer's tracking page while unpaid."><Textarea value={s.payment_instructions} onChange={set('payment_instructions')} /></Field>
+        <Field label="Payment instructions" hint="Your bank details. Customers see them on their order page once you set the order to Confirmed (while unpaid), and they're added to the WhatsApp/email message."><Textarea value={s.payment_instructions} onChange={set('payment_instructions')} /></Field>
       </Card>
       <div className="flex flex-wrap justify-between gap-3">
         {DEMO ? <Button type="button" variant="danger" onClick={() => confirm('Reset all demo data?') && resetDemo()}>Reset demo data</Button> : <span />}
