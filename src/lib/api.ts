@@ -232,7 +232,7 @@ export function subscribeOrders(cb: (newOrder?: { code: string; customer_name: s
 export async function sendProof(orderId: string, imageDataUrl: string) {
   const proof_url = await uploadMedia(imageDataUrl, 'proofs')
   const patch = { proof_url, proof_status: 'sent' as ProofStatus, proof_note: '' }
-  const note = 'Proof sent for your approval'
+  const note = 'Final draft sent for your approval'
   if (DEMO) {
     const event: OrderEvent = { id: uid(), created_at: new Date().toISOString(), status: null, note }
     return write(K.orders, demoOrders().map((o) => (o.id === orderId ? { ...o, ...patch, events: [...o.events, event] } : o)))
