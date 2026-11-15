@@ -35,6 +35,10 @@ Then the explanation.
 | Claude connectors | https://claude.ai/settings/connectors |
 
 ## Rules
+- **Check before you link a pull request.** Run `git fetch origin main && git log --oneline origin/main..HEAD`.
+  If the PR you were going to link is already merged and there are commits after it, they are NOT live:
+  open a new PR for them and link that one. Never point to a merged or closed PR as a step.
+- Check SQL steps the same way when you can (e.g. call the new function through the site's public API) and drop them once done.
 - Order the steps exactly as they must be done, and say when order matters (e.g. SQL before merge).
 - Repeat still-pending steps from earlier replies until the owner says they're done.
 - One action per line; the link text says what it does ("Merge pull request #52", not "here").
