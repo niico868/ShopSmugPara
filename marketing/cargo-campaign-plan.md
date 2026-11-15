@@ -26,9 +26,9 @@ Tools: Playwright (site recordings), Remotion (motion graphics), ffmpeg + MovieP
 - [ ] **Me** revise. This sets the template for the other 10.
 
 ## Phase 2: Site frames (me, recordings + motion)
-- [ ] **Me** 2 THE WORLD: home scroll, typed brand codes, T&T route-line map
-- [ ] **Me** 3 THE DROP: X-ray front/back cycle, freeze-frames with garment labels
-- [ ] **Me** 5 THE TWIST: tap "Design your own", split screen drop vs blank
+- [x] **Me** 2 THE WORLD: home scroll, typed brand codes, T&T route-line map
+- [x] **Me** 3 THE DROP: X-ray front/back cycle, freeze-frames with garment labels
+- [x] **Me** 5 THE TWIST: tap "Design your own", split screen drop vs blank
 - [ ] **Me** 6 CREATE: designer, name typed, colour change, front/back flip (phone-sized)
 - [ ] **Me** 7 AI WOW: "Create with AI" prompt → art on tee
 - [ ] **Me** 8 SQUAD: team panel rows, tees multiplying into a grid

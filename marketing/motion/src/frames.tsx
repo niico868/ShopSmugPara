@@ -6,14 +6,14 @@ import { BODY, C, Fonts, POSTER } from './kit';
 import { EXPO, FadeEdges, Finish, Hairline, Reveal, SMOOTH, Settle, SoftClock, prog } from './lux';
 
 /** An iPhone-style frame around a screen recording (1170x2532). */
-export const Phone: React.FC<{ src: string; startFrom?: number; width?: number; zoom?: number; originX?: number; originY?: number; style?: React.CSSProperties }> =
-  ({ src, startFrom = 0, width = 600, zoom = 1, originX = 0.5, originY = 0.5, style }) => {
+export const Phone: React.FC<{ src: string; startFrom?: number; rate?: number; width?: number; zoom?: number; originX?: number; originY?: number; style?: React.CSSProperties }> =
+  ({ src, startFrom = 0, rate = 1, width = 600, zoom = 1, originX = 0.5, originY = 0.5, style }) => {
     const h = width * (2532 / 1170);
     return (
       <div style={{ position: 'absolute', width: width + 24, height: h + 24, borderRadius: 82, background: '#0d0d0d', padding: 12,
         boxShadow: '0 60px 140px rgba(0,0,0,.75), inset 0 0 0 2px #262626', ...style }}>
         <div style={{ position: 'relative', width, height: h, borderRadius: 70, overflow: 'hidden', background: '#000' }}>
-          <OffthreadVideo src={src} startFrom={startFrom} muted style={{ width, height: h, transform: `scale(${zoom})`, transformOrigin: `${originX * 100}% ${originY * 100}%` }} />
+          <OffthreadVideo src={src} startFrom={startFrom} playbackRate={rate} muted style={{ width, height: h, transform: `scale(${zoom})`, transformOrigin: `${originX * 100}% ${originY * 100}%` }} />
           <div style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', width: 140, height: 40, borderRadius: 20, background: '#000' }} />
         </div>
       </div>
@@ -71,6 +71,68 @@ export const Frame4: React.FC = () => {
       <Finish />
       <FadeEdges total={270} />
     </AbsoluteFill>
+  );
+};
+
+/** Shared layout: phone glides in and drifts, top and bottom darkened for type. */
+const Stage: React.FC<{ src: string; startFrom?: number; rate?: number; zoom?: (f: number) => number; originY?: number; total: number; children: React.ReactNode }> =
+  ({ src, startFrom = 0, rate = 1, zoom, originY = 0.5, total, children }) => {
+    const f = useCurrentFrame();
+    const enter = prog(f, 8, 68);
+    const drift = interpolate(f, [8, total], [1, 1.06]);
+    return (
+      <AbsoluteFill style={{ background: C.black }}>
+        <Fonts />
+        <Phone src={src} startFrom={startFrom} rate={rate} width={560} zoom={zoom ? zoom(f) : 1} originY={originY}
+          style={{ left: 540 - 292, top: 400, opacity: enter, transform: `translateY(${(1 - enter) * 220 - interpolate(f, [8, total], [0, 40])}px) scale(${drift * (0.94 + enter * 0.06)})`, transformOrigin: '50% 35%' }} />
+        <AbsoluteFill style={{ background: 'linear-gradient(180deg, rgba(11,11,11,.95) 0%, rgba(11,11,11,0) 22%, rgba(11,11,11,0) 70%, rgba(11,11,11,.96) 86%)' }} />
+        {children}
+        <Finish />
+        <FadeEdges total={total} />
+      </AbsoluteFill>
+    );
+  };
+
+const sub: React.CSSProperties = { fontFamily: BODY, fontWeight: 900, fontSize: 44, color: C.white, textAlign: 'center' };
+const small: React.CSSProperties = { fontFamily: BODY, fontWeight: 700, fontSize: 30, letterSpacing: '0.24em', color: C.grey, textAlign: 'center' };
+const Rule: React.FC<{ top: number; from: number; w?: number }> = ({ top, from, w = 200 }) => (
+  <div style={{ position: 'absolute', left: 0, right: 0, top, display: 'flex', justifyContent: 'center' }}><Hairline from={from} width={w} /></div>
+);
+
+/** FRAME 2, THE WORLD (9s): brand codes and who we are. */
+export const Frame2: React.FC = () => (
+  <Stage src={staticFile('rec-world.mp4')} startFrom={10} total={270}>
+    <Reveal lines={['FOR THE', 'RISK TAKERS.']} from={4} style={{ position: 'absolute', left: 60, right: 60, top: 120 }} lineStyle={(i) => ({ ...headline, color: i ? C.coral : C.white })} />
+    <Rule top={300} from={26} />
+    <Reveal lines={['SOVEREIGNTY \u00b7 RISK \u00b7 PURPOSE']} from={110} style={{ position: 'absolute', left: 30, right: 30, top: 1600 }} lineStyle={() => sub} />
+    <Rule top={1680} from={130} w={160} />
+    <Reveal lines={['BORN ON THE BEACHES OF T&T']} from={150} style={{ position: 'absolute', left: 30, right: 30, top: 1715 }} lineStyle={() => small} />
+  </Stage>
+);
+
+/** FRAME 3, THE DROP (8s): the X-ray scanner running through the looks. */
+export const Frame3: React.FC = () => (
+  <Stage src={staticFile('rec-drop.mp4')} startFrom={45} rate={1.8} total={240} zoom={(f) => 1 + 0.18 * prog(f, 50, 130, SMOOTH)} originY={0.62}>
+    <Reveal lines={['ONE DROP.', 'SIX LOOKS.']} from={4} style={{ position: 'absolute', left: 60, right: 60, top: 120 }} lineStyle={(i) => ({ ...headline, color: i ? C.coral : C.white })} />
+    <Rule top={300} from={26} />
+    <Reveal lines={['OVERSIZED TEE \u00b7 CUT SLEEVE VEST']} from={100} style={{ position: 'absolute', left: 30, right: 30, top: 1600 }} lineStyle={() => ({ ...sub, fontSize: 40 })} />
+    <Rule top={1675} from={120} w={160} />
+    <Reveal lines={['GOLD \u00b7 RED \u00b7 WHITE \u2014 FRONT + BACK']} from={140} style={{ position: 'absolute', left: 30, right: 30, top: 1710 }} lineStyle={() => small} />
+  </Stage>
+);
+
+/** FRAME 5, THE TWIST (8.5s): tap "Design your own" and land in the studio. */
+export const Frame5: React.FC = () => {
+  const f = useCurrentFrame();
+  return (
+    <Stage src={staticFile('rec-twist.mp4')} startFrom={20} total={255}>
+      <Reveal lines={['DON\u2019T SEE', 'YOURS?']} from={4} out={95} style={{ position: 'absolute', left: 60, right: 60, top: 120 }} lineStyle={() => headline} />
+      <Reveal lines={['MAKE IT.']} from={112} style={{ position: 'absolute', left: 60, right: 60, top: 150 }} lineStyle={() => ({ ...headline, fontSize: 84, color: C.coral })} />
+      <Rule top={300} from={130} w={f > 100 ? 240 : 0} />
+      <Reveal lines={['DESIGN YOUR OWN TEE']} from={150} style={{ position: 'absolute', left: 30, right: 30, top: 1600 }} lineStyle={() => sub} />
+      <Rule top={1675} from={168} w={160} />
+      <Reveal lines={['FRONT \u00b7 BACK \u00b7 SLEEVES \u00b7 LABEL']} from={186} style={{ position: 'absolute', left: 30, right: 30, top: 1710 }} lineStyle={() => small} />
+    </Stage>
   );
 };
 
