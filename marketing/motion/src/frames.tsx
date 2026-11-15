@@ -110,14 +110,14 @@ export const Frame2: React.FC = () => (
   </Stage>
 );
 
-/** FRAME 3, THE DROP (8s): the X-ray scanner running through the looks. */
+/** FRAME 3, THE DROP (13s): the X-ray scanner runs once through six looks, alternating front and back. No zoom. */
 export const Frame3: React.FC = () => (
-  <Stage src={staticFile('rec-drop.mp4')} startFrom={45} rate={1.8} total={240} zoom={(f) => 1 + 0.18 * prog(f, 50, 130, SMOOTH)} originY={0.62}>
+  <Stage src={staticFile('rec-drop6.mp4')} startFrom={380} total={395}>
     <Reveal lines={['ONE DROP.', 'SIX LOOKS.']} from={4} style={{ position: 'absolute', left: 60, right: 60, top: 120 }} lineStyle={(i) => ({ ...headline, color: i ? C.coral : C.white })} />
     <Rule top={300} from={26} />
-    <Reveal lines={['OVERSIZED TEE \u00b7 CUT SLEEVE VEST']} from={100} style={{ position: 'absolute', left: 30, right: 30, top: 1600 }} lineStyle={() => ({ ...sub, fontSize: 40 })} />
-    <Rule top={1675} from={120} w={160} />
-    <Reveal lines={['GOLD \u00b7 RED \u00b7 WHITE \u2014 FRONT + BACK']} from={140} style={{ position: 'absolute', left: 30, right: 30, top: 1710 }} lineStyle={() => small} />
+    <Reveal lines={['OVERSIZED TEE \u00b7 CUT SLEEVE VEST']} from={130} style={{ position: 'absolute', left: 30, right: 30, top: 1600 }} lineStyle={() => ({ ...sub, fontSize: 40 })} />
+    <Rule top={1675} from={150} w={160} />
+    <Reveal lines={['GOLD \u00b7 RED \u00b7 WHITE \u2014 FRONT + BACK']} from={170} style={{ position: 'absolute', left: 30, right: 30, top: 1710 }} lineStyle={() => small} />
   </Stage>
 );
 

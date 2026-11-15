@@ -11,12 +11,19 @@ const RIPPLE = () => {
 };
 (async () => {
   const b = await chromium.launch();
-  const rec = async (name, url, script, seed) => {
+  const rec = async (name, url, script, seed, patch) => {
     if (only && only !== name) return;
     const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true,
       userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1' });
     await ctx.addInitScript((seed) => { try { localStorage.setItem('sp.intro', '1'); localStorage.setItem('sp.lookout', String(Date.now())); for (const [k, v] of Object.entries(seed || {})) localStorage.setItem(k, v); } catch {} }, seed);
     await ctx.addInitScript(RIPPLE);
+    // Recording-only code tweaks (the live site is untouched): [[urlPart, from, to], ...]
+    const parts = [...new Set((patch || []).map((x) => x[0]))];
+    for (const part of parts) await ctx.route((u) => u.pathname.endsWith(part), async (r) => {
+      const res = await r.fetch(); let t = await res.text();
+      for (const [pp, from, to] of patch) if (pp === part) { if (!t.includes(from)) console.log('PATCH MISS', part, from); t = t.split(from).join(to); }
+      r.fulfill({ response: res, body: t });
+    });
     const p = await ctx.newPage();
     await p.goto(url, { waitUntil: 'networkidle' }); await p.waitForTimeout(1200);
     const dir = path.join(D, name); fs.rmSync(dir, { recursive: true, force: true }); fs.mkdirSync(dir, { recursive: true });
@@ -53,5 +60,11 @@ const RIPPLE = () => {
     await tap(p, p.getByRole('link', { name: /Design your own/ }).first());
     await p.waitForTimeout(5500);
   }, { 'sp.account': JSON.stringify({ email: 'demo@smugpara.com', name: 'Demo' }) });
+  // Frame 3 v2: six looks alternating front/back (tee gold F, tee red B, tee white F, vest gold B, vest red F, vest white B), quicker hand-overs.
+  await rec('drop6', 'http://localhost:5173/', async (p) => { await p.reload({ waitUntil: 'domcontentloaded' }); await p.waitForSelector('.xray'); await p.evaluate(() => scrollTo(0, 330)); await p.waitForTimeout(300); await p.evaluate(() => scrollTo(0, 330)); await p.waitForTimeout(27500); }, {}, [
+    ['/src/pages/Home.tsx', 'scanFrames(drop.variants)', 'scanFrames(drop.variants).filter((_, k) => k % 2 === Math.floor(k / 2) % 2)'],
+    ['/src/components/XrayScan.tsx', 'const HOLD = 3500', 'const HOLD = 700'],
+    ['/src/components/XrayScan.tsx', 'const SWEEP = 3400', 'const SWEEP = 1400'],
+  ]);
   await b.close();
 })();
