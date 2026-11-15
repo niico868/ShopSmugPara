@@ -222,17 +222,55 @@ export const Frame8: React.FC = () => (
 const topL = { position: 'absolute' as const, left: 50, right: 50, top: 120 };
 const two = (i: number) => ({ ...headline, color: i ? C.coral : C.white });
 
-/** FRAME 9, TRUST (14s): a demo order steps Confirmed -> In production -> Ready -> Collected on the tracking page. */
+/** FRAME 9, TRUST v2 (25.7s): six 4-second beats on a custom order's tracking page, with a big progress rail. */
+const BEAT = 120;
+const T9 = [
+  { top: ['YOU ORDER', 'A CUSTOM'], sub: 'WE CONFIRM YOUR ORDER' },
+  { top: ['YOU MAKE A', 'DOWNPAYMENT'], sub: 'NO DOWNPAYMENT, NO PRODUCT' },
+  { top: ['YOU SEE THE', 'FINAL DRAFT'], sub: 'WE CONFIRM THE DESIGN' },
+  { top: ['PRODUCTION', 'ONGOING'], sub: '' },
+  { top: ['DELIVERY / PICKUP', 'READY'], sub: '' },
+  { top: ['DELIVERED.'], sub: 'YOU STEP OUT HARD' },
+];
+const STOPS = ['ORDER', 'DEPOSIT', 'DRAFT', 'PRINT', 'READY', 'DONE'];
+const Rail: React.FC = () => {
+  const f = useCurrentFrame();
+  // Fills slowly toward each stop across the second half of the beat before it, then settles on arrival.
+  const fill = STOPS.slice(1).reduce((n, _, i) => n + prog(f, (i + 1) * BEAT - 70, (i + 1) * BEAT + 30, SMOOTH), 0);
+  const W = 860, L = (1080 - W) / 2, step = W / (STOPS.length - 1);
+  const show = prog(f, 20, 60);
+  return (
+    <div style={{ position: 'absolute', left: L - 40, top: 1505, width: W + 80, height: 150, borderRadius: 28, background: 'rgba(11,11,11,.9)', opacity: show, transform: `translateY(${(1 - show) * 30}px)` }}>
+      <div style={{ position: 'absolute', left: 40, top: 52, width: W, height: 4, borderRadius: 2, background: 'rgba(255,255,255,.18)' }} />
+      <div style={{ position: 'absolute', left: 40, top: 52, width: step * fill, height: 4, borderRadius: 2, background: C.coral, boxShadow: '0 0 18px rgba(243,73,73,.6)' }} />
+      {STOPS.map((label, i) => {
+        const on = prog(f, i * BEAT - 20, i * BEAT + 20, SMOOTH) * (i === 0 ? 1 : Math.min(1, Math.max(0, fill - (i - 1))));
+        const cur = Math.max(0, 1 - Math.abs(f - (i * BEAT + 40)) / 80);
+        return (
+          <div key={label} style={{ position: 'absolute', left: 40 + step * i, top: 54, transform: 'translate(-50%,-50%)' }}>
+            <div style={{ width: 30, height: 30, borderRadius: 15, background: on > 0.5 ? C.coral : '#222', border: `3px solid ${on > 0.5 ? C.coral : 'rgba(255,255,255,.35)'}`,
+              transform: `scale(${1 + on * 0.15 + cur * 0.15})`, boxShadow: `0 0 0 ${cur * 14}px rgba(243,73,73,${0.25 * cur})` }} />
+            <div style={{ position: 'absolute', top: 44, left: '50%', transform: 'translateX(-50%)', fontFamily: BODY, fontWeight: 700, fontSize: 22, letterSpacing: '0.16em', color: on > 0.5 ? C.white : C.grey, whiteSpace: 'nowrap' }}>{label}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 export const Frame9: React.FC = () => (
-  <Stage src={staticFile('rec-trust.mp4')} startFrom={24} total={420} outro>
-    <Reveal lines={['TRACK EVERY', 'STEP LIVE.']} from={4} out={84} style={topL} lineStyle={two} />
-    <Reveal lines={['PRINTED BY', 'OUR TEAM.']} from={100} out={176} style={topL} lineStyle={two} />
-    <Reveal lines={['READY?', 'WE\u2019LL TELL YOU.']} from={190} out={280} style={topL} lineStyle={two} />
-    <Reveal lines={['COLLECT IT', 'OR WE DELIVER.']} from={296} style={topL} lineStyle={two} />
+  <Stage src={staticFile('rec-trust2.mp4')} total={770} outro>
+    {T9.map((t, i) => {
+      const from = i * BEAT + 6, out = i < T9.length - 1 ? (i + 1) * BEAT - 16 : undefined;
+      return (
+        <React.Fragment key={i}>
+          <Reveal lines={t.top} from={from} out={out} style={{ position: 'absolute', left: 40, right: 40, top: t.top.length > 1 ? 120 : 160 }}
+            lineStyle={(k) => ({ ...headline, fontSize: 60, color: k || t.top.length === 1 ? C.coral : C.white })} />
+          {t.sub && <Reveal lines={[t.sub]} from={from + 18} out={out} style={{ position: 'absolute', left: 30, right: 30, top: 1690 }} lineStyle={() => ({ ...sub, fontSize: 36, color: C.white })} />}
+        </React.Fragment>
+      );
+    })}
     <Rule top={300} from={26} w={240} />
-    <Reveal lines={['YOUR ORDER CODE = YOUR TRACKING LINK']} from={60} style={{ position: 'absolute', left: 30, right: 30, top: 1600 }} lineStyle={() => ({ ...sub, fontSize: 36 })} />
-    <Rule top={1675} from={80} w={160} />
-    <Reveal lines={['AN UPDATE AT EVERY STEP']} from={100} style={{ position: 'absolute', left: 30, right: 30, top: 1710 }} lineStyle={() => small} />
+    <Rail />
   </Stage>
 );
 

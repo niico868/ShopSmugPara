@@ -68,7 +68,7 @@ registerRoot(() => (
     <Composition id="Frame5" component={Frame5} durationInFrames={255} fps={FPS} width={1080} height={1920} />
     <Composition id="Frame6" component={Frame6} durationInFrames={455} fps={FPS} width={1080} height={1920} />
     <Composition id="Frame8" component={Frame8} durationInFrames={490} fps={FPS} width={1080} height={1920} />
-    <Composition id="Frame9" component={Frame9} durationInFrames={420} fps={FPS} width={1080} height={1920} />
+    <Composition id="Frame9" component={Frame9} durationInFrames={770} fps={FPS} width={1080} height={1920} />
     <Composition id="Frame10" component={Frame10} durationInFrames={364} fps={FPS} width={1080} height={1920} />
     <Composition id="Frame7" component={Frame7} durationInFrames={AI_FRAMES} fps={FPS} width={1080} height={1920} />
     <Composition id="Frame4" component={Frame4} durationInFrames={270} fps={FPS} width={1080} height={1920} />
