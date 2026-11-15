@@ -8,11 +8,13 @@ Tools: Playwright (site recordings), Remotion (motion graphics), ffmpeg + MovieP
 
 ---
 
+**Mobile-first:** every site recording is made on an emulated phone (iPhone-size screen), shown inside a phone frame. Desktop only appears if a frame needs contrast.
+
 ## Phase 0: Setup (blocks everything)
-- [ ] **You** send the brand kit: logo files (or OK to use the ones in `public/brand`), fonts OK to reuse, any colours beyond black/white/coral `#F34949`.
-- [ ] **You** decide: voiceover or text-only? (text-only = no Whisper needed)
-- [ ] **You** confirm the offer for frame 12: bonus points, a discount code, or both. Create the code in admin > Rewards.
-- [ ] **You** make a demo customer account on smugpara.com I can record with (no real orders), **or** OK me running the site locally with sample data.
+- [x] **You** brand kit: use what's in the repo
+- [x] **You** voiceover: no, text-only
+- [x] **You** frame-12 offer, both, earned: create an account → points; create an account **and** complete a custom → discount code for that product only. (The product-locked code doesn't exist on the site yet, see Phase 6.)
+- [x] **You** recording: local copy with sample data. I design the custom tees myself in the designer.
 - [x] **Me** install Remotion + MoviePy (done)
 - [ ] **Me** build the brand motion kit: type styles, coral flash, scan-line glitch, stamp, callout label, end card. Render a 5s style reel.
 - [ ] **You** approve the style reel. **Gate: nothing else gets made until this looks right.**
@@ -52,7 +54,10 @@ Tools: Playwright (site recordings), Remotion (motion graphics), ffmpeg + MovieP
 - [ ] **Me** comment-to-DM reply text ("Comment CARGO / your name").
 - [ ] **You** set up the DM auto-reply (Instagram automations or ManyChat).
 
-## Phase 6: Name link feature (optional, site code)
+## Phase 6: Site code
+- [ ] **Me** "Make a custom → get a code": after a custom order completes, the account gets a one-time discount code locked to that product. Shown on the order page + account. Test, open a PR. **Needed before posting**, since frame 12 promises it.
+
+### Name link (optional)
 - [ ] **Me** build `smugpara.com/name/<Name>` + `/name` box, opens designer with the name on the drop tee. Test, open a PR.
 - [ ] **You** review + merge. Then frames 10/12 and the DM can use it.
 
