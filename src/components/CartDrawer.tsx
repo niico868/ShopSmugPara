@@ -26,7 +26,7 @@ export function CartDrawer() {
   const toFree = Math.max(0, settings.free_shipping_over - sub)
 
   return (
-    <div className={cx('fixed inset-0 z-50 transition', open ? 'visible' : 'invisible')}>
+    <div className={cx('fixed inset-0 z-50 overflow-hidden transition', open ? 'visible' : 'invisible')}>
       <div onClick={() => setOpen(false)} className={cx('absolute inset-0 bg-black/60 transition-opacity', open ? 'opacity-100' : 'opacity-0')} />
       <aside className={cx('absolute right-0 top-0 flex h-full w-full max-w-md flex-col border-l border-ink-800 bg-ink-950 transition-transform duration-300', open ? 'translate-x-0' : 'translate-x-full')}>
         <div className="flex items-center justify-between border-b border-ink-800 p-5">

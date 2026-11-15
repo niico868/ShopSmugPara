@@ -9,7 +9,8 @@ import { sfx } from '../../lib/feedback'
 const IDEAS = ['a lion wearing a crown, graffiti style', 'scarlet ibis in flight, watercolour', 'pirate skull with hibiscus flowers, vintage tattoo style']
 
 /** "Create with AI": a prompt box that draws art and hands it to the designer to place on the tee. */
-export function AiArtBox({ canStart, onArt }: { canStart: () => boolean; onArt: (src: string) => Promise<void> }) {
+/** canStart(retry): true to go now; false if the design rules must be agreed first (retry runs once they are). */
+export function AiArtBox({ canStart, onArt }: { canStart: (retry: () => void) => boolean; onArt: (src: string) => Promise<void> }) {
   const [prompt, setPrompt] = useState('')
   const [style, setStyle] = useState<ArtStyle>('any')
   const [busy, setBusy] = useState(false)
@@ -19,8 +20,8 @@ export function AiArtBox({ canStart, onArt }: { canStart: () => boolean; onArt: 
   useEffect(() => { if (AI_ART_ON) aiArtLeft().then(setLeft) }, [])
   if (!AI_ART_ON) return null
 
-  const go = async () => {
-    if (busy || !prompt.trim() || !canStart()) return
+  const go = async (agreed = false) => {
+    if (busy || !prompt.trim() || (!agreed && !canStart(() => go(true)))) return
     setBusy(true)
     try {
       const r = await generateArt(prompt, style)
@@ -65,7 +66,7 @@ export function AiArtBox({ canStart, onArt }: { canStart: () => boolean; onArt: 
           >{s.name}</button>
         ))}
       </div>
-      <Button className="mt-3 w-full" size="sm" onClick={go} disabled={busy || !prompt.trim() || out}>
+      <Button className="mt-3 w-full" size="sm" onClick={() => go()} disabled={busy || !prompt.trim() || out}>
         {busy ? <><Loader2 size={14} className="animate-spin" /> Drawing… {secs}s</> : <><Wand2 size={14} /> Generate</>}
       </Button>
       {busy && (

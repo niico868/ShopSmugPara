@@ -1,19 +1,25 @@
 // Campaign frames 1 (hook) and 4 (scarcity): real recordings of smugpara.com inside a phone,
 // animated with the luxury kit (slow eases, masked reveals, hairlines, drift, vignette, grain).
 import React from 'react';
-import { AbsoluteFill, Img, OffthreadVideo, interpolate, staticFile, useCurrentFrame } from 'remotion';
+import { AbsoluteFill, Img, OffthreadVideo, Sequence, interpolate, staticFile, useCurrentFrame } from 'remotion';
 import { BODY, C, Fonts, POSTER } from './kit';
 import { EXPO, FadeEdges, Finish, Hairline, Reveal, SMOOTH, Settle, SoftClock, prog } from './lux';
 
 /** An iPhone-style frame around a screen recording (1170x2532). */
-export const Phone: React.FC<{ src: string; startFrom?: number; rate?: number; width?: number; zoom?: number; originX?: number; originY?: number; style?: React.CSSProperties }> =
-  ({ src, startFrom = 0, rate = 1, width = 600, zoom = 1, originX = 0.5, originY = 0.5, style }) => {
+/** One cut of a recording: play `src` from second `at` at `rate` for `len` output frames. */
+export type Cut = { at: number; rate: number; len: number };
+export const Phone: React.FC<{ src: string; startFrom?: number; rate?: number; cuts?: Cut[]; width?: number; zoom?: number; originX?: number; originY?: number; style?: React.CSSProperties }> =
+  ({ src, startFrom = 0, rate = 1, cuts, width = 600, zoom = 1, originX = 0.5, originY = 0.5, style }) => {
     const h = width * (2532 / 1170);
     return (
       <div style={{ position: 'absolute', width: width + 24, height: h + 24, borderRadius: 82, background: '#0d0d0d', padding: 12,
         boxShadow: '0 60px 140px rgba(0,0,0,.75), inset 0 0 0 2px #262626', ...style }}>
         <div style={{ position: 'relative', width, height: h, borderRadius: 70, overflow: 'hidden', background: '#000' }}>
-          <OffthreadVideo src={src} startFrom={startFrom} playbackRate={rate} muted style={{ width, height: h, transform: `scale(${zoom})`, transformOrigin: `${originX * 100}% ${originY * 100}%` }} />
+          {cuts ? (() => { let t = 0; return cuts.map((c, i) => { const from = t; t += c.len; return (
+            <Sequence key={i} from={from} durationInFrames={c.len} layout="none">
+              <OffthreadVideo src={src} startFrom={Math.round(c.at * 30)} playbackRate={c.rate} muted style={{ position: 'absolute', inset: 0, width, height: h, transform: `scale(${zoom})`, transformOrigin: `${originX * 100}% ${originY * 100}%` }} />
+            </Sequence>); }); })()
+            : <OffthreadVideo src={src} startFrom={startFrom} playbackRate={rate} muted style={{ width, height: h, transform: `scale(${zoom})`, transformOrigin: `${originX * 100}% ${originY * 100}%` }} />}
           <div style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', width: 140, height: 40, borderRadius: 20, background: '#000' }} />
         </div>
       </div>
@@ -75,15 +81,15 @@ export const Frame4: React.FC = () => {
 };
 
 /** Shared layout: phone glides in and drifts, top and bottom darkened for type. */
-const Stage: React.FC<{ src: string; startFrom?: number; rate?: number; zoom?: (f: number) => number; originY?: number; total: number; children: React.ReactNode }> =
-  ({ src, startFrom = 0, rate = 1, zoom, originY = 0.5, total, children }) => {
+const Stage: React.FC<{ src: string; startFrom?: number; rate?: number; cuts?: Cut[]; zoom?: (f: number) => number; originY?: number; total: number; children: React.ReactNode }> =
+  ({ src, startFrom = 0, rate = 1, cuts, zoom, originY = 0.5, total, children }) => {
     const f = useCurrentFrame();
     const enter = prog(f, 8, 68);
     const drift = interpolate(f, [8, total], [1, 1.06]);
     return (
       <AbsoluteFill style={{ background: C.black }}>
         <Fonts />
-        <Phone src={src} startFrom={startFrom} rate={rate} width={560} zoom={zoom ? zoom(f) : 1} originY={originY}
+        <Phone src={src} startFrom={startFrom} rate={rate} cuts={cuts} width={560} zoom={zoom ? zoom(f) : 1} originY={originY}
           style={{ left: 540 - 292, top: 400, opacity: enter, transform: `translateY(${(1 - enter) * 220 - interpolate(f, [8, total], [0, 40])}px) scale(${drift * (0.94 + enter * 0.06)})`, transformOrigin: '50% 35%' }} />
         <AbsoluteFill style={{ background: 'linear-gradient(180deg, rgba(11,11,11,.95) 0%, rgba(11,11,11,0) 22%, rgba(11,11,11,0) 70%, rgba(11,11,11,.96) 86%)' }} />
         {children}
@@ -135,5 +141,55 @@ export const Frame5: React.FC = () => {
     </Stage>
   );
 };
+
+/** FRAME 7, AI WOW (25s): type a prompt, Generate, the art lands on the tee; then it's a draft our team finishes;
+ * then three finished customer designs, 1.5s each from 19s, the last holding to the end. */
+const AI_CUTS: Cut[] = [
+  { at: 3.6, rate: 1, len: 153 },     // scroll to Create with AI, type the prompt
+  { at: 8.7, rate: 1, len: 48 },      // tap Generate
+  { at: 10.3, rate: 1.5, len: 136 },  // drawing (sped up)
+  { at: 17.1, rate: 1, len: 233 },    // art placed, scroll up to the tee, hold
+];
+const DESIGN_AT = 570;                // 19s
+const DESIGN_CUTS = [45, 45, 90];     // 1.5s, 1.5s, then the last holds to 25s
+const AI_TOTAL = 750;
+const AI_PLACED = AI_CUTS[0].len + AI_CUTS[1].len + AI_CUTS[2].len;
+const top = { position: 'absolute' as const, left: 50, right: 50, top: 130 };
+export const Frame7: React.FC = () => {
+  const f = useCurrentFrame();
+  const fire = { fontFamily: '"Noto Color Emoji"' };
+  return (
+    <Stage src={staticFile('rec-ai.mp4')} cuts={AI_CUTS} total={AI_TOTAL}>
+      {/* The finished customer designs play inside the same phone, cross-fading in from 19s */}
+      {DESIGN_CUTS.map((len, i) => {
+        const from = DESIGN_AT + DESIGN_CUTS.slice(0, i).reduce((n, x) => n + x, 0);
+        if (f < from - 12 || f > from + len + 12) return null;
+        const o = prog(f, from - 10, from + 6, SMOOTH);
+        return (
+          <div key={i} style={{ position: 'absolute', left: 540 - 292 + 12, top: 400 + 12, width: 560, height: 560 * 2532 / 1170, borderRadius: 70, overflow: 'hidden', opacity: o,
+            transform: `translateY(${-interpolate(f, [8, AI_TOTAL], [0, 40])}px) scale(${interpolate(f, [8, AI_TOTAL], [1, 1.06])})`, transformOrigin: '50% 35%' }}>
+            <Sequence from={from - 10} layout="none"><OffthreadVideo src={staticFile(`rec-design${i + 1}.mp4`)} startFrom={12} muted style={{ width: '100%', height: '100%' }} /></Sequence>
+          </div>
+        );
+      })}
+      <AbsoluteFill style={{ background: 'linear-gradient(180deg, rgba(11,11,11,.95) 0%, rgba(11,11,11,0) 22%, rgba(11,11,11,0) 70%, rgba(11,11,11,.96) 86%)' }} />
+      <Reveal lines={['TYPE IT.']} from={4} out={AI_PLACED - 4} style={top} lineStyle={() => ({ ...headline, fontSize: 84 })} />
+      <Reveal lines={['IT APPEARS.']} from={AI_PLACED + 14} out={340} style={top} lineStyle={() => ({ ...headline, fontSize: 76, color: C.coral })} />
+      <Reveal lines={['YOUR DESIGN', 'IS A DRAFT']} from={360} out={430} style={top} lineStyle={(i) => ({ ...headline, color: i ? C.coral : C.white })} />
+      <Reveal lines={['OUR TEAM', 'WILL ADD THE']} from={450} out={550} style={{ ...top, top: 110 }} lineStyle={() => headline} />
+      {f >= 466 && f < 572 && (
+        <div style={{ position: 'absolute', left: 0, right: 0, top: 270, textAlign: 'center', ...fire, fontSize: 96, opacity: prog(f, 466, 490) * (1 - prog(f, 550, 570, SMOOTH)), transform: `scale(${0.9 + prog(f, 466, 500) * 0.1})`, filter: `blur(${(1 - prog(f, 466, 490)) * 8}px)` }}>{'\u{1F525}'}</div>
+      )}
+      <Reveal lines={['GET CREATIVE.']} from={570} style={top} lineStyle={() => ({ ...headline, fontSize: 72, color: C.coral })} />
+      <Rule top={300} from={26} w={240} />
+      <Reveal lines={['CREATE WITH AI']} from={70} out={540} style={{ position: 'absolute', left: 30, right: 30, top: 1600 }} lineStyle={() => sub} />
+      <Rule top={1675} from={90} w={160} />
+      <Reveal lines={['YOUR IDEA, DRAWN ON THE TEE IN SECONDS']} from={110} out={540} style={{ position: 'absolute', left: 30, right: 30, top: 1710 }} lineStyle={() => small} />
+      <Reveal lines={['FINISHED BY THE SMUG PARA TEAM']} from={590} style={{ position: 'absolute', left: 30, right: 30, top: 1600 }} lineStyle={() => ({ ...sub, fontSize: 40 })} />
+      <Reveal lines={['REAL CUSTOMER DESIGNS']} from={610} style={{ position: 'absolute', left: 30, right: 30, top: 1710 }} lineStyle={() => small} />
+    </Stage>
+  );
+};
+export const AI_FRAMES = AI_TOTAL;
 
 export { Img, Settle, EXPO };

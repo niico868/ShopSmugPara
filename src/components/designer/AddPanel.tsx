@@ -10,7 +10,7 @@ export function AddPanel({ onAddText, onUpload, onDropFile, onAddImage, canStart
   onUpload: () => void
   onDropFile: (f?: File) => void
   onAddImage: (src: string, aspect: number) => void
-  canStartAi: () => boolean
+  canStartAi: (retry: () => void) => boolean
   onAiArt: (src: string) => Promise<void>
 }) {
   const [more, setMore] = useState(false)

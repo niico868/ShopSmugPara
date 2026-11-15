@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import type { ReactNode } from 'react'
 import { ShieldAlert, X } from 'lucide-react'
 import { Button } from '../ui'
@@ -39,18 +40,22 @@ export const RULES = [
 export const RULES_FOOTNOTE =
   'Every design is reviewed by our team before printing and must fit the Smug Para brand. Management may decline any design, and declined orders are refunded in full.'
 
-export function RulesDialog({ onClose, onAgree }: { onClose: () => void; onAgree: () => void }) {
+export function RulesDialog({ onClose, onAgree, forAi }: { onClose: () => void; onAgree: () => void; forAi?: boolean }) {
   return (
-    <Dialog onClose={onClose} title={<><ShieldAlert className="text-acid" /> Before you upload</>}>
+    <Dialog onClose={onClose} title={<><ShieldAlert className="text-acid" /> {forAi ? 'Before you create' : 'Before you upload'}</>}>
       <ul className="mt-4 list-disc space-y-1.5 pl-5 text-sm">{RULES.map((r) => <li key={r}>{r}</li>)}</ul>
       <p className="mt-4 text-sm text-ink-400">{RULES_FOOTNOTE} Uploads are also checked automatically for nudity.</p>
-      <Button size="lg" className="mt-6 w-full" onClick={onAgree}>I agree, choose a file</Button>
+      <Button size="lg" className="mt-6 w-full" onClick={onAgree}>{forAi ? 'I agree' : 'I agree, choose a file'}</Button>
     </Dialog>
   )
 }
 
+/**
+ * A centred pop-up. Rendered on <body>: pages animate in with a transform, which would pin a fixed
+ * overlay to the page (opening it mid-page, often off screen) instead of the screen.
+ */
 export function Dialog({ title, onClose, children, wide }: { title: ReactNode; onClose: () => void; children: ReactNode; wide?: boolean }) {
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={onClose}>
       <div className={cx('max-h-[92vh] w-full overflow-y-auto rounded-2xl bg-white p-6', wide ? 'max-w-3xl' : 'max-w-md')} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div className="flex items-start justify-between gap-4">
@@ -59,6 +64,7 @@ export function Dialog({ title, onClose, children, wide }: { title: ReactNode; o
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

@@ -66,5 +66,8 @@ const RIPPLE = () => {
     ['/src/components/XrayScan.tsx', 'const HOLD = 3500', 'const HOLD = 700'],
     ['/src/components/XrayScan.tsx', 'const SWEEP = 3400', 'const SWEEP = 1400'],
   ]);
+  // Frame 7 ending: finished customer designs on their share pages.
+  const DESIGNS = ['23b07256-34e6-4801-abfb-244312ce7915', '80d571bd-99b7-4cd4-8e42-4ef9128a8772', '7b11a310-e9d3-4516-b676-92901f4428a6'];
+  for (const [i, id] of DESIGNS.entries()) await rec('design' + (i + 1), 'https://smugpara.com/d/' + id, async (p) => { const x = p.getByRole('note').getByRole('button').first(); if (await x.count()) await x.click().catch(() => {}); await p.waitForTimeout(3000); });
   await b.close();
 })();

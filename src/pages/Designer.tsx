@@ -14,7 +14,7 @@ import { AREA_ORDER, PRINT_SIZES, areaLayers, customPrice, inLabel, quoteCustom 
 import { checkImage, warmUpChecker } from '../lib/moderation'
 import { detectToneBase } from '../lib/tone'
 import { erasePlainBackground, removeBackground } from '../lib/bgRemoval'
-import { cropCanvas, fitLayerToCrop, opaqueBounds, trimTransparent } from '../lib/trim'
+import { cropCanvas, fitLayerToCrop, opaqueBounds, trimTransparent, ensureMinSize } from '../lib/trim'
 import { designForRow, fillRoster, hasArt, mainArea, measurePrints } from '../lib/design'
 import { AddPanel } from '../components/designer/AddPanel'
 import { LayerPanel, dpiNote } from '../components/designer/LayerPanel'
@@ -127,7 +127,9 @@ export default function Designer() {
   const [cutting, setCutting] = useState<{ id: string; progress: number } | null>(null)
   const [panel, setPanel] = useState<'add' | 'layers' | 'team'>('add')
   const [rulesAt, setRulesAt] = useState<string | null>(storedRules)
-  const [dialog, setDialog] = useState<'rules' | 'save' | 'share' | null>(null)
+  const [dialog, setDialog] = useState<'rules' | 'rules-ai' | 'save' | 'share' | null>(null)
+  // Runs the AI drawing the customer asked for once they agree to the rules.
+  const aiRetry = useRef<(() => void) | null>(null)
   const [saved, setSaved] = useState<{ id: string; name: string; shared: boolean } | null>(null)
   const [name, setName] = useState('My Smug Para tee')
   const [snap, setSnap] = useState<{ x: boolean; y: boolean }>({ x: false, y: false })
@@ -289,12 +291,14 @@ export default function Designer() {
       setStage(['Clearing the background', 2, 3])
       const cut = await erasePlainBackground(jpeg).catch(() => null)
       const t = cut ? await trimTransparent(cut) : null
-      const src = t?.src ?? cut ?? jpeg
+      const drawn = t?.src ?? cut ?? jpeg
       setStage(['Placing it on the tee', 3, 3])
-      const img = new Image()
-      img.src = src
-      await img.decode()
-      await addImage(src, img.naturalHeight / img.naturalWidth || 1, { px: img.naturalWidth, flagged: verdict === 'flag' || undefined })
+      const real = new Image()
+      real.src = drawn
+      await real.decode()
+      // Saved with the order at 500px or more on its shorter side (px stays the real drawn size for the quality check).
+      const big = await ensureMinSize(drawn)
+      await addImage(big.src, big.h / big.w || 1, { px: real.naturalWidth, flagged: verdict === 'flag' || undefined })
       toast.success(cut ? 'Your AI art is on the tee. Not quite right? Press undo and try again.' : 'Your AI art is on the tee. Use Photo (AI) in Layers to clear its background.')
     } catch {
       toast.error('Could not add that drawing. Please try again.')
@@ -589,7 +593,7 @@ export default function Designer() {
               onUpload={pickFile}
               onDropFile={(f) => (rulesAt ? onFile(f) : setDialog('rules'))}
               onAddImage={(src, aspect) => addImage(src, aspect)}
-              canStartAi={() => { if (rulesAt) return true; setDialog('rules'); return false }}
+              canStartAi={(retry) => { if (rulesAt) return true; aiRetry.current = retry; setDialog('rules-ai'); return false }}
               onAiArt={onAiArt}
             />
           )}
@@ -775,6 +779,7 @@ export default function Designer() {
         </aside>
       </div>
 
+      {dialog === 'rules-ai' && <RulesDialog forAi onClose={() => { aiRetry.current = null; setDialog(null) }} onAgree={() => { acceptRules(true); setDialog(null); const go = aiRetry.current; aiRetry.current = null; go?.() }} />}
       {dialog === 'rules' && <RulesDialog onClose={() => setDialog(null)} onAgree={() => { acceptRules(true); setDialog(null); fileRef.current?.click() }} />}
 
       {dialog === 'save' && (

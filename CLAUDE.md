@@ -7,3 +7,6 @@
 
 ## Campaign videos
 - Follow `marketing/MOTION-GRAPHICS.md` for every motion graphic: slow eased luxury motion, no bounce, shake or flashes.
+
+## Replies
+- Whenever the owner has something to click, run or open, follow `.claude/skills/next-steps-links/SKILL.md`: a numbered **Your next steps** list of clickable links at the very top of the reply. Never say "sent earlier".

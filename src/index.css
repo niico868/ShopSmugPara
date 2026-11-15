@@ -21,6 +21,11 @@ html, body { background: #ffffff; color: #111111; }
 /* Nothing on the storefront should make a phone scroll sideways. `clip` (not `hidden`) keeps sticky headers working. */
 html, body { overflow-x: clip; }
 @supports not (overflow: clip) { html, body { overflow-x: hidden; } }
+/* iPhone Safari zooms into any text box under 16px when it's tapped, which leaves the page panned sideways.
+   On phones every text box is 16px, so tapping one never zooms. */
+@media (max-width: 639px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']), select, textarea { font-size: 16px !important; }
+}
 body { @apply font-sans antialiased; }
 ::selection { background: #F34949; color: #ffffff; }
 input[type='number']::-webkit-inner-spin-button { opacity: .4; }
