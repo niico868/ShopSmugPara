@@ -169,13 +169,14 @@ export const Frame7: React.FC = () => {
           <div key={i} style={{ position: 'absolute', left: 540 - 292 + 12, top: 400 + 12, width: 560, height: 560 * 2532 / 1170, borderRadius: 70, overflow: 'hidden', opacity: o,
             transform: `translateY(${-interpolate(f, [8, AI_TOTAL], [0, 40])}px) scale(${interpolate(f, [8, AI_TOTAL], [1, 1.06])})`, transformOrigin: '50% 35%' }}>
             <Sequence from={from - 10} layout="none"><OffthreadVideo src={staticFile(`rec-design${i + 1}.mp4`)} startFrom={12} muted style={{ width: '100%', height: '100%' }} /></Sequence>
+            {i === 0 && <div style={{ position: 'absolute', left: 0, right: 0, top: 200, height: 190, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(14px)', background: 'rgba(255,255,255,.15)' }} />}
           </div>
         );
       })}
       <AbsoluteFill style={{ background: 'linear-gradient(180deg, rgba(11,11,11,.95) 0%, rgba(11,11,11,0) 22%, rgba(11,11,11,0) 70%, rgba(11,11,11,.96) 86%)' }} />
       <Reveal lines={['TYPE IT.']} from={4} out={AI_PLACED - 4} style={top} lineStyle={() => ({ ...headline, fontSize: 84 })} />
-      <Reveal lines={['IT APPEARS.']} from={AI_PLACED + 14} out={340} style={top} lineStyle={() => ({ ...headline, fontSize: 76, color: C.coral })} />
-      <Reveal lines={['YOUR DESIGN', 'IS A DRAFT']} from={360} out={430} style={top} lineStyle={(i) => ({ ...headline, color: i ? C.coral : C.white })} />
+      <Reveal lines={['IT APPEARS.']} from={AI_PLACED + 14} out={400} style={top} lineStyle={() => ({ ...headline, fontSize: 76, color: C.coral })} />
+      <Reveal lines={['YOUR DESIGN', 'IS A DRAFT']} from={420} out={444} style={top} lineStyle={(i) => ({ ...headline, color: i ? C.coral : C.white })} />
       <Reveal lines={['OUR TEAM', 'WILL ADD THE']} from={450} out={550} style={{ ...top, top: 110 }} lineStyle={() => headline} />
       {f >= 466 && f < 572 && (
         <div style={{ position: 'absolute', left: 0, right: 0, top: 270, textAlign: 'center', ...fire, fontSize: 96, opacity: prog(f, 466, 490) * (1 - prog(f, 550, 570, SMOOTH)), transform: `scale(${0.9 + prog(f, 466, 500) * 0.1})`, filter: `blur(${(1 - prog(f, 466, 490)) * 8}px)` }}>{'\u{1F525}'}</div>
