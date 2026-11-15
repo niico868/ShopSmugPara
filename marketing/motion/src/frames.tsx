@@ -193,4 +193,29 @@ export const Frame7: React.FC = () => {
 };
 export const AI_FRAMES = AI_TOTAL;
 
+/** FRAME 6, CREATE (13.5s): add text, type a name, gold, oversized, flip to the back and return. Live site. */
+export const Frame6: React.FC = () => (
+  <Stage src={staticFile('rec-create.mp4')} startFrom={30} rate={1.15} total={405}>
+    <Reveal lines={['PUT YOUR', 'NAME ON IT.']} from={4} out={196} style={{ position: 'absolute', left: 50, right: 50, top: 120 }} lineStyle={(i) => ({ ...headline, color: i ? C.coral : C.white })} />
+    <Reveal lines={['YOUR COLOURS.']} from={212} out={296} style={{ position: 'absolute', left: 50, right: 50, top: 150 }} lineStyle={() => ({ ...headline, color: C.coral })} />
+    <Reveal lines={['FRONT + BACK.']} from={312} style={{ position: 'absolute', left: 50, right: 50, top: 150 }} lineStyle={() => headline} />
+    <Rule top={300} from={26} w={240} />
+    <Reveal lines={['11 FONTS \u00b7 OUTLINE \u00b7 SHADOW \u00b7 CURVE']} from={90} style={{ position: 'absolute', left: 30, right: 30, top: 1600 }} lineStyle={() => ({ ...sub, fontSize: 38 })} />
+    <Rule top={1675} from={110} w={160} />
+    <Reveal lines={['REGULAR OR OVERSIZED \u00b7 ON YOUR PHONE']} from={130} style={{ position: 'absolute', left: 30, right: 30, top: 1710 }} lineStyle={() => small} />
+  </Stage>
+);
+
+/** FRAME 8, SQUAD (14s): the team panel fills with four players, then the back of the tee shows KAI 7. Live site. */
+export const Frame8: React.FC = () => (
+  <Stage src={staticFile('rec-squad.mp4')} startFrom={45} rate={1.3} total={415}>
+    <Reveal lines={['KITTING OUT', 'THE CREW?']} from={4} out={352} style={{ position: 'absolute', left: 50, right: 50, top: 120 }} lineStyle={(i) => ({ ...headline, color: i ? C.coral : C.white })} />
+    <Reveal lines={['ONE ORDER.']} from={368} style={{ position: 'absolute', left: 50, right: 50, top: 150 }} lineStyle={() => ({ ...headline, fontSize: 80, color: C.coral })} />
+    <Rule top={300} from={26} w={240} />
+    <Reveal lines={['EVERY NAME, NUMBER + SIZE']} from={90} style={{ position: 'absolute', left: 30, right: 30, top: 1600 }} lineStyle={() => sub} />
+    <Rule top={1675} from={110} w={160} />
+    <Reveal lines={['TEAMS \u00b7 CREWS \u00b7 FETES \u00b7 EVENTS']} from={130} style={{ position: 'absolute', left: 30, right: 30, top: 1710 }} lineStyle={() => small} />
+  </Stage>
+);
+
 export { Img, Settle, EXPO };

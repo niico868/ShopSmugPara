@@ -1,6 +1,6 @@
 import React from 'react';
 import { registerRoot, Composition, AbsoluteFill, Img, Sequence, staticFile, useCurrentFrame, interpolate } from 'remotion';
-import { AI_FRAMES, Frame1, Frame2, Frame3, Frame4, Frame5, Frame7 } from './frames';
+import { AI_FRAMES, Frame1, Frame2, Frame3, Frame4, Frame5, Frame6, Frame7, Frame8 } from './frames';
 import { StyleReelLux } from './reel';
 import { BODY, C, Callout, Flash, FlipClock, Fonts, POSTER, Rise, Scan, Stamp, Typewriter } from './kit';
 
@@ -66,6 +66,8 @@ registerRoot(() => (
     <Composition id="Frame2" component={Frame2} durationInFrames={270} fps={FPS} width={1080} height={1920} />
     <Composition id="Frame3" component={Frame3} durationInFrames={395} fps={FPS} width={1080} height={1920} />
     <Composition id="Frame5" component={Frame5} durationInFrames={255} fps={FPS} width={1080} height={1920} />
+    <Composition id="Frame6" component={Frame6} durationInFrames={405} fps={FPS} width={1080} height={1920} />
+    <Composition id="Frame8" component={Frame8} durationInFrames={415} fps={FPS} width={1080} height={1920} />
     <Composition id="Frame7" component={Frame7} durationInFrames={AI_FRAMES} fps={FPS} width={1080} height={1920} />
     <Composition id="Frame4" component={Frame4} durationInFrames={270} fps={FPS} width={1080} height={1920} />
   </>

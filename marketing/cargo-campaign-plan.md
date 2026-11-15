@@ -29,9 +29,9 @@ Tools: Playwright (site recordings), Remotion (motion graphics), ffmpeg + MovieP
 - [x] **Me** 2 THE WORLD: home scroll, typed brand codes, T&T route-line map
 - [x] **Me** 3 THE DROP: X-ray front/back cycle, freeze-frames with garment labels
 - [x] **Me** 5 THE TWIST: tap "Design your own", split screen drop vs blank
-- [ ] **Me** 6 CREATE: designer, name typed, colour change, front/back flip (phone-sized)
+- [x] **Me** 6 CREATE: designer, name typed, colour change, front/back flip (phone-sized)
 - [x] **Me** 7 AI WOW: "Create with AI" prompt → art on tee
-- [ ] **Me** 8 SQUAD: team panel rows, tees multiplying into a grid
+- [x] **Me** 8 SQUAD: team panel rows, tees multiplying into a grid
 - [ ] **Me** 9 TRUST: order tracking timeline lighting up, "5 work days" badge
 - [ ] **Me** 10 PLAY: pirogue crossing + catch, points pop, Contraband coin spin
 - [ ] **Me** 11 BELONG: badge ladder Lookout → Navigator → Smuggler's World
