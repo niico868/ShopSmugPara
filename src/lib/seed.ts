@@ -106,7 +106,7 @@ export const defaultSettings = (): Settings => ({
   whatsapp: '',
   announcement: 'New drop: Sovereignty. Ultra heavyweight 400gsm.',
   community_url: '',
-  payment_instructions: 'Pay by bank transfer (preferred), using your order code as the reference, or at any Paywise outlet nationwide. Pay in full, or a 50% deposit now with the balance before you collect or we deliver.',
+  payment_instructions: 'Bank: (your bank)\nName: (account name)\nAccount #: (number)\nType: (type)\nBranch: (branch)',
 })
 
 const NAMES = ['Thabo M.', 'Aisha K.', 'Jordan P.', 'Lerato S.', 'Mike D.', 'Zanele N.', 'Chris O.', 'Naledi B.', 'Sam W.', 'Kea T.', 'Priya R.', 'Liam F.']

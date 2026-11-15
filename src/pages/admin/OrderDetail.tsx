@@ -12,10 +12,12 @@ import { bakeTone, toneLabel, toneOf } from '../../lib/tone'
 import { AREA_ORDER } from '../../lib/pricing'
 import { cx, dateTime, money } from '../../lib/format'
 import { toast } from '../../components/Toast'
+import { useSettings } from '../../lib/settings'
 
 export default function OrderDetail() {
   const { id = '' } = useParams()
   const [order, setOrder] = useState<Order | null | undefined>()
+  const { settings } = useSettings()
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -38,7 +40,9 @@ export default function OrderDetail() {
   }
 
   const trackUrl = `${location.origin}/order/${order.code}?email=${encodeURIComponent(order.email)}`
-  const statusMsg = `Hi ${order.customer_name.split(' ')[0]}! Your Smug Para order ${order.code} is now: ${STATUS_META[order.status].label}. Track it here: ${trackUrl}`
+  const payNow = order.payment_status === 'unpaid' && order.status !== 'pending' && order.status !== 'cancelled' && settings.payment_instructions
+    ? `\n\nPayment (50% deposit or full payment), by bank transfer:\n${settings.payment_instructions}\nReference: ${order.code}` : ''
+  const statusMsg = `Hi ${order.customer_name.split(' ')[0]}! Your Smug Para order ${order.code} is now: ${STATUS_META[order.status].label}. Track it here: ${trackUrl}${payNow}`
   const phone = order.phone.replace(/\D/g, '')
   const flow = order.fulfillment === 'pickup' ? STATUS_FLOW.filter((s) => s !== 'shipped') : STATUS_FLOW
   const next = flow[flow.indexOf(order.status) + 1]

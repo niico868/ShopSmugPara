@@ -7,9 +7,9 @@ import { listProducts, placeOrder } from '../lib/api'
 import type { Product } from '../lib/types'
 import { usePoints } from '../lib/points'
 import { codeOff, type RewardCode } from '../lib/rewards'
-import { checkPromo, promoOff, type PromoCheck } from '../lib/promo'
+import { checkPromo, offerPromo, promoOff, type PromoCheck } from '../lib/promo'
 import { CheckoutRewards } from '../components/CheckoutRewards'
-import { DEPOSIT_NOTE, PAYMENT_METHODS, READY_NOTE, colorName } from '../lib/constants'
+import { CUSTOM_NOTE, DEPOSIT_NOTE, PAYMENT_METHODS, colorName } from '../lib/constants'
 import { cx, money } from '../lib/format'
 import { Button, Card, Empty, Field, Input, Select, Textarea } from '../components/ui'
 import { ItemThumb } from '../components/ItemThumb'
@@ -29,6 +29,10 @@ export default function Checkout() {
   const [promoText, setPromoText] = useState('')
   const [promo, setPromo] = useState<PromoCheck | null>(null)
   const [promoBusy, setPromoBusy] = useState(false)
+  // A code on offer to the next buyer of something in this bag (e.g. FIRST1 on 11/11 FRTB).
+  const [offer, setOffer] = useState<PromoCheck | null>(null)
+  const bagProducts = items.filter((i) => i.kind === 'catalog' && i.product_id).map((i) => i.product_id!).sort().join(',')
+  useEffect(() => { offerPromo(bagProducts ? bagProducts.split(',') : []).then(setOffer).catch(() => setOffer(null)) }, [bagProducts])
   const applyPromo = async () => {
     if (!promoText.trim()) return
     setPromoBusy(true)
@@ -120,11 +124,9 @@ export default function Checkout() {
           <Field label="How would you like to pay?">
             <Select value={f.payment_method} onChange={set('payment_method')}>{PAYMENT_METHODS.map((m) => <option key={m}>{m}</option>)}</Select>
           </Field>
-          <p className="rounded-xl bg-ink-800 p-3 text-sm text-ink-200">{settings.payment_instructions}</p>
           <div className="space-y-1.5 rounded-xl border border-acid/40 bg-acid/10 p-3 text-sm">
-            <p className="font-semibold">Deposit or full payment required</p>
-            <p className="text-ink-300">{DEPOSIT_NOTE}</p>
-            <p className="text-ink-300">{READY_NOTE}</p>
+            <p className="font-semibold">{DEPOSIT_NOTE}</p>
+            {items.some((i) => i.kind === 'custom') && <p className="text-ink-300">{CUSTOM_NOTE}</p>}
           </div>
         </Card>
       </div>
@@ -146,6 +148,13 @@ export default function Checkout() {
               </li>
             ))}
           </ul>
+          {offer && promo?.code !== offer.code && (
+            <div className="mt-5 rounded-xl border border-acid bg-acid/10 p-3 text-sm">
+              <p className="font-semibold">You&rsquo;re early. {offer.percent}% off your {offer.product_name ?? 'tee'} with code <span className="font-mono">{offer.code}</span>.</p>
+              <p className="mt-1 text-xs text-ink-400">Only for this checkout{offer.needs_account ? ', signed in' : ''}. The offer ends once this order is placed.</p>
+              <Button type="button" size="sm" className="mt-2" onClick={() => { setPromoText(offer.code!); setPromo(promoOff(offer, items) ? offer : null); if (promoOff(offer, items)) sfx('success') }}>Use {offer.code}</Button>
+            </div>
+          )}
           <div className="mt-5 flex gap-2">
             <Input aria-label="Promo code" placeholder="Promo code" value={promoText} onChange={(e) => { setPromoText(e.target.value.toUpperCase()); setPromo(null) }}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyPromo() } }} className="uppercase" />

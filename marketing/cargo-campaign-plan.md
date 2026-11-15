@@ -17,18 +17,18 @@ Tools: Playwright (site recordings), Remotion (motion graphics), ffmpeg + MovieP
 - [x] **You** recording: local copy with sample data. I design the custom tees myself in the designer.
 - [x] **Me** install Remotion + MoviePy (done)
 - [x] **Me** build the brand motion kit: type styles, coral flash, scan-line glitch, stamp, callout label, end card. Render a 5s style reel.
-- [ ] **You** approve the style reel. **Gate: nothing else gets made until this looks right.**
+- [x] **You** approve the style reel. **Gate: nothing else gets made until this looks right.**
 
 ## Phase 1: Capability test (2 frames)
-- [ ] **Me** frame 1 HOOK: record the X-ray hero, add glitch + logo stamp
-- [ ] **Me** frame 4 SCARCITY: record the product countdown, add flip clock + "LEAVES THE DOCK" stamp
+- [x] **Me** frame 1 HOOK: record the X-ray hero, add glitch + logo stamp
+- [x] **Me** frame 4 SCARCITY: record the product countdown, add flip clock + "LEAVES THE DOCK" stamp
 - [ ] **You** review both on your phone. Notes on speed, text size, vibe.
 - [ ] **Me** revise. This sets the template for the other 10.
 
 ## Phase 2: Site frames (me, recordings + motion)
-- [ ] **Me** 2 THE WORLD: home scroll, typed brand codes, T&T route-line map
-- [ ] **Me** 3 THE DROP: X-ray front/back cycle, freeze-frames with garment labels
-- [ ] **Me** 5 THE TWIST: tap "Design your own", split screen drop vs blank
+- [x] **Me** 2 THE WORLD: home scroll, typed brand codes, T&T route-line map
+- [x] **Me** 3 THE DROP: X-ray front/back cycle, freeze-frames with garment labels
+- [x] **Me** 5 THE TWIST: tap "Design your own", split screen drop vs blank
 - [ ] **Me** 6 CREATE: designer, name typed, colour change, front/back flip (phone-sized)
 - [ ] **Me** 7 AI WOW: "Create with AI" prompt → art on tee
 - [ ] **Me** 8 SQUAD: team panel rows, tees multiplying into a grid

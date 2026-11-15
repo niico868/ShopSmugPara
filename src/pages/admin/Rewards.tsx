@@ -5,7 +5,7 @@ import {
   type LedgerRow, type MemberRow, type RewardCode, type Submission,
 } from '../../lib/rewards'
 import { usePoints } from '../../lib/points'
-import { listPromos, savePromo, setPromoActive, type Promo } from '../../lib/promo'
+import { listPromos, savePromo, setPromoActive, setPromoOffer, type Promo } from '../../lib/promo'
 import { listProducts } from '../../lib/api'
 import type { Product } from '../../lib/types'
 import { Button, Card, Empty, Input, PageLoader } from '../../components/ui'
@@ -66,10 +66,11 @@ function Promos() {
       {rows.length === 0 ? <Empty title="No promo codes yet" /> : rows.map((p) => (
         <Card key={p.code} className="flex flex-wrap items-center justify-between gap-3 text-sm">
           <span className="min-w-0"><b className="font-mono text-base">{p.code}</b> · {p.percent}% off {name(p.product_id)}
-            <span className="block text-ink-400">{p.used ?? 0} of {p.max_uses} used{p.needs_account ? ' · account needed' : ''}</span></span>
+            <span className="block text-ink-400">{p.used ?? 0} of {p.max_uses} used{p.needs_account ? ' · account needed' : ''}{p.auto_offer ? ' · offered at the next checkout' : ''}</span></span>
           <span className="flex items-center gap-2">
             {(p.used ?? 0) >= p.max_uses ? <span className="rounded-full bg-black px-3 py-1 text-xs font-semibold text-white">Claimed</span>
               : <span className={cx('rounded-full px-3 py-1 text-xs font-semibold', p.active ? 'bg-acid/15 text-acid-dark' : 'bg-ink-800 text-ink-400')}>{p.active ? 'Live' : 'Paused'}</span>}
+            {(p.used ?? 0) < p.max_uses && p.product_id && <Button size="sm" variant={p.auto_offer ? 'outline' : 'ghost'} onClick={() => run(() => setPromoOffer(p.code, !p.auto_offer), p.auto_offer ? 'Checkout offer off' : 'Offered to the next buyer at checkout', load)}>{p.auto_offer ? 'Offer on: stop' : 'Offer to next buyer'}</Button>}
             <Button size="sm" variant="ghost" onClick={() => run(() => setPromoActive(p.code, !p.active), p.active ? 'Paused' : 'Live again', load)}>{p.active ? 'Pause' : 'Resume'}</Button>
           </span>
         </Card>
