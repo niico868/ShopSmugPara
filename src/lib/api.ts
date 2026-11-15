@@ -4,7 +4,7 @@ import { AREA_ORDER } from './pricing'
 import { defaultSettings, seedOrders, seedProducts } from './seed'
 import { orderCode, uid } from './format'
 import { demoOrderChanged, demoSpendRewards } from './rewards'
-import { demoFreePromo, demoUsePromo } from './promo'
+import { demoEndOffer, demoFreePromo, demoUsePromo } from './promo'
 import { currentPhoto } from './onWhite'
 
 // ---------------------------------------------------------------------------
@@ -147,6 +147,7 @@ export async function placeOrder(input: CheckoutInput, settings: Settings): Prom
     if (promo_code) order.discount += demoUsePromo(order, promo_code, !!localStorage.getItem('sp.account'))
     order.total -= order.discount
     write(K.orders, [order, ...demoOrders()])
+    demoEndOffer(items.map((i) => i.product_id).filter((x): x is string => !!x))
     return { code: order.code }
   }
   // Server recomputes prices from the products/settings tables, so the client can't tamper with totals.

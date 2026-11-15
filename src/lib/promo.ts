@@ -7,6 +7,8 @@ import type { Order, OrderItem } from './types'
 export interface Promo {
   code: string; percent: number; product_id: string | null; max_uses: number
   needs_account: boolean; active: boolean; note: string; created_at: string
+  /** Shown at checkout to the next buyer of its product; switches off once that order is placed. */
+  auto_offer?: boolean
   /** Admin list only. */
   used?: number
 }
@@ -35,6 +37,22 @@ export async function checkPromo(code: string): Promise<PromoCheck> {
   }
   const r = must(await supabase!.rpc('check_promo', { p_code: c })) as PromoCheck
   return r.percent != null ? { ...r, percent: Number(r.percent) } : r
+}
+
+/** Checkout: a code on offer for something in this bag (auto_offer), or null. */
+export async function offerPromo(productIds: string[]): Promise<PromoCheck | null> {
+  if (!productIds.length) return null
+  if (DEMO) {
+    const p = read<Promo[]>(KEY, []).find((x) => x.auto_offer && x.active && x.product_id && productIds.includes(x.product_id)
+      && demoUses().filter((u) => u.code === x.code).length < x.max_uses)
+    return p ? { ok: true, code: p.code, percent: p.percent, product_id: p.product_id, product_name: null, needs_account: p.needs_account } : null
+  }
+  const r = must(await supabase!.rpc('offer_promo', { p_products: productIds })) as PromoCheck | null
+  return r ? { ...r, percent: Number(r.percent) } : null
+}
+/** Demo: an order with the product ends its checkout offer. */
+export function demoEndOffer(productIds: string[]) {
+  write(KEY, read<Promo[]>(KEY, []).map((x) => (x.auto_offer && x.product_id && productIds.includes(x.product_id) ? { ...x, auto_offer: false } : x)))
 }
 
 /** What a promo takes off this bag: its percent of one tee of its product (the first in the bag). */
@@ -77,6 +95,11 @@ export async function savePromo(p: Omit<Promo, 'created_at' | 'used'>) {
     return write(KEY, [{ ...row, created_at: new Date().toISOString() }, ...all])
   }
   must(await supabase!.from('promo_codes').upsert(row))
+}
+
+export async function setPromoOffer(code: string, auto_offer: boolean) {
+  if (DEMO) return write(KEY, read<Promo[]>(KEY, []).map((x) => (x.code === code ? { ...x, auto_offer } : x)))
+  must(await supabase!.from('promo_codes').update({ auto_offer }).eq('code', code))
 }
 
 export async function setPromoActive(code: string, active: boolean) {
