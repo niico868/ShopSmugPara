@@ -3,7 +3,7 @@
 import React from 'react';
 import { AbsoluteFill, Img, OffthreadVideo, Sequence, interpolate, staticFile, useCurrentFrame } from 'remotion';
 import { BODY, C, Fonts, POSTER } from './kit';
-import { EXPO, FadeEdges, Finish, Hairline, Reveal, SMOOTH, Settle, SoftClock, prog } from './lux';
+import { EXPO, FadeEdges, Finish, Hairline, LogoOutro, Reveal, SMOOTH, Settle, SoftClock, prog } from './lux';
 
 /** An iPhone-style frame around a screen recording (1170x2532). */
 /** One cut of a recording: play `src` from second `at` at `rate` for `len` output frames. */
@@ -81,8 +81,8 @@ export const Frame4: React.FC = () => {
 };
 
 /** Shared layout: phone glides in and drifts, top and bottom darkened for type. */
-const Stage: React.FC<{ src: string; startFrom?: number; rate?: number; cuts?: Cut[]; zoom?: (f: number) => number; originY?: number; total: number; children: React.ReactNode }> =
-  ({ src, startFrom = 0, rate = 1, cuts, zoom, originY = 0.5, total, children }) => {
+const Stage: React.FC<{ src: string; startFrom?: number; rate?: number; cuts?: Cut[]; zoom?: (f: number) => number; originY?: number; total: number; outro?: boolean; children: React.ReactNode }> =
+  ({ src, startFrom = 0, rate = 1, cuts, zoom, originY = 0.5, total, outro, children }) => {
     const f = useCurrentFrame();
     const enter = prog(f, 8, 68);
     const drift = interpolate(f, [8, total], [1, 1.06]);
@@ -94,7 +94,8 @@ const Stage: React.FC<{ src: string; startFrom?: number; rate?: number; cuts?: C
         <AbsoluteFill style={{ background: 'linear-gradient(180deg, rgba(11,11,11,.95) 0%, rgba(11,11,11,0) 22%, rgba(11,11,11,0) 70%, rgba(11,11,11,.96) 86%)' }} />
         {children}
         <Finish />
-        <FadeEdges total={total} />
+        {outro && <LogoOutro total={total} />}
+        <FadeEdges total={total} noOut={outro} />
       </AbsoluteFill>
     );
   };
@@ -169,13 +170,14 @@ export const Frame7: React.FC = () => {
           <div key={i} style={{ position: 'absolute', left: 540 - 292 + 12, top: 400 + 12, width: 560, height: 560 * 2532 / 1170, borderRadius: 70, overflow: 'hidden', opacity: o,
             transform: `translateY(${-interpolate(f, [8, AI_TOTAL], [0, 40])}px) scale(${interpolate(f, [8, AI_TOTAL], [1, 1.06])})`, transformOrigin: '50% 35%' }}>
             <Sequence from={from - 10} layout="none"><OffthreadVideo src={staticFile(`rec-design${i + 1}.mp4`)} startFrom={12} muted style={{ width: '100%', height: '100%' }} /></Sequence>
+            {i === 0 && <div style={{ position: 'absolute', left: 0, right: 0, top: 200, height: 190, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(14px)', background: 'rgba(255,255,255,.15)' }} />}
           </div>
         );
       })}
       <AbsoluteFill style={{ background: 'linear-gradient(180deg, rgba(11,11,11,.95) 0%, rgba(11,11,11,0) 22%, rgba(11,11,11,0) 70%, rgba(11,11,11,.96) 86%)' }} />
       <Reveal lines={['TYPE IT.']} from={4} out={AI_PLACED - 4} style={top} lineStyle={() => ({ ...headline, fontSize: 84 })} />
-      <Reveal lines={['IT APPEARS.']} from={AI_PLACED + 14} out={340} style={top} lineStyle={() => ({ ...headline, fontSize: 76, color: C.coral })} />
-      <Reveal lines={['YOUR DESIGN', 'IS A DRAFT']} from={360} out={430} style={top} lineStyle={(i) => ({ ...headline, color: i ? C.coral : C.white })} />
+      <Reveal lines={['IT APPEARS.']} from={AI_PLACED + 14} out={400} style={top} lineStyle={() => ({ ...headline, fontSize: 76, color: C.coral })} />
+      <Reveal lines={['YOUR DESIGN', 'IS A DRAFT']} from={420} out={444} style={top} lineStyle={(i) => ({ ...headline, color: i ? C.coral : C.white })} />
       <Reveal lines={['OUR TEAM', 'WILL ADD THE']} from={450} out={550} style={{ ...top, top: 110 }} lineStyle={() => headline} />
       {f >= 466 && f < 572 && (
         <div style={{ position: 'absolute', left: 0, right: 0, top: 270, textAlign: 'center', ...fire, fontSize: 96, opacity: prog(f, 466, 490) * (1 - prog(f, 550, 570, SMOOTH)), transform: `scale(${0.9 + prog(f, 466, 500) * 0.1})`, filter: `blur(${(1 - prog(f, 466, 490)) * 8}px)` }}>{'\u{1F525}'}</div>
@@ -191,5 +193,98 @@ export const Frame7: React.FC = () => {
   );
 };
 export const AI_FRAMES = AI_TOTAL;
+
+/** FRAME 6, CREATE (13.5s): add text, type a name, gold, oversized, flip to the back and return. Live site. */
+export const Frame6: React.FC = () => (
+  <Stage src={staticFile('rec-create.mp4')} startFrom={30} rate={1.15} total={455} outro>
+    <Reveal lines={['PUT YOUR', 'NAME ON IT.']} from={4} out={196} style={{ position: 'absolute', left: 50, right: 50, top: 120 }} lineStyle={(i) => ({ ...headline, color: i ? C.coral : C.white })} />
+    <Reveal lines={['YOUR COLOURS.']} from={212} out={296} style={{ position: 'absolute', left: 50, right: 50, top: 150 }} lineStyle={() => ({ ...headline, color: C.coral })} />
+    <Reveal lines={['FRONT + BACK.']} from={312} style={{ position: 'absolute', left: 50, right: 50, top: 150 }} lineStyle={() => headline} />
+    <Rule top={300} from={26} w={240} />
+    <Reveal lines={['11 FONTS \u00b7 OUTLINE \u00b7 SHADOW \u00b7 CURVE']} from={90} style={{ position: 'absolute', left: 30, right: 30, top: 1600 }} lineStyle={() => ({ ...sub, fontSize: 38 })} />
+    <Rule top={1675} from={110} w={160} />
+    <Reveal lines={['REGULAR OR OVERSIZED \u00b7 ON YOUR PHONE']} from={130} style={{ position: 'absolute', left: 30, right: 30, top: 1710 }} lineStyle={() => small} />
+  </Stage>
+);
+
+/** FRAME 8, SQUAD (14s): the team panel fills with four players, then the back of the tee shows KAI 7. Live site. */
+export const Frame8: React.FC = () => (
+  <Stage src={staticFile('rec-squad.mp4')} startFrom={45} rate={1.22} total={490} outro>
+    <Reveal lines={['KITTING OUT', 'THE CREW?']} from={4} out={378} style={{ position: 'absolute', left: 50, right: 50, top: 120 }} lineStyle={(i) => ({ ...headline, color: i ? C.coral : C.white })} />
+    <Reveal lines={['ONE ORDER.']} from={394} style={{ position: 'absolute', left: 50, right: 50, top: 150 }} lineStyle={() => ({ ...headline, fontSize: 80, color: C.coral })} />
+    <Rule top={300} from={26} w={240} />
+    <Reveal lines={['EVERY NAME, NUMBER + SIZE']} from={90} style={{ position: 'absolute', left: 30, right: 30, top: 1600 }} lineStyle={() => sub} />
+    <Rule top={1675} from={110} w={160} />
+    <Reveal lines={['TEAMS \u00b7 CREWS \u00b7 FETES \u00b7 EVENTS']} from={130} style={{ position: 'absolute', left: 30, right: 30, top: 1710 }} lineStyle={() => small} />
+  </Stage>
+);
+
+const topL = { position: 'absolute' as const, left: 50, right: 50, top: 120 };
+const two = (i: number) => ({ ...headline, color: i ? C.coral : C.white });
+
+/** FRAME 9, TRUST v2 (25.7s): six 4-second beats on a custom order's tracking page, with a big progress rail. */
+const BEAT = 120;
+const T9 = [
+  { top: ['YOU ORDER', 'A CUSTOM'], sub: 'WE CONFIRM YOUR ORDER' },
+  { top: ['YOU MAKE A', 'DOWNPAYMENT'], sub: 'NO DOWNPAYMENT, NO PRODUCT' },
+  { top: ['YOU SEE THE', 'FINAL DRAFT'], sub: 'WE CONFIRM THE DESIGN' },
+  { top: ['PRODUCTION', 'ONGOING'], sub: '' },
+  { top: ['DELIVERY / PICKUP', 'READY'], sub: '' },
+  { top: ['DELIVERED.'], sub: 'YOU STEP OUT HARD' },
+];
+const STOPS = ['ORDER', 'DEPOSIT', 'DRAFT', 'PRINT', 'READY', 'DONE'];
+const Rail: React.FC = () => {
+  const f = useCurrentFrame();
+  // Fills slowly toward each stop across the second half of the beat before it, then settles on arrival.
+  const fill = STOPS.slice(1).reduce((n, _, i) => n + prog(f, (i + 1) * BEAT - 70, (i + 1) * BEAT + 30, SMOOTH), 0);
+  const W = 860, L = (1080 - W) / 2, step = W / (STOPS.length - 1);
+  const show = prog(f, 20, 60);
+  return (
+    <div style={{ position: 'absolute', left: L - 40, top: 1505, width: W + 80, height: 150, borderRadius: 28, background: 'rgba(11,11,11,.9)', opacity: show, transform: `translateY(${(1 - show) * 30}px)` }}>
+      <div style={{ position: 'absolute', left: 40, top: 52, width: W, height: 4, borderRadius: 2, background: 'rgba(255,255,255,.18)' }} />
+      <div style={{ position: 'absolute', left: 40, top: 52, width: step * fill, height: 4, borderRadius: 2, background: C.coral, boxShadow: '0 0 18px rgba(243,73,73,.6)' }} />
+      {STOPS.map((label, i) => {
+        const on = prog(f, i * BEAT - 20, i * BEAT + 20, SMOOTH) * (i === 0 ? 1 : Math.min(1, Math.max(0, fill - (i - 1))));
+        const cur = Math.max(0, 1 - Math.abs(f - (i * BEAT + 40)) / 80);
+        return (
+          <div key={label} style={{ position: 'absolute', left: 40 + step * i, top: 54, transform: 'translate(-50%,-50%)' }}>
+            <div style={{ width: 30, height: 30, borderRadius: 15, background: on > 0.5 ? C.coral : '#222', border: `3px solid ${on > 0.5 ? C.coral : 'rgba(255,255,255,.35)'}`,
+              transform: `scale(${1 + on * 0.15 + cur * 0.15})`, boxShadow: `0 0 0 ${cur * 14}px rgba(243,73,73,${0.25 * cur})` }} />
+            <div style={{ position: 'absolute', top: 44, left: '50%', transform: 'translateX(-50%)', fontFamily: BODY, fontWeight: 700, fontSize: 22, letterSpacing: '0.16em', color: on > 0.5 ? C.white : C.grey, whiteSpace: 'nowrap' }}>{label}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+export const Frame9: React.FC = () => (
+  <Stage src={staticFile('rec-trust2.mp4')} total={770} outro>
+    {T9.map((t, i) => {
+      const from = i * BEAT + 6, out = i < T9.length - 1 ? (i + 1) * BEAT - 16 : undefined;
+      return (
+        <React.Fragment key={i}>
+          <Reveal lines={t.top} from={from} out={out} style={{ position: 'absolute', left: 40, right: 40, top: t.top.length > 1 ? 120 : 160 }}
+            lineStyle={(k) => ({ ...headline, fontSize: 60, color: k || t.top.length === 1 ? C.coral : C.white })} />
+          {t.sub && <Reveal lines={[t.sub]} from={from + 18} out={out} style={{ position: 'absolute', left: 30, right: 30, top: 1690 }} lineStyle={() => ({ ...sub, fontSize: 36, color: C.white })} />}
+        </React.Fragment>
+      );
+    })}
+    <Rule top={300} from={26} w={240} />
+    <Rail />
+  </Stage>
+);
+
+/** FRAME 10, PLAY (12.5s): catch the pirogue (+5 EP), then claim today's Contraband coin on the FAQ (+20 EP). Live site. */
+export const Frame10: React.FC = () => (
+  <Stage src={staticFile('rec-play.mp4')} total={364} outro>
+    <Reveal lines={['CATCH THE', 'PIROGUE.']} from={4} out={118} style={topL} lineStyle={two} />
+    <Reveal lines={['FIND THE', 'CONTRABAND.']} from={134} out={232} style={topL} lineStyle={two} />
+    <Reveal lines={['STACK YOUR', 'POINTS.']} from={248} style={topL} lineStyle={two} />
+    <Rule top={300} from={26} w={240} />
+    <Reveal lines={['A NEW HUNT EVERY DAY']} from={60} style={{ position: 'absolute', left: 30, right: 30, top: 1600 }} lineStyle={() => sub} />
+    <Rule top={1675} from={80} w={160} />
+    <Reveal lines={['POINTS UNLOCK FREE TEES + REWARDS']} from={100} style={{ position: 'absolute', left: 30, right: 30, top: 1710 }} lineStyle={() => small} />
+  </Stage>
+);
 
 export { Img, Settle, EXPO };

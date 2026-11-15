@@ -5,7 +5,8 @@ import { getOrder, sendProof, subscribeOrders, updateOrder } from '../../lib/api
 import type { Area, Layer, Order, OrderItem, OrderStatus, PaymentStatus, ProofStatus } from '../../lib/types'
 import { STATUS_FLOW, STATUS_META, colorName, fitName, fontCss, statusLabel } from '../../lib/constants'
 import { Button, Card, Empty, PageLoader, StatusBadge, Textarea } from '../../components/ui'
-import { EventList } from '../../components/OrderTimeline'
+import { EventList, OrderProgress } from '../../components/OrderTimeline'
+import { hasCustom } from '../../lib/journey'
 import { ItemThumb } from '../../components/ItemThumb'
 import { AREAS, TeeMockup, imageDpi, svgToPng } from '../../components/TeeMockup'
 import { bakeTone, toneLabel, toneOf } from '../../lib/tone'
@@ -31,6 +32,10 @@ export default function OrderDetail() {
   if (!order) return <Empty title="Order not found"><Link to="/admin/orders" className="text-acid">Back to orders</Link></Empty>
 
   const act = async (patch: { status?: OrderStatus; payment_status?: PaymentStatus }, n = '') => {
+    // Custom designs print only after the customer approves the final draft.
+    if (patch.status === 'in_production' && hasCustom(order) && order.proof_status !== 'approved'
+      && !confirm(order.proof_status === 'sent' ? 'The customer hasn’t approved the final draft yet. Start printing anyway?'
+        : 'No final draft has been approved for this custom order yet. Start printing anyway?')) return
     setBusy(true)
     try {
       await updateOrder(order.id, patch, n)
@@ -81,6 +86,7 @@ export default function OrderDetail() {
                 ? <Button size="sm" variant="outline" disabled={busy} onClick={() => act({ payment_status: 'paid' }, 'Payment received')}>Mark as paid</Button>
                 : <Button size="sm" variant="ghost" disabled={busy} onClick={() => act({ payment_status: 'refunded' }, 'Payment refunded')}>Mark refunded</Button>}
             </div>
+            <div className="mt-5 rounded-xl border border-ink-800 p-3"><p className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-400">What the customer sees</p><OrderProgress order={order} /></div>
             <p className="mt-3 text-xs text-ink-400">When a paid order is marked {order.fulfillment === 'pickup' ? 'Collected' : 'Delivered'}, the customer&rsquo;s account earns its Paradise Points. Cancelling or refunding reverses them and returns any reward points spent on it.</p>
           </Card>
 
@@ -241,7 +247,7 @@ const PROOF_LABEL: Record<ProofStatus, string> = {
   changes: 'Customer asked for changes',
 }
 
-/** Staff send a print proof; the customer approves it or asks for changes on their tracking page. */
+/** Staff send the final draft (print proof); the customer approves it or asks for changes on their tracking page. Custom designs print only after it's approved. */
 function ProofCard({ order, onSent }: { order: Order; onSent: () => void }) {
   const [busy, setBusy] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -249,7 +255,7 @@ function ProofCard({ order, onSent }: { order: Order; onSent: () => void }) {
   const preview = order.items.find((i) => i.kind === 'custom' && i.preview)?.preview
   const send = async (src: string) => {
     setBusy(true)
-    try { await sendProof(order.id, src); onSent(); toast.success('Proof sent. The customer can approve it on their tracking page.') }
+    try { await sendProof(order.id, src); onSent(); toast.success('Final draft sent. The customer can approve it on their tracking page.') }
     catch (e) { toast.error((e as Error).message) } finally { setBusy(false) }
   }
   const onFile = (f?: File) => {
@@ -261,13 +267,13 @@ function ProofCard({ order, onSent }: { order: Order; onSent: () => void }) {
   if (!order.items.some((i) => i.kind === 'custom')) return null
   return (
     <Card className="print:hidden">
-      <p className="mb-1 font-semibold">Print proof</p>
+      <p className="mb-1 font-semibold">Final draft</p>
       <p className={cx('text-sm', status === 'approved' ? 'text-acid' : status === 'changes' ? 'text-flame' : 'text-ink-400')}>{PROOF_LABEL[status]}</p>
       {status === 'changes' && order.proof_note && <p className="mt-2 rounded-lg bg-ink-800 p-2.5 text-sm">“{order.proof_note}”</p>}
       {order.proof_url && <img src={order.proof_url} alt="Proof sent to the customer" className="mt-3 w-full rounded-xl border border-ink-800" />}
       <div className="mt-4 grid gap-2">
-        <Button size="sm" variant="outline" disabled={busy} onClick={() => fileRef.current?.click()}><Upload size={14} /> {order.proof_url ? 'Send a new proof' : 'Upload a proof'}</Button>
-        {preview && <Button size="sm" variant="ghost" disabled={busy} onClick={() => send(preview)}>Send the customer’s preview as the proof</Button>}
+        <Button size="sm" variant="outline" disabled={busy} onClick={() => fileRef.current?.click()}><Upload size={14} /> {order.proof_url ? 'Send a new draft' : 'Upload the final draft'}</Button>
+        {preview && <Button size="sm" variant="ghost" disabled={busy} onClick={() => send(preview)}>Send the customer’s preview as the draft</Button>}
       </div>
       <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = '' }} />
     </Card>

@@ -135,7 +135,7 @@ function ProofReview({ order, email, onDone }: { order: Order; email: string; on
     setBusy(true)
     try {
       await respondProof(order.code, email, approve, approve ? '' : note.trim())
-      toast.success(approve ? 'Thanks! We’ll start printing.' : 'Thanks, we’ll update the proof and send it again.')
+      toast.success(approve ? 'Thanks! We’ll start printing.' : 'Thanks, we’ll update the draft and send it again.')
       setAsking(false)
       onDone()
     } catch (e) { toast.error((e as Error).message) } finally { setBusy(false) }
@@ -146,13 +146,13 @@ function ProofReview({ order, email, onDone }: { order: Order; email: string; on
       <div className="grid gap-5 sm:grid-cols-[220px_1fr]">
         <a href={order.proof_url!} target="_blank" rel="noreferrer"><img src={order.proof_url!} alt="Your print proof" className="w-full rounded-xl border border-ink-800 bg-white" /></a>
         <div>
-          <h3 className="font-display text-lg font-bold">Your print proof</h3>
+          <h3 className="font-display text-lg font-bold">Your final draft</h3>
           {s === 'sent' && <p className="mt-1 text-sm text-ink-400">This is how your design will be printed. Check the spelling, colours and placement, then approve it or tell us what to change.</p>}
-          {s === 'approved' && <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-acid"><Check size={16} /> You approved this proof. It’s on its way to print.</p>}
+          {s === 'approved' && <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-acid"><Check size={16} /> You approved your final draft. It’s on its way to print.</p>}
           {s === 'changes' && <p className="mt-1 text-sm text-ink-400">You asked for changes{order.proof_note ? <>: “{order.proof_note}”</> : ''}. We’ll send an updated proof soon.</p>}
           {s === 'sent' && !asking && (
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button disabled={busy} onClick={() => answer(true)}><Check size={16} /> Approve proof</Button>
+              <Button disabled={busy} onClick={() => answer(true)}><Check size={16} /> Approve draft</Button>
               <Button variant="outline" disabled={busy} onClick={() => setAsking(true)}><PenLine size={16} /> Request changes</Button>
             </div>
           )}
