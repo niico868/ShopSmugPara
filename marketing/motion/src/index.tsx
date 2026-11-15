@@ -60,7 +60,7 @@ const StyleReel: React.FC = () => {
 registerRoot(() => (
   <>
     <Composition id="StyleReel" component={StyleReel} durationInFrames={492} fps={FPS} width={1080} height={1920} />
-    <Composition id="Frame1" component={Frame1} durationInFrames={210} fps={FPS} width={1080} height={1920} />
-    <Composition id="Frame4" component={Frame4} durationInFrames={240} fps={FPS} width={1080} height={1920} />
+    <Composition id="Frame1" component={Frame1} durationInFrames={240} fps={FPS} width={1080} height={1920} />
+    <Composition id="Frame4" component={Frame4} durationInFrames={270} fps={FPS} width={1080} height={1920} />
   </>
 ));
