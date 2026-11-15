@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { AlertTriangle, Check, ExternalLink, Flag, Search, Undo2, X } from 'lucide-react'
 import {
-  adjustPoints, flagMember, fmtPts, ledgerTitle, memberLedger, reverseEntry, reviewSocial, rewardMembers, socialQueue,
-  type LedgerRow, type MemberRow, type Submission,
+  adjustPoints, allCodes, flagMember, fmtPts, ledgerTitle, memberLedger, reverseEntry, reviewSocial, rewardMembers, socialQueue,
+  type LedgerRow, type MemberRow, type RewardCode, type Submission,
 } from '../../lib/rewards'
 import { usePoints } from '../../lib/points'
 import { Button, Card, Empty, Input, PageLoader } from '../../components/ui'
@@ -14,7 +14,7 @@ const run = async (fn: () => Promise<unknown>, ok: string, then: () => void) => 
 }
 
 export default function Rewards() {
-  const [tab, setTab] = useState<'queue' | 'members'>('queue')
+  const [tab, setTab] = useState<'queue' | 'members' | 'codes'>('queue')
   return (
     <div className="space-y-6">
       <div>
@@ -22,11 +22,31 @@ export default function Rewards() {
         <p className="max-w-2xl text-sm text-ink-400">Reshares and wear-and-tag posts wait here for you to approve. Boat catches, Contraband, the welcome bonus and purchase points are automatic. Corrections need a written reason.</p>
       </div>
       <div className="flex gap-2">
-        {([['queue', 'Review queue'], ['members', 'Members']] as const).map(([k, l]) => (
+        {([['queue', 'Review queue'], ['members', 'Members'], ['codes', '20% codes']] as const).map(([k, l]) => (
           <button key={k} onClick={() => setTab(k)} className={cx('rounded-full px-4 py-2 text-sm font-medium', tab === k ? 'bg-black text-white' : 'bg-ink-800 hover:bg-ink-700')}>{l}</button>
         ))}
       </div>
-      {tab === 'queue' ? <Queue /> : <Members />}
+      {tab === 'queue' ? <Queue /> : tab === 'members' ? <Members /> : <Codes />}
+    </div>
+  )
+}
+
+/** Codes given out when a member's custom order is paid and delivered, and whether they've been used. */
+function Codes() {
+  const [rows, setRows] = useState<RewardCode[] | null>(null)
+  useEffect(() => { allCodes().then(setRows).catch((e) => { toast.error(e.message); setRows([]) }) }, [])
+  if (!rows) return <PageLoader />
+  if (!rows.length) return <Empty title="No codes yet">A member gets one when their custom order is marked paid and delivered.</Empty>
+  return (
+    <div className="space-y-2">
+      <p className="text-sm text-ink-400">{rows.filter((r) => r.status === 'used').length} of {rows.length} used.</p>
+      {rows.map((r) => (
+        <Card key={r.id} className="flex flex-wrap items-center justify-between gap-3 text-sm">
+          <span className="min-w-0"><b className="font-mono">{r.code}</b> · {r.percent}% off a custom {r.fit} tee
+            <span className="block text-ink-400">{r.source?.email ?? ''}{r.source ? ` · earned on ${r.source.code}` : ''} · {dateShort(r.created_at)}</span></span>
+          <span className={cx('rounded-full px-3 py-1 text-xs font-semibold capitalize', r.status === 'open' ? 'bg-acid/15 text-acid-dark' : r.status === 'used' ? 'bg-black text-white' : 'bg-ink-800 text-ink-400')}>{r.status}</span>
+        </Card>
+      ))}
     </div>
   )
 }

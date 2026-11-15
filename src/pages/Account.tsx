@@ -7,7 +7,7 @@ import type { Order, SavedDesign } from '../lib/types'
 import { Button, Card, Empty, PageLoader, StatusBadge } from '../components/ui'
 import { dateShort, money } from '../lib/format'
 import { toast } from '../components/Toast'
-import { PointsHistory, RewardsCard, ShareForm } from '../components/RewardsPanel'
+import { MyCodes, PointsHistory, RewardsCard, ShareForm } from '../components/RewardsPanel'
 import { makeShareCard } from '../lib/shareCard'
 import { colorName, fitName } from '../lib/constants'
 
@@ -44,6 +44,7 @@ export default function Account() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
       <RewardsCard />
+      <MyCodes />
       <div className="mt-10 flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <h1 className="font-poster text-5xl">My account</h1>

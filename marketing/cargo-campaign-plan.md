@@ -55,7 +55,7 @@ Tools: Playwright (site recordings), Remotion (motion graphics), ffmpeg + MovieP
 - [ ] **You** set up the DM auto-reply (Instagram automations or ManyChat).
 
 ## Phase 6: Site code
-- [ ] **Me** "Make a custom → get a code": after a custom order completes, the account gets a one-time discount code locked to that product. Shown on the order page + account. Test, open a PR. **Needed before posting**, since frame 12 promises it.
+- [x] **Me** "Make a custom → get a code": after a custom order completes, the account gets a one-time discount code locked to that product. Shown on the order page + account. Test, open a PR. **Needed before posting**, since frame 12 promises it.
 
 ### Name link (optional)
 - [ ] **Me** build `smugpara.com/name/<Name>` + `/name` box, opens designer with the name on the drop tee. Test, open a PR.

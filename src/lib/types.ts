@@ -203,4 +203,6 @@ export interface CheckoutInput {
   items: OrderItem[]
   /** Spend Paradise Points on the credit off this order. */
   use_credit?: boolean
+  /** A 20% custom-order code from the account (see RewardCode). */
+  reward_code?: string
 }
