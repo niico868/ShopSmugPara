@@ -7,6 +7,7 @@ import { listProducts, placeOrder } from '../lib/api'
 import type { Product } from '../lib/types'
 import { usePoints } from '../lib/points'
 import { codeOff, type RewardCode } from '../lib/rewards'
+import { checkPromo, promoOff, type PromoCheck } from '../lib/promo'
 import { CheckoutRewards } from '../components/CheckoutRewards'
 import { DEPOSIT_NOTE, PAYMENT_METHODS, READY_NOTE, colorName } from '../lib/constants'
 import { cx, money } from '../lib/format'
@@ -25,6 +26,19 @@ export default function Checkout() {
   const [products, setProducts] = useState<Product[]>([])
   const [credit, setCredit] = useState(false)
   const [rewardCode, setRewardCode] = useState<RewardCode | null>(null)
+  const [promoText, setPromoText] = useState('')
+  const [promo, setPromo] = useState<PromoCheck | null>(null)
+  const [promoBusy, setPromoBusy] = useState(false)
+  const applyPromo = async () => {
+    if (!promoText.trim()) return
+    setPromoBusy(true)
+    try {
+      const r = await checkPromo(promoText)
+      if (!r.ok) { setPromo(null); return toast.error(r.reason ?? 'That promo code isn’t valid') }
+      if (!promoOff(r, items)) { setPromo(null); return toast.error(`${r.code} is for ${r.product_name ?? 'a different tee'}: add it to your bag first.`) }
+      setPromo(r); sfx('success')
+    } catch (e) { toast.error((e as Error).message) } finally { setPromoBusy(false) }
+  }
   const rules = usePoints((s) => s.rules)
   const refreshPoints = usePoints((s) => s.refresh)
   useEffect(() => { listProducts().then(setProducts).catch(() => {}) }, [])
@@ -35,7 +49,8 @@ export default function Checkout() {
   const shipping = f.fulfillment === 'pickup' || (settings.free_shipping_over > 0 && sub >= settings.free_shipping_over) ? 0 : settings.shipping_fee
   const credited = credit ? Math.min(rules.credit_ttd, sub) : 0
   const codeTaken = codeOff(rewardCode, items)
-  const total = sub + shipping - credited - codeTaken
+  const promoTaken = promoOff(promo, items)
+  const total = sub + shipping - credited - codeTaken - promoTaken
 
   // How far through the form they are, shown as steps above it.
   const steps = [
@@ -52,7 +67,7 @@ export default function Checkout() {
     if (f.fulfillment === 'delivery' && !f.address.trim()) { nudge(document.getElementById('checkout-address')); return toast.error('Please add a delivery address.') }
     setBusy(true)
     try {
-      const { code } = await placeOrder({ ...f, email: f.email.trim().toLowerCase(), items, use_credit: credit, reward_code: rewardCode?.code }, settings)
+      const { code } = await placeOrder({ ...f, email: f.email.trim().toLowerCase(), items, use_credit: credit, reward_code: rewardCode?.code, promo_code: promoTaken ? promo?.code : undefined }, settings)
       sfx('success')
       clear()
       refreshPoints()
@@ -131,10 +146,16 @@ export default function Checkout() {
               </li>
             ))}
           </ul>
+          <div className="mt-5 flex gap-2">
+            <Input aria-label="Promo code" placeholder="Promo code" value={promoText} onChange={(e) => { setPromoText(e.target.value.toUpperCase()); setPromo(null) }}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyPromo() } }} className="uppercase" />
+            <Button type="button" variant="outline" onClick={applyPromo} disabled={promoBusy || !promoText.trim()}>{promoBusy ? <Loader2 size={14} className="animate-spin" /> : 'Apply'}</Button>
+          </div>
           <div className="mt-5 space-y-2 border-t border-ink-800 pt-4 text-sm">
             <div className="flex flex-wrap justify-between gap-x-3"><span className="text-ink-400">Subtotal</span><span>{money(sub)}</span></div>
             <div className="flex flex-wrap justify-between gap-x-3"><span className="text-ink-400">Delivery</span><Tick value={shipping}>{shipping ? money(shipping) : 'Free'}</Tick></div>
             {credited > 0 && <div className="flex flex-wrap justify-between text-acid gap-x-3"><span>Paradise Points credit</span><span>-{money(credited)}</span></div>}
+            {promoTaken > 0 && <div className="flex flex-wrap justify-between text-acid gap-x-3"><span>Promo {promo!.code} ({promo!.percent}%)</span><span>-{money(promoTaken)}</span></div>}
             {codeTaken > 0 && <div className="flex flex-wrap justify-between text-acid gap-x-3"><span>Code {rewardCode!.code}</span><span>-{money(codeTaken)}</span></div>}
             <div className="flex flex-wrap justify-between pt-2 text-lg font-bold gap-x-3"><span>Total</span><Tick value={total}>{money(total)}</Tick></div>
           </div>
