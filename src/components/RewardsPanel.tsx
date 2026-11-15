@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Anchor, Check, Compass, Gift, ImagePlus, Lock, Send, Telescope, Users } from 'lucide-react'
+import { Anchor, Check, Compass, Gift, ImagePlus, Lock, Send, Telescope, Ticket, Users } from 'lucide-react'
 import { useSettings } from '../lib/settings'
 import { COMMUNITY } from '../lib/brand'
 import { usePoints } from '../lib/points'
 import {
-  BADGE_PERK, CURRENCY, MILESTONES, fmtPts, ladder, ledgerTitle, myLedger, mySubmissions, submitSocial,
-  type LedgerRow, type MyRewards, type RewardRules, type SocialKind, type Submission,
+  BADGE_PERK, CURRENCY, MILESTONES, fmtPts, ladder, ledgerTitle, myCodes, myLedger, mySubmissions, submitSocial,
+  type LedgerRow, type RewardCode, type MyRewards, type RewardRules, type SocialKind, type Submission,
 } from '../lib/rewards'
 import { uploadMedia } from '../lib/api'
 import { cx, dateShort } from '../lib/format'
@@ -156,6 +156,30 @@ export function RewardsCard() {
           </ul>
         )}
       </details>
+    </section>
+  )
+}
+
+/** Codes earned by completed custom orders. Shown only once the member has one. */
+export function MyCodes() {
+  const [codes, setCodes] = useState<RewardCode[]>([])
+  useEffect(() => { myCodes().then(setCodes).catch(() => {}) }, [])
+  if (!codes.length) return null
+  return (
+    <section className="mt-6 space-y-3" aria-label="Your codes">
+      <h2 className="font-display text-xl font-bold">Your codes</h2>
+      <p className="text-sm text-ink-400">Earned by your custom orders. Each one takes 20% off your next custom tee in the same fit, once. At checkout, tap <b>Use it</b>.</p>
+      <ul className="grid gap-3 sm:grid-cols-2">
+        {codes.map((c) => (
+          <li key={c.id} className={cx('flex items-center gap-3 border p-4', c.status === 'open' ? 'border-acid bg-acid/10' : 'border-ink-800 text-ink-400')}>
+            <Ticket className={c.status === 'open' ? 'shrink-0 text-acid' : 'shrink-0'} />
+            <div className="min-w-0">
+              <p className="font-mono text-lg font-bold tracking-wider">{c.code}</p>
+              <p className="text-sm">{c.percent}% off a custom {c.fit} tee · {c.status === 'open' ? <Link to="/design" className="font-semibold text-acid">Design it</Link> : c.status === 'used' ? `Used ${dateShort(c.used_at!)}` : 'Cancelled'}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
     </section>
   )
 }

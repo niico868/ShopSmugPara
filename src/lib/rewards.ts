@@ -180,6 +180,37 @@ export async function myLedger(): Promise<LedgerRow[]> {
   return rows.map((l) => ({ ...l, amount: Number(l.amount) }))
 }
 
+/** A 20% code earned by a completed custom order: one custom tee in the same fit, used once, this account only. */
+export interface RewardCode {
+  id: number; code: string; fit: 'regular' | 'oversized'; percent: number
+  status: 'open' | 'used' | 'cancelled'
+  source_order: string; used_order: string | null; created_at: string; used_at: string | null
+  /** Admin list only: the order that earned it. */
+  source?: { code: string; email: string } | null
+}
+const codeNums = (c: RewardCode): RewardCode => ({ ...c, percent: Number(c.percent) })
+
+/** This member's custom-order codes, newest first. */
+export async function myCodes(): Promise<RewardCode[]> {
+  if (DEMO) return demo.codesFor(demo.me())
+  const { data: u } = await supabase!.auth.getUser()
+  if (!u.user) return []
+  return (must(await supabase!.from('reward_codes').select('*').eq('user_id', u.user.id).order('id', { ascending: false })) as RewardCode[]).map(codeNums)
+}
+
+/** Admin: every custom-order code, newest first. */
+export async function allCodes(): Promise<RewardCode[]> {
+  if (DEMO) return [...(demo.s().codes ?? [])].reverse()
+  return (must(await supabase!.from('reward_codes').select('*, source:orders!reward_codes_source_order_fkey(code, email)').order('id', { ascending: false }).limit(300)) as RewardCode[]).map(codeNums)
+}
+
+/** What a code takes off this bag: its percent of one custom tee in the same fit (the first that fits). */
+export function codeOff(c: RewardCode | null | undefined, items: Order['items']): number {
+  if (!c || c.status !== 'open') return 0
+  const line = items.find((i) => i.kind === 'custom' && !i.reward && (i.design?.fit ?? 'regular') === c.fit)
+  return line ? Math.round(line.unit_price * c.percent) / 100 : 0
+}
+
 export async function catchBoat(): Promise<AwardResult> {
   if (DEMO) return demo.catchBoat()
   const r = must(await supabase!.rpc('catch_boat')) as AwardResult
@@ -284,6 +315,7 @@ interface DemoClaim { hunt_id: number; user_id: string; amount: number; currency
 interface DemoState {
   members: Record<string, DemoMember>; ledger: LedgerRow[]; reds: (Redemption & { user_id: string })[]
   hunts: HuntAdmin[]; claims: DemoClaim[]; subs: Submission[]; seq: number
+  codes?: (RewardCode & { user_id: string })[]
 }
 const DEMO_KEY = 'sp.rewards'
 const R = DEFAULT_RULES
@@ -319,6 +351,7 @@ const demo = {
     return demo.s().ledger.filter((l) => l.user_id === u && l.currency === c && (l.status === 'approved' || l.status === 'reversed')).reduce((n, l) => n + l.amount, 0)
   },
   cur(u: string): Currency { return demo.member(u).tier === 'buyer' ? 'PP' : 'EP' },
+  codesFor(u: string) { return (demo.s().codes ?? []).filter((c) => c.user_id === u).reverse() },
   ledgerFor(u: string) { return demo.s().ledger.filter((l) => l.user_id === u).reverse() },
   engaged(u: string, c: Currency, since: number) {
     return demo.s().ledger.filter((l) => l.user_id === u && l.currency === c && (l.reason === 'boat' || l.reason === 'contraband') && Date.parse(l.created_at) >= since).reduce((n, l) => n + l.amount, 0)
@@ -512,8 +545,18 @@ const demo = {
 // The live site does all of this in place_order and the orders trigger.
 // ---------------------------------------------------------------------------
 /** Checks and spends the rewards on a new demo order. Returns the discount. */
-export function demoSpendRewards(order: Order, useCredit: boolean): number {
+export function demoSpendRewards(order: Order, useCredit: boolean, code = ''): number {
   const u = demo.me()
+  let off = 0
+  const want = code.trim().toUpperCase()
+  if (want) {
+    if (!u) throw new Error('Sign in to use your code')
+    const c = (demo.s().codes ?? []).find((x) => x.code === want && x.user_id === u)
+    if (!c) throw new Error('That code isn’t on your account')
+    if (c.status !== 'open') throw new Error('That code has already been used')
+    off = codeOff(c, order.items)
+    if (!off) throw new Error(`Code ${c.code} is for a custom ${c.fit} tee: add one to your bag`)
+  }
   const items = order.items.filter((i) => i.reward)
   if ((items.length || useCredit) && !u) throw new Error('Sign in to use your rewards')
   if (items.length > 1) throw new Error('One reward tee per order, please')
@@ -553,7 +596,12 @@ export function demoSpendRewards(order: Order, useCredit: boolean): number {
     demo.add(u, x.currency, -x.cost, 'redemption', x.reward, `Reward on order ${order.code}`, { order_id: order.id, redemption_id: id })
     if (x.reward === 'free_tee_ep') demo.makeBuyer(u, 'free_tee')
   }
-  return useCredit ? Math.min(R.credit_ttd, order.subtotal) : 0
+  if (want) {
+    const s = demo.s()
+    s.codes = (s.codes ?? []).map((c) => (c.code === want ? { ...c, status: 'used', used_order: order.id, used_at: new Date().toISOString() } : c))
+    demo.save(s)
+  }
+  return off + (useCredit ? Math.min(R.credit_ttd, order.subtotal) : 0)
 }
 
 /** Awards or reverses points after a demo order changes, like the orders trigger does live. */
@@ -567,6 +615,13 @@ export function demoOrderChanged(before: Order, after: Order) {
     if (tees) demo.add(u, 'PP', tees * R.purchase_pp, 'purchase', 'purchase', `${tees} ${tees === 1 ? 'tee' : 'tees'} on order ${after.code}`, { order_id: after.id })
     const s = demo.s()
     s.members[u] = { ...s.members[u], last_purchase_at: new Date().toISOString() }
+    const custom = after.items.find((i) => i.kind === 'custom' && !i.reward && i.unit_price > 0)
+    if (custom && !(s.codes ?? []).some((c) => c.source_order === after.id)) {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+      const code = 'SP20-' + Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+      s.codes = [...(s.codes ?? []), { id: s.seq++, user_id: u, code, fit: custom.design?.fit ?? 'regular', percent: 20, status: 'open',
+        source_order: after.id, used_order: null, created_at: new Date().toISOString(), used_at: null, source: { code: after.code, email: u } }]
+    }
     demo.save(s)
   }
   if (after.status === 'delivered' && before.status !== 'delivered') {
@@ -577,6 +632,10 @@ export function demoOrderChanged(before: Order, after: Order) {
   const why = after.status === 'cancelled' && before.status !== 'cancelled' ? 'cancelled'
     : after.payment_status === 'refunded' && before.payment_status !== 'refunded' ? 'refunded' : ''
   if (why) {
+    const s0 = demo.s()
+    s0.codes = (s0.codes ?? []).map((c) => c.source_order === after.id && c.status === 'open' ? { ...c, status: 'cancelled' }
+      : c.used_order === after.id && c.status === 'used' ? { ...c, status: 'open', used_order: null, used_at: null } : c)
+    demo.save(s0)
     for (const l of demo.s().ledger.filter((x) => x.order_id === after.id && x.kind === 'purchase' && x.status === 'approved')) {
       const s = demo.s()
       s.ledger = s.ledger.map((x) => (x.id === l.id ? { ...x, status: 'reversed' } : x))

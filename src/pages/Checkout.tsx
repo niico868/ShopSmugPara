@@ -6,6 +6,7 @@ import { useSettings } from '../lib/settings'
 import { listProducts, placeOrder } from '../lib/api'
 import type { Product } from '../lib/types'
 import { usePoints } from '../lib/points'
+import { codeOff, type RewardCode } from '../lib/rewards'
 import { CheckoutRewards } from '../components/CheckoutRewards'
 import { DEPOSIT_NOTE, PAYMENT_METHODS, READY_NOTE, colorName } from '../lib/constants'
 import { cx, money } from '../lib/format'
@@ -23,6 +24,7 @@ export default function Checkout() {
   const [busy, setBusy] = useState(false)
   const [products, setProducts] = useState<Product[]>([])
   const [credit, setCredit] = useState(false)
+  const [rewardCode, setRewardCode] = useState<RewardCode | null>(null)
   const rules = usePoints((s) => s.rules)
   const refreshPoints = usePoints((s) => s.refresh)
   useEffect(() => { listProducts().then(setProducts).catch(() => {}) }, [])
@@ -31,8 +33,9 @@ export default function Checkout() {
 
   const sub = cartSubtotal(items)
   const shipping = f.fulfillment === 'pickup' || (settings.free_shipping_over > 0 && sub >= settings.free_shipping_over) ? 0 : settings.shipping_fee
-  const discount = credit ? Math.min(rules.credit_ttd, sub) : 0
-  const total = sub + shipping - discount
+  const credited = credit ? Math.min(rules.credit_ttd, sub) : 0
+  const codeTaken = codeOff(rewardCode, items)
+  const total = sub + shipping - credited - codeTaken
 
   // How far through the form they are, shown as steps above it.
   const steps = [
@@ -49,7 +52,7 @@ export default function Checkout() {
     if (f.fulfillment === 'delivery' && !f.address.trim()) { nudge(document.getElementById('checkout-address')); return toast.error('Please add a delivery address.') }
     setBusy(true)
     try {
-      const { code } = await placeOrder({ ...f, email: f.email.trim().toLowerCase(), items, use_credit: credit }, settings)
+      const { code } = await placeOrder({ ...f, email: f.email.trim().toLowerCase(), items, use_credit: credit, reward_code: rewardCode?.code }, settings)
       sfx('success')
       clear()
       refreshPoints()
@@ -96,7 +99,7 @@ export default function Checkout() {
           {f.fulfillment === 'delivery' && <Field label="Delivery address"><Textarea id="checkout-address" value={f.address} onChange={set('address')} autoComplete="street-address" /></Field>}
           <Field label="Notes (optional)"><Textarea value={f.notes} onChange={set('notes')} placeholder="Deadline, event date, special requests…" /></Field>
         </Card>
-        <CheckoutRewards items={items} products={products} credit={credit} setCredit={setCredit} />
+        <CheckoutRewards items={items} products={products} credit={credit} setCredit={setCredit} code={rewardCode} setCode={setRewardCode} />
         <Card className="space-y-4">
           <h2 className="font-display text-lg font-bold">Payment</h2>
           <Field label="How would you like to pay?">
@@ -131,7 +134,8 @@ export default function Checkout() {
           <div className="mt-5 space-y-2 border-t border-ink-800 pt-4 text-sm">
             <div className="flex flex-wrap justify-between gap-x-3"><span className="text-ink-400">Subtotal</span><span>{money(sub)}</span></div>
             <div className="flex flex-wrap justify-between gap-x-3"><span className="text-ink-400">Delivery</span><Tick value={shipping}>{shipping ? money(shipping) : 'Free'}</Tick></div>
-            {discount > 0 && <div className="flex flex-wrap justify-between text-acid gap-x-3"><span>Paradise Points credit</span><span>-{money(discount)}</span></div>}
+            {credited > 0 && <div className="flex flex-wrap justify-between text-acid gap-x-3"><span>Paradise Points credit</span><span>-{money(credited)}</span></div>}
+            {codeTaken > 0 && <div className="flex flex-wrap justify-between text-acid gap-x-3"><span>Code {rewardCode!.code}</span><span>-{money(codeTaken)}</span></div>}
             <div className="flex flex-wrap justify-between pt-2 text-lg font-bold gap-x-3"><span>Total</span><Tick value={total}>{money(total)}</Tick></div>
           </div>
           <Button size="lg" type="submit" className="mt-5 w-full" disabled={busy}>{busy ? <><Loader2 size={16} className="animate-spin" /> Placing order…</> : <><Lock size={16} /> Place order</>}</Button>

@@ -136,13 +136,13 @@ export async function placeOrder(input: CheckoutInput, settings: Settings): Prom
     const freeShip = settings.free_shipping_over > 0 && subtotal >= settings.free_shipping_over
     const shipping = input.fulfillment === 'pickup' || freeShip ? 0 : settings.shipping_fee
     const created = new Date().toISOString()
-    const { use_credit, ...rest } = input
+    const { use_credit, reward_code, ...rest } = input
     const order: Order = {
       ...rest, items, id: uid(), code: orderCode(), created_at: created, status: 'pending',
       payment_status: 'unpaid', subtotal, shipping, total: subtotal + shipping,
       events: [{ id: uid(), created_at: created, status: 'pending', note: 'Order placed' }],
     }
-    order.discount = demoSpendRewards(order, !!use_credit)
+    order.discount = demoSpendRewards(order, !!use_credit, reward_code)
     order.total -= order.discount
     write(K.orders, [order, ...demoOrders()])
     return { code: order.code }

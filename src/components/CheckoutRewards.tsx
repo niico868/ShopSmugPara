@@ -1,8 +1,9 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Gift } from 'lucide-react'
+import { Gift, Ticket } from 'lucide-react'
 import type { OrderItem, Product } from '../lib/types'
 import { usePoints } from '../lib/points'
-import { fmtPts, type RewardId } from '../lib/rewards'
+import { codeOff, fmtPts, myCodes, type RewardCode, type RewardId } from '../lib/rewards'
 import { money } from '../lib/format'
 import { useCart } from '../store/cart'
 import { Card } from './ui'
@@ -19,8 +20,9 @@ const REWARD_NAME: Record<RewardId, string> = {
  * Rewards at checkout: what this order earns, the Engager's free tee and carry-over,
  * and the Buyer's ladder (credit, free standard tee, free custom tee).
  */
-export function CheckoutRewards({ items, products, credit, setCredit }: {
+export function CheckoutRewards({ items, products, credit, setCredit, code, setCode }: {
   items: OrderItem[]; products: Product[]; credit: boolean; setCredit: (v: boolean) => void
+  code: RewardCode | null; setCode: (c: RewardCode | null) => void
 }) {
   const signedIn = usePoints((s) => s.signedIn)
   const r = usePoints((s) => s.rewards)
@@ -68,6 +70,7 @@ export function CheckoutRewards({ items, products, credit, setCredit }: {
   }
 
   const body: React.ReactNode[] = []
+  body.push(<CodePicker key="codes" items={items} code={code} setCode={setCode} />)
   if (rewardLine) {
     body.push(
       <div key="applied" className="flex items-center justify-between gap-3 rounded-xl bg-acid/10 p-3 text-sm">
@@ -123,5 +126,30 @@ export function CheckoutRewards({ items, products, credit, setCredit }: {
       <h2 className="flex items-center gap-2 font-display text-lg font-bold"><Coin className="h-6 w-6" /> Rewards</h2>
       {body}
     </Card>
+  )
+}
+
+/** The member's open 20% custom-order codes: pick one to take 20% off a custom tee in the same fit. */
+function CodePicker({ items, code, setCode }: { items: OrderItem[]; code: RewardCode | null; setCode: (c: RewardCode | null) => void }) {
+  const [codes, setCodes] = useState<RewardCode[]>([])
+  useEffect(() => { myCodes().then((c) => setCodes(c.filter((x) => x.status === 'open'))).catch(() => {}) }, [])
+  // A code that no longer fits the bag (the tee was removed) drops off.
+  useEffect(() => { if (code && !codeOff(code, items)) setCode(null) }, [code, items, setCode])
+  if (!codes.length) return null
+  return (
+    <div className="space-y-2">
+      {codes.map((c) => {
+        const off = codeOff(c, items)
+        const on = code?.id === c.id
+        return (
+          <div key={c.id} className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3 text-sm ${on ? 'border-acid bg-acid/10' : 'border-ink-700'}`}>
+            <span className="min-w-0"><Ticket size={14} className="mr-1 inline text-acid" /> <b>{c.percent}% off</b> a custom {c.fit} tee <span className="font-mono text-xs text-ink-400">{c.code}</span>
+              {!off && <span className="block text-xs text-ink-400"><Link to="/design" className="font-semibold text-acid">Design a custom {c.fit} tee</Link> to use it.</span>}</span>
+            {on ? <button type="button" onClick={() => setCode(null)} className="text-xs font-semibold text-ink-400 hover:text-flame">Remove</button>
+              : off > 0 && <button type="button" onClick={() => setCode(c)} className="text-xs font-semibold text-acid">Use it: {money(off)} off</button>}
+          </div>
+        )
+      })}
+    </div>
   )
 }
