@@ -8,12 +8,14 @@ import { cx } from '../lib/format'
 import { huntSpot } from '../lib/contraband'
 import { sfx } from '../lib/feedback'
 
+import { CHARACTER_CATEGORY } from '../lib/character'
 export default function Shop() {
   const [products, setProducts] = useState<Product[] | null>(null)
   const [q, setQ] = useState('')
   const [cat, setCat] = useState('All')
   const [sort, setSort] = useState('new')
-  useEffect(() => { listProducts().then(setProducts).catch(() => setProducts([])) }, [])
+  // Character Tees sell on their own page (/character), where customers add their photos.
+  useEffect(() => { listProducts().then((all) => setProducts(all.filter((p) => p.category !== CHARACTER_CATEGORY))).catch(() => setProducts([])) }, [])
 
   const cats = useMemo(() => ['All', ...new Set((products ?? []).map((p) => p.category))], [products])
   const shown = useMemo(() => {

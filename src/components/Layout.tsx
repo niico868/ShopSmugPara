@@ -31,6 +31,7 @@ const FOOT_CONTACT = 'flex w-max items-center gap-2 py-3 text-white/60 hover:tex
 
 const links = [
   { to: '/shop', label: 'Shop' },
+  { to: '/character', label: 'Character Tees' },
   { to: '/design', label: 'Design your own' },
   { to: '/track', label: 'Track order' },
   { to: '/faq', label: 'FAQ' },

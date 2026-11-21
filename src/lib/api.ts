@@ -6,6 +6,7 @@ import { orderCode, uid } from './format'
 import { demoOrderChanged, demoSpendRewards } from './rewards'
 import { demoEndOffer, demoFreePromo, demoUsePromo } from './promo'
 import { currentPhoto } from './onWhite'
+import type { CharacterBrief } from './character'
 
 // ---------------------------------------------------------------------------
 // Demo backend: everything lives in localStorage so the app runs with zero setup.
@@ -151,8 +152,47 @@ export async function placeOrder(input: CheckoutInput, settings: Settings): Prom
     return { code: order.code }
   }
   // Server recomputes prices from the products/settings tables, so the client can't tamper with totals.
-  const code = must(await supabase!.rpc('place_order', { payload: { ...input, items } })) as string
+  const code = must(await supabase!.rpc('place_order', { payload: { ...input, items: items.map(({ brief, ...it }) => it) } })) as string
+  // Character Tees: the photos, names and consent go in their own admin-only table.
+  const briefs = items.flatMap((i) => (i.brief ? [i.brief] : []))
+  if (briefs.length) must(await supabase!.rpc('attach_character_briefs', { p_code: code, p_email: input.email, p_briefs: briefs }))
   return { code }
+}
+
+// ---------------------------------------------------------------------------
+// Character Tees (customer photos live in the private "faces" bucket)
+// ---------------------------------------------------------------------------
+/** Uploads a customer photo and returns its private path (or the data URL itself in demo mode). */
+export async function uploadFace(dataUrl: string): Promise<string> {
+  if (DEMO) return dataUrl
+  const blob = await dataUrlToBlob(dataUrl)
+  const path = `${uid()}.jpg`
+  must(await supabase!.storage.from('faces').upload(path, blob, { contentType: 'image/jpeg' }))
+  return path
+}
+
+export interface StoredBrief extends CharacterBrief { id: string; created_at: string; photos_deleted_at: string | null }
+
+/** Admin: the Character Tee briefs on an order, with short-lived links to each photo. */
+export async function getCharacterBriefs(orderId: string): Promise<StoredBrief[]> {
+  if (DEMO) {
+    const o = demoOrders().find((x) => x.id === orderId)
+    return (o?.items ?? []).flatMap((i) => (i.brief ? [{ ...i.brief, id: i.id, created_at: o!.created_at, photos_deleted_at: null, photos: i.brief.photos.map((ph) => ({ ...ph, preview: ph.path })) }] : []))
+  }
+  const rows = must(await supabase!.from('character_briefs').select('*').eq('order_id', orderId).order('created_at')) as StoredBrief[]
+  return Promise.all(rows.map(async (b) => {
+    if (b.photos_deleted_at || !b.photos.length) return b
+    const { data } = await supabase!.storage.from('faces').createSignedUrls(b.photos.map((ph) => ph.path), 60 * 60)
+    return { ...b, photos: b.photos.map((ph, i) => ({ ...ph, preview: data?.[i]?.signedUrl ?? undefined })) }
+  }))
+}
+
+/** Admin: delete a brief's photos for good (do this 30 days after delivery). */
+export async function deleteCharacterPhotos(brief: StoredBrief) {
+  if (DEMO) return
+  const paths = brief.photos.map((ph) => ph.path)
+  if (paths.length) must(await supabase!.storage.from('faces').remove(paths))
+  must(await supabase!.from('character_briefs').update({ photos: [], photos_deleted_at: new Date().toISOString() }).eq('id', brief.id))
 }
 
 export async function trackOrder(code: string, email: string): Promise<Order | null> {

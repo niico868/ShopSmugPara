@@ -20,7 +20,7 @@ interface CartState {
 }
 
 const sameLine = (a: OrderItem, b: OrderItem) =>
-  a.kind === 'catalog' && b.kind === 'catalog' && !a.reward && !b.reward && a.product_id === b.product_id && a.color === b.color && a.size === b.size
+  a.kind === 'catalog' && b.kind === 'catalog' && !a.reward && !b.reward && !a.brief && !b.brief && a.product_id === b.product_id && a.color === b.color && a.size === b.size
 
 /** The price a reward line goes back to when the reward comes off. */
 type Line = OrderItem & { list_price?: number }

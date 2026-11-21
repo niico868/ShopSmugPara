@@ -13,6 +13,7 @@ import { AREA_ORDER } from '../../lib/pricing'
 import { cx, dateTime, money } from '../../lib/format'
 import { toast } from '../../components/Toast'
 import { useSettings } from '../../lib/settings'
+import { CharacterBriefs } from '../../components/CharacterBriefs'
 
 export default function OrderDetail() {
   const { id = '' } = useParams()
@@ -116,6 +117,8 @@ export default function OrderDetail() {
               <Button size="sm" variant="outline" onClick={() => { navigator.clipboard?.writeText(trackUrl); toast.success('Tracking link copied') }}><Link2 size={14} /> Track link</Button>
             </div>
           </Card>
+
+          <CharacterBriefs orderId={order.id} code={order.code} />
 
           <ProofCard order={order} onSent={() => getOrder(order.id).then(setOrder)} />
 

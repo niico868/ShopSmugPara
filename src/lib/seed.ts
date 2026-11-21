@@ -89,6 +89,17 @@ export const seedProducts = (): Product[] => [
       { id: 'vest-white', style: 'Cut sleeve vest', color: 'White / black print', swatch: '#FFFFFF', print: '#111111', images: ['/products/frtb-vest-white-front.jpg', '/products/frtb-vest-white-back.jpg'] },
     ],
   },
+  // Character Tees (sold on /character only; supabase/2026-11-21-character-tees.sql adds them live).
+  ...([
+    ['character-solo', 'Character Tee', 350, ['#111111', '#FFFFFF'], 'Send one selfie, get yourself drawn as game key art, printed on a heavyweight tee.'],
+    ['character-duo', 'Duo Character Tee', 450, ['#111111', '#FFFFFF'], 'Two people, one game-art panel, one heavyweight tee.'],
+    ['character-team', 'Team Character Tee', 220, ['#111111', '#FFFFFF'], 'Your whole crew drawn as one game-art grid. Price per tee, 6 minimum.'],
+    ['character-team-art', 'Crew Art Fee', 600, ['#111111'], 'One-time artwork for a team order: up to 6 faces.'],
+    ['character-extra-face', 'Extra Crew Face', 75, ['#111111'], 'Each face past 6 on a team order.'],
+  ] as const).map(([slug, name, price, colors, description]) => ({
+    ...p(slug, name, price, 'Character', [...colors], '/products/character-tee.jpg', description),
+    sizes: slug.endsWith('art') || slug.endsWith('face') ? ['One size'] : ['S', 'M', 'L', 'XL', '2XL', '3XL'],
+  })),
 ]
 
 export const defaultSettings = (): Settings => ({

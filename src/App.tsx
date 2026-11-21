@@ -11,6 +11,7 @@ import { applyPageMeta } from './lib/usePageMeta'
 const Shop = lazy(() => import('./pages/Shop'))
 const Product = lazy(() => import('./pages/Product'))
 const Designer = lazy(() => import('./pages/Designer'))
+const CharacterTee = lazy(() => import('./pages/CharacterTee'))
 const SignIn = lazy(() => import('./pages/SignIn'))
 const Account = lazy(() => import('./pages/Account'))
 const SharedDesign = lazy(() => import('./pages/SharedDesign'))
@@ -51,6 +52,7 @@ export default function App() {
           <Route index element={<Home />} />
           <Route path="shop" element={<Shop />} />
           <Route path="shop/:slug" element={<Product />} />
+          <Route path="character" element={<CharacterTee />} />
           <Route path="design" element={<RequireAccount><Designer /></RequireAccount>} />
           <Route path="signin" element={<SignIn />} />
           <Route path="account" element={<RequireAccount><Account /></RequireAccount>} />

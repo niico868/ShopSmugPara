@@ -37,6 +37,10 @@ export const PAGE_META: Record<string, PageMeta> = {
     title: 'My account | Smug Para',
     description: 'Your Smug Para designs, orders, points and rewards.',
   },
+  '/character': {
+    title: 'Character Tees: put yourself in the game | Smug Para',
+    description: 'Send a selfie and get yourself, your partner or your whole crew drawn as game key art on a heavyweight tee. Made in Trinidad and Tobago.',
+  },
   '/track': {
     title: 'Track your order | Smug Para',
     description: 'Enter your Smug Para order code to follow your tee from payment to print to delivery or pickup.',

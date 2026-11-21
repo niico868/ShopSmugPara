@@ -15,6 +15,7 @@ import { Tick } from '../components/Feedback'
 import { SaleCountdown, useSaleLeft } from '../components/SaleTimer'
 import { ProductImg } from '../components/ProductImg'
 import { applyPageMeta } from '../lib/usePageMeta'
+import { CHARACTER_CATEGORY } from '../lib/character'
 
 const GUIDE = [['S', '91', '71'], ['M', '97', '74'], ['L', '104', '76'], ['XL', '112', '79'], ['2XL', '120', '81'], ['3XL', '128', '84']]
 
@@ -43,6 +44,8 @@ export default function Product() {
     setP(undefined)
     setShot(0)
     getProduct(slug).then((x) => {
+      // Character Tees need photos and consent, so they are only sold on /character.
+      if (x?.category === CHARACTER_CATEGORY) { nav('/character', { replace: true }); return }
       setP(x)
       if (x) {
         setColor(x.colors[0]); setVariant(x.variants?.[0] ?? null); setSize(x.sizes.includes('M') ? 'M' : x.sizes[0])
@@ -51,7 +54,7 @@ export default function Product() {
         applyPageMeta({ title: `${x.name} | Smug Para heavyweight tee`, description: `${blurb ? `${blurb} ` : ''}TTD ${x.price.toFixed(2)}. Heavyweight streetwear from Trinidad and Tobago.` }, `/shop/${x.slug}`)
       }
     }).catch(() => setP(null))
-    listProducts().then((all) => setMore(all.filter((x) => x.slug !== slug).slice(0, 4))).catch(() => {})
+    listProducts().then((all) => setMore(all.filter((x) => x.slug !== slug && x.category !== CHARACTER_CATEGORY).slice(0, 4))).catch(() => {})
   }, [slug])
 
   const left = useSaleLeft(p?.sale_ends_at)
