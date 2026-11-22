@@ -9,6 +9,6 @@ update public.products
        images = array['https://d8j0ntlcm91z4.cloudfront.net/user_37ZG61E62iSthQU3O3WpSBmK7JU/hf_20261122_062915_72678f31-1273-47a9-9aea-b2650cb20ec1.png']
  where slug = 'character-team';
 update public.products
-   set image_url = 'https://d8j0ntlcm91z4.cloudfront.net/user_37ZG61E62iSthQU3O3WpSBmK7JU/hf_20261122_060101_eeadeae8-f21f-4589-9991-b8b7b524400c.png'
+   set image_url = 'https://d8j0ntlcm91z4.cloudfront.net/user_37ZG61E62iSthQU3O3WpSBmK7JU/hf_20261122_070053_16c58796-455a-49b2-9a8e-09f830c4304a.png'
  where slug = 'character-team-hoodie';
 select slug, image_url, images from public.products where slug like 'character-team%';
