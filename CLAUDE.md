@@ -10,3 +10,6 @@
 
 ## Replies
 - Whenever the owner has something to click, run or open, follow `.claude/skills/next-steps-links/SKILL.md`: a numbered **Your next steps** list of clickable links at the very top of the reply. Never say "sent earlier".
+
+## Product mockups
+- When the owner attaches a garment photo and asks for a mockup, follow `marketing/MOCKUP-RECIPE.md` (white studio flat-lay, pixel-faithful, Instagram 4:5).
