@@ -45,7 +45,9 @@ If the AI changes the design, the image fails. Regenerate or fix with an edit (b
 - Aspect ratio **4:5 portrait**, **1080 × 1350 px** (or a larger 4:5, like 2160 × 2700)
 - Garment centred, filling about **75–85%** of the frame, even white margin all round
 - JPG or PNG, sRGB
-- Save to `shots/final-<garment>-<colour>.png` (e.g. `shots/final-tee-red.png`)
+- **One image per side.** Front and back are separate 4:5 images (posted as a carousel), never combined on one canvas
+- Save to `shots/final-<garment>-<colour>-<front|back>.png` (e.g. `shots/final-tee-red-back.png`)
+- **Colourways:** if a design comes in several ink colours, make each one the same way (same framing) so they read as a set
 
 ## 6. "Ready to post" checklist
 Before handing it over, check:
@@ -84,5 +86,12 @@ Examples: `marketing/mockup-examples/campaign-frame/`.
 - Ask Nico for: counter number, drop name and time left, if not given.
 - Any motion version follows `marketing/MOTION-GRAPHICS.md`.
 
-## 9. Changing the recipe
+## 9. Style 3: Brand-art background
+Use **only when Nico asks for brand art / the red background**. Example: `marketing/mockup-examples/brand-art/`.
+- Garment exactly as in sections 1–3, centred, front-on
+- Behind it: the big SP brand graphic: solid brand red, oversized black SP monogram with palm trees, huge black-letter script running off the edges
+- The garment sits in front, sharp, with a soft shadow; the art is decoration and must never cover the garment
+- 4:5, one image per side
+
+## 10. Changing the recipe
 To use a different look one time, just say so in the message ("this time on concrete"). To change it permanently, edit this file.
