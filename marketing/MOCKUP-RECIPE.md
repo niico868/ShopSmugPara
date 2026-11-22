@@ -56,5 +56,31 @@ Before handing it over, check:
 
 Then deliver: the image, its file path, and a one-line note of anything off.
 
-## 7. Changing the recipe
+## 7. Learn from the examples first
+Before making anything, **open and look at the example pairs** in `marketing/mockup-examples/<style>/`.
+They show what a good result looks like better than any description.
+
+Naming: `NN-<garment>-<colour>-before.jpg` (Nico's raw photo) and `NN-<garment>-<colour>-after.png` (the approved result).
+Each pair can have `NN-notes.md` saying what made it good (or, for `-rejected` files, why it failed).
+
+How to use them:
+- Match the **after** images' framing, margins, light and shadow strength.
+- Study before → after: notice what changed (background, light) and what **didn't** (the garment).
+- If a new result looks clearly worse than the examples, redo it before delivering.
+- When Nico approves a new mockup, offer to save it as the next example pair.
+
+## 8. Style 2: Campaign frame ("Scanning" drop card)
+Use **only when Nico asks for a campaign frame / drop card**. Otherwise default to the clean flat-lay above.
+Examples: `marketing/mockup-examples/campaign-frame/`.
+
+- Starts from the clean flat-lay cutout of the garment (sections 1–6), so the garment stays pixel-faithful.
+- White card, thin black border, grey corner brackets
+- Top left: black pill with a blue dot + `SCANNING`. Top right: counter `NN/12`
+- Lower third: blue X-ray "scan" band with a glowing scan line across the garment
+- Label under the garment: `GARMENT TYPE · COLOUR / COLOUR · FRONT|BACK` (spaced caps, grey)
+- Footer: blue `LIMITED DROP · <time> LEFT` left, black-letter drop mark (e.g. `11/11 FRTB`) right
+- Ask Nico for: counter number, drop name and time left, if not given.
+- Any motion version follows `marketing/MOTION-GRAPHICS.md`.
+
+## 9. Changing the recipe
 To use a different look one time, just say so in the message ("this time on concrete"). To change it permanently, edit this file.
