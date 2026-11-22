@@ -38,8 +38,8 @@ export const PAGE_META: Record<string, PageMeta> = {
     description: 'Your Smug Para designs, orders, points and rewards.',
   },
   '/character': {
-    title: 'Character Tees: put yourself in the game | Smug Para',
-    description: 'Send a selfie and get yourself, your partner or your whole crew drawn as game key art on a heavyweight tee. Made in Trinidad and Tobago.',
+    title: 'Character Tees: put yourself in the world | Smug Para',
+    description: 'Send a selfie or your whole team and get drawn in Grand Theft inspired art, Smuggler World version, on heavyweight tees and hoodies. Made in Trinidad and Tobago.',
   },
   '/track': {
     title: 'Track your order | Smug Para',

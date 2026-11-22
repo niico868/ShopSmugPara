@@ -164,35 +164,57 @@ export async function placeOrder(input: CheckoutInput, settings: Settings): Prom
 // ---------------------------------------------------------------------------
 /** Uploads a customer photo and returns its private path (or the data URL itself in demo mode). */
 export async function uploadFace(dataUrl: string): Promise<string> {
-  if (DEMO) return dataUrl
+  // Demo mode keeps everything in localStorage, so it stores a small copy to stay under the browser's limit.
+  if (DEMO) return shrinkDataUrl(dataUrl, 360)
   const blob = await dataUrlToBlob(dataUrl)
   const path = `${uid()}.jpg`
   must(await supabase!.storage.from('faces').upload(path, blob, { contentType: 'image/jpeg' }))
   return path
 }
 
+function shrinkDataUrl(dataUrl: string, max: number): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height))
+      const c = document.createElement('canvas')
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k)
+      c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height)
+      resolve(c.toDataURL('image/jpeg', 0.8))
+    }
+    img.onerror = () => resolve(dataUrl)
+    img.src = dataUrl
+  })
+}
+
 export interface StoredBrief extends CharacterBrief { id: string; created_at: string; photos_deleted_at: string | null }
+
+const briefPaths = (b: CharacterBrief) => b.people.flatMap((p) => Object.values(p.photos).map((ph) => ph!.path))
 
 /** Admin: the Character Tee briefs on an order, with short-lived links to each photo. */
 export async function getCharacterBriefs(orderId: string): Promise<StoredBrief[]> {
   if (DEMO) {
     const o = demoOrders().find((x) => x.id === orderId)
-    return (o?.items ?? []).flatMap((i) => (i.brief ? [{ ...i.brief, id: i.id, created_at: o!.created_at, photos_deleted_at: null, photos: i.brief.photos.map((ph) => ({ ...ph, preview: ph.path })) }] : []))
+    const withPreview = (b: CharacterBrief): CharacterBrief => ({ ...b, people: b.people.map((p) => ({ ...p, photos: Object.fromEntries(Object.entries(p.photos).map(([k, v]) => [k, { ...v!, preview: v!.path }])) })) })
+    return (o?.items ?? []).flatMap((i) => (i.brief ? [{ ...withPreview(i.brief), id: i.id, created_at: o!.created_at, photos_deleted_at: null }] : []))
   }
   const rows = must(await supabase!.from('character_briefs').select('*').eq('order_id', orderId).order('created_at')) as StoredBrief[]
   return Promise.all(rows.map(async (b) => {
-    if (b.photos_deleted_at || !b.photos.length) return b
-    const { data } = await supabase!.storage.from('faces').createSignedUrls(b.photos.map((ph) => ph.path), 60 * 60)
-    return { ...b, photos: b.photos.map((ph, i) => ({ ...ph, preview: data?.[i]?.signedUrl ?? undefined })) }
+    const paths = briefPaths(b)
+    if (b.photos_deleted_at || !paths.length) return b
+    const { data } = await supabase!.storage.from('faces').createSignedUrls(paths, 60 * 60)
+    const url = new Map((data ?? []).map((d) => [d.path, d.signedUrl]))
+    return { ...b, people: b.people.map((p) => ({ ...p, photos: Object.fromEntries(Object.entries(p.photos).map(([k, v]) => [k, { ...v!, preview: url.get(v!.path) ?? undefined }])) })) }
   }))
 }
 
 /** Admin: delete a brief's photos for good (do this 30 days after delivery). */
 export async function deleteCharacterPhotos(brief: StoredBrief) {
   if (DEMO) return
-  const paths = brief.photos.map((ph) => ph.path)
+  const paths = briefPaths(brief)
   if (paths.length) must(await supabase!.storage.from('faces').remove(paths))
-  must(await supabase!.from('character_briefs').update({ photos: [], photos_deleted_at: new Date().toISOString() }).eq('id', brief.id))
+  const people = brief.people.map((p) => ({ ...p, photos: {} }))
+  must(await supabase!.from('character_briefs').update({ people, photos_deleted_at: new Date().toISOString() }).eq('id', brief.id))
 }
 
 export async function trackOrder(code: string, email: string): Promise<Order | null> {

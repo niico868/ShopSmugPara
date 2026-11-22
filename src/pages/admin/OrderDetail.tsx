@@ -13,7 +13,8 @@ import { AREA_ORDER } from '../../lib/pricing'
 import { cx, dateTime, money } from '../../lib/format'
 import { toast } from '../../components/Toast'
 import { useSettings } from '../../lib/settings'
-import { CharacterBriefs } from '../../components/CharacterBriefs'
+import { CharacterBriefs, characterLabel, useCharacterBriefs } from '../../components/CharacterBriefs'
+import type { StoredBrief } from '../../lib/api'
 
 export default function OrderDetail() {
   const { id = '' } = useParams()
@@ -21,6 +22,7 @@ export default function OrderDetail() {
   const { settings } = useSettings()
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
+  const { briefs, reload: reloadBriefs } = useCharacterBriefs(id)
 
   useEffect(() => {
     const load = () => getOrder(id).then(setOrder).catch(() => setOrder(null))
@@ -88,7 +90,7 @@ export default function OrderDetail() {
           <Card>
             <p className="mb-4 font-semibold">Items</p>
             <ul className="space-y-6">
-              {order.items.map((it) => <ItemRow key={it.id} item={it} code={order.code} />)}
+              {order.items.map((it) => <ItemRow key={it.id} item={it} code={order.code} briefs={briefs} />)}
             </ul>
             <div className="mt-6 space-y-1 border-t border-ink-800 pt-4 text-sm">
               <div className="flex flex-wrap justify-between text-ink-400 gap-x-3"><span>Subtotal</span><span>{money(order.subtotal)}</span></div>
@@ -118,7 +120,7 @@ export default function OrderDetail() {
             </div>
           </Card>
 
-          <CharacterBriefs orderId={order.id} code={order.code} />
+          <CharacterBriefs briefs={briefs} code={order.code} onChange={reloadBriefs} />
 
           <ProofCard order={order} onSent={() => getOrder(order.id).then(setOrder)} />
 
@@ -145,7 +147,7 @@ async function downloadToned(l: Layer, name: string) {
   } catch { toast.error('Could not prepare that file.') }
 }
 
-function ItemRow({ item, code }: { item: OrderItem; code: string }) {
+function ItemRow({ item, code, briefs }: { item: OrderItem; code: string; briefs: StoredBrief[] }) {
   const d = item.design
   const printed = d ? AREA_ORDER.filter((a) => (d[a] ?? []).length) : []
   const [area, setArea] = useState<Area>(printed[0] ?? 'front')
@@ -159,7 +161,11 @@ function ItemRow({ item, code }: { item: OrderItem; code: string }) {
   if (item.kind !== 'custom' || !d) {
     return (
       <li className="flex gap-4">
-        <ItemThumb item={item} className="h-28 w-24 shrink-0" />
+        {/* Character Tees: the team name (or the customer's alias) labels the tee picture. */}
+        <div className="relative h-28 w-24 shrink-0">
+          <ItemThumb item={item} className="h-28 w-24" />
+          {characterLabel(item, briefs) && <span className="absolute inset-x-0 bottom-0 line-clamp-2 bg-black/80 px-1 py-1 text-center text-[10px] font-bold uppercase leading-tight tracking-wide text-white">{characterLabel(item, briefs)}</span>}
+        </div>
         <div className="flex-1">
           <p className="font-semibold">{item.name}</p>
           <p className="text-sm text-ink-400">{colorName(item.color)} · Size {item.size} · Qty {item.qty}</p>

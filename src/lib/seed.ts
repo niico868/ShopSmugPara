@@ -91,14 +91,15 @@ export const seedProducts = (): Product[] => [
   },
   // Character Tees (sold on /character only; supabase/2026-11-21-character-tees.sql adds them live).
   ...([
-    ['character-solo', 'Character Tee', 350, ['#111111', '#FFFFFF'], 'Send one selfie, get yourself drawn as game key art, printed on a heavyweight tee.'],
-    ['character-duo', 'Duo Character Tee', 450, ['#111111', '#FFFFFF'], 'Two people, one game-art panel, one heavyweight tee.'],
-    ['character-team', 'Team Character Tee', 220, ['#111111', '#FFFFFF'], 'Your whole crew drawn as one game-art grid. Price per tee, 6 minimum.'],
-    ['character-team-art', 'Crew Art Fee', 600, ['#111111'], 'One-time artwork for a team order: up to 6 faces.'],
-    ['character-extra-face', 'Extra Crew Face', 75, ['#111111'], 'Each face past 6 on a team order.'],
-  ] as const).map(([slug, name, price, colors, description]) => ({
-    ...p(slug, name, price, 'Character', [...colors], '/products/character-tee.jpg', description),
-    sizes: slug.endsWith('art') || slug.endsWith('face') ? ['One size'] : ['S', 'M', 'L', 'XL', '2XL', '3XL'],
+    ['character-solo', 'Character Tee', 350, '/products/character-solo.jpg'],
+    ['character-solo-hoodie', 'Character Hoodie', 450, '/products/character-solo.jpg'],
+    ['character-duo', 'Duo Character Tee', 325, '/products/character-solo.jpg'],
+    ['character-duo-hoodie', 'Duo Character Hoodie', 425, '/products/character-solo.jpg'],
+    ['character-team', 'Team Character Tee', 300, '/products/character-team.jpg'],
+    ['character-team-hoodie', 'Team Character Hoodie', 400, '/products/character-team.jpg'],
+  ] as const).map(([slug, name, price, image]) => ({
+    ...p(slug, name, price, 'Character', slug.endsWith('hoodie') ? ['#111111'] : ['#111111', '#FFFFFF'], image, 'Grand Theft inspired art, Smuggler World version.'),
+    sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
   })),
 ]
 
@@ -125,6 +126,7 @@ const NAMES = ['Thabo M.', 'Aisha K.', 'Jordan P.', 'Lerato S.', 'Mike D.', 'Zan
 export const seedOrders = (products: Product[]): Order[] => {
   const statuses: OrderStatus[] = ['delivered', 'delivered', 'delivered', 'shipped', 'ready', 'in_production', 'confirmed', 'pending', 'pending', 'cancelled']
   const orders: Order[] = []
+  products = products.filter((p) => p.category !== 'Character')
   for (let i = 0; i < 26; i++) {
     const age = Math.floor((i / 26) * 29) + Math.random()
     const created = daysAgo(29 - age)
