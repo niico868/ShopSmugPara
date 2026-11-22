@@ -50,6 +50,9 @@ export default function CharacterTee() {
   const product = products?.[characterSlug(kind, garment)]
   // The picture follows the switch: the solo portrait or the team collage, on a tee or a hoodie.
   const hero = products?.[characterSlug(mode, garment)] ?? products?.[characterSlug(mode, 'tee')]
+  // Character products keep their white-tee picture in images[0]; show it when White is picked.
+  const pictureFor = (p: Product | undefined) => (p && color === '#FFFFFF' && garment === 'tee' && p.images?.[0]) || p?.image_url || ''
+  const heroImage = pictureFor(hero)
   const copy = MODE_COPY[mode]
   const total = (product?.price ?? 0) * crew.length
   const ready = crew.filter((p) => personGaps(p, mode).length === 0).length
@@ -113,7 +116,7 @@ export default function CharacterTee() {
     for (const p of crew) bySize.set(p.size, (bySize.get(p.size) ?? 0) + 1)
     let first = true
     for (const [size, qty] of bySize) {
-      const line: OrderItem = { id: uid(), kind: 'catalog', product_id: product.id, name: product.name, color, size, qty, unit_price: product.price, image_url: product.image_url, brief: first ? brief : null }
+      const line: OrderItem = { id: uid(), kind: 'catalog', product_id: product.id, name: product.name, color, size, qty, unit_price: product.price, image_url: pictureFor(product), brief: first ? brief : null }
       add(line); first = false
     }
     toast.success(`${product.name} added to your bag`)
@@ -138,7 +141,7 @@ export default function CharacterTee() {
       <div className="grid gap-10 md:grid-cols-2 [&>*]:min-w-0">
         <div className="md:sticky md:top-24 md:self-start">
           <div className="aspect-[4/5] overflow-hidden border border-ink-800 bg-ink-900">
-            {hero && <ProductImg src={hero.image_url} alt={`${copy.label} example`} className="block h-full w-full animate-rise object-cover" key={hero.image_url} />}
+            {heroImage && <ProductImg src={heroImage} alt={`${copy.label} example`} className="block h-full w-full animate-rise object-cover" key={heroImage} />}
           </div>
           <ol className="mt-6 space-y-3 text-sm text-ink-400">
             {copy.steps.map(([head, body], i) => <li key={head}><b className="text-black">{i + 1}. {head}</b> {body}</li>)}
