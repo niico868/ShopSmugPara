@@ -1,4 +1,5 @@
 import type { RewardId } from './rewards'
+import type { CharacterBrief } from './character'
 
 export type OrderStatus =
   | 'pending'
@@ -133,6 +134,8 @@ export interface OrderItem {
   preview?: string | null
   /** Set when a reward pays for this tee (see src/lib/rewards.ts). */
   reward?: RewardId | null
+  /** Character Tees: photos, names and consent. Sent to attach_character_briefs, not stored on the item. */
+  brief?: CharacterBrief | null
 }
 
 export interface OrderEvent {

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { ArrowRight, Brush, Instagram } from 'lucide-react'
 import { listProducts } from '../lib/api'
+import { CHARACTER_CATEGORY } from '../lib/character'
 import type { Product } from '../lib/types'
 import { ProductCard } from '../components/ProductCard'
 import { TeeMockup } from '../components/TeeMockup'
@@ -35,7 +36,7 @@ const FOLLOW = 'inline-flex items-center gap-2 border border-black px-6 py-3 tex
 export default function Home() {
   const { settings } = useSettings()
   const [products, setProducts] = useState<Product[]>([])
-  useEffect(() => { listProducts().then(setProducts).catch(() => {}) }, [])
+  useEffect(() => { listProducts().then((all) => setProducts(all.filter((p) => p.category !== CHARACTER_CATEGORY))).catch(() => {}) }, [])
   const featured = products.filter((p) => p.featured)
   const shown = (featured.length ? featured : products).slice(0, 8)
   // The hero copy switches on its own with TT time; re-check every minute.

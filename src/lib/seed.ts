@@ -89,6 +89,18 @@ export const seedProducts = (): Product[] => [
       { id: 'vest-white', style: 'Cut sleeve vest', color: 'White / black print', swatch: '#FFFFFF', print: '#111111', images: ['/products/frtb-vest-white-front.jpg', '/products/frtb-vest-white-back.jpg'] },
     ],
   },
+  // Character Tees (sold on /character only; supabase/2026-11-21-character-tees.sql adds them live).
+  ...([
+    ['character-solo', 'Character Tee', 350, '/products/character-solo.jpg'],
+    ['character-solo-hoodie', 'Character Hoodie', 450, '/products/character-solo.jpg'],
+    ['character-duo', 'Duo Character Tee', 325, '/products/character-solo.jpg'],
+    ['character-duo-hoodie', 'Duo Character Hoodie', 425, '/products/character-solo.jpg'],
+    ['character-team', 'Team Character Tee', 300, '/products/character-team.jpg'],
+    ['character-team-hoodie', 'Team Character Hoodie', 400, '/products/character-team.jpg'],
+  ] as const).map(([slug, name, price, image]) => ({
+    ...p(slug, name, price, 'Character', slug.endsWith('hoodie') ? ['#111111'] : ['#111111', '#FFFFFF'], image, 'Grand Theft inspired art, Smuggler World version.'),
+    sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
+  })),
 ]
 
 export const defaultSettings = (): Settings => ({
@@ -114,6 +126,7 @@ const NAMES = ['Thabo M.', 'Aisha K.', 'Jordan P.', 'Lerato S.', 'Mike D.', 'Zan
 export const seedOrders = (products: Product[]): Order[] => {
   const statuses: OrderStatus[] = ['delivered', 'delivered', 'delivered', 'shipped', 'ready', 'in_production', 'confirmed', 'pending', 'pending', 'cancelled']
   const orders: Order[] = []
+  products = products.filter((p) => p.category !== 'Character')
   for (let i = 0; i < 26; i++) {
     const age = Math.floor((i / 26) * 29) + Math.random()
     const created = daysAgo(29 - age)
