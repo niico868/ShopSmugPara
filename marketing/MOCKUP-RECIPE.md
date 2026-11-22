@@ -6,9 +6,11 @@ Claude follows every rule below without asking about style again.
 ---
 
 ## 1. Input (what Nico sends)
-- **One real photo of the actual garment** (tee, vest, hoodie...). Phone photo is fine.
+One image of the garment, either:
+- **A real photo** of the actual garment (tee, vest, hoodie...). Phone photo is fine, **or**
+- **A digital design / template mockup** (design placed on a PSD tee template). Keep the design artwork exact and just restage it in this recipe's look.
 - Optional extras in the message: the garment name/colour (e.g. "red tee") and anything special ("show the back print").
-- If the photo is blurry, cropped or the print is unreadable, **stop and ask for a better photo**. Don't guess.
+- If the image is blurry, cropped or the print is unreadable, **stop and ask for a better photo**. Don't guess.
 
 ## 2. The look (fixed, do not change unless asked)
 | Rule | Setting |
