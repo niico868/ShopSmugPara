@@ -72,7 +72,7 @@ export const MODE_COPY: Record<Mode, { label: string; eyebrow: string; title: st
     intro: 'Send team member photos. We make your vision come to life in Grand Theft art-style, Smuggler World version, within 48 hours.',
     steps: [
       ['Break down your collage.', 'How many people, each alias and what they are doing in their panel.'],
-      ['Send team member photos.', 'One person at a time: face front, face side (optional) and full body.'],
+      ['Send team member photos.', 'All in one go: a front close-up for each person, side face and full body optional.'],
       ['We draw it in 48 hours.', '2 free tweaks available.'],
       ['Print approved, produced.', 'Ready for delivery or pickup.'],
     ],
@@ -83,7 +83,7 @@ export type PhotoSlot = 'front' | 'side' | 'body'
 export const PHOTO_SLOTS: { id: PhotoSlot; label: string; hint: string; required: boolean }[] = [
   { id: 'front', label: 'Close-up face', hint: 'Front, looking at the camera', required: true },
   { id: 'side', label: 'Face side', hint: 'Turn your head to one side', required: false },
-  { id: 'body', label: 'Full body', hint: 'Head to toe, standing', required: true },
+  { id: 'body', label: 'Full body', hint: 'Head to toe, standing', required: false },
 ]
 
 /** A photo in the private "faces" bucket (or a data URL in demo mode). `preview` is only for this screen. */
@@ -122,13 +122,19 @@ export const CONSENTS = {
   consent_fan_art: 'I understand this is original fan-inspired artwork by Smug Para, not official artwork and not endorsed by any studio or publisher.',
 } as const
 export const ADS_CONSENT = 'Smug Para can show the finished design in ads and posts. (Optional)'
+/** The one tick box on the review screen: it covers all three CONSENTS above (owner, Nov 2026). */
+export const CONSENT_ALL = 'Everyone in these photos is 18+ (or I am their guardian) and agreed to be drawn. I understand this is original fan-inspired art by Smug Para, not official or endorsed by any studio.'
+
+/** What every Character Tee price includes, shown with the price the whole way through the order. */
+export const PRICE_INCLUDES = 'Design, quality tee and print included'
+/** The only hint at crew pricing before a team size is picked: no numbers up front (owner, 23 Nov 2026). */
+export const CREW_LINE = 'Rolling with a crew? The bigger the team, the better the rate.'
 
 /** What is still missing for one person, in the order they should fix it. */
 export function personGaps(p: Person, mode: Mode): string[] {
   return [
     mode === 'team' && !p.alias.trim() && !p.name.trim() && 'name or alias',
     !p.photos.front && 'close-up face',
-    !p.photos.body && 'full body photo',
   ].filter(Boolean) as string[]
 }
 
