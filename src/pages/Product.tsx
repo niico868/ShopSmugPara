@@ -14,6 +14,7 @@ import { sfx } from '../lib/feedback'
 import { Tick } from '../components/Feedback'
 import { SaleCountdown, useSaleLeft } from '../components/SaleTimer'
 import { ProductImg } from '../components/ProductImg'
+import { CautionTape, isArchivedDrop } from '../components/CautionTape'
 import { applyPageMeta } from '../lib/usePageMeta'
 import { CHARACTER_CATEGORY } from '../lib/character'
 
@@ -83,8 +84,9 @@ export default function Product() {
       <button onClick={() => nav(-1)} className="-mt-3 mb-3 inline-flex items-center gap-2 py-3 text-sm text-ink-400 hover:text-black"><ArrowLeft size={16} /> Back</button>
       <div className="grid gap-10 md:grid-cols-2 [&>*]:min-w-0">
         <div>
-          <div {...huntSpot('product-photo')} className="aspect-square border border-ink-800 bg-white">
+          <div {...huntSpot('product-photo')} className="relative aspect-square border border-ink-800 bg-white">
             <ProductImg src={photos[shot]} alt={p.name} className="block h-full w-full animate-rise object-contain p-4" key={photos[shot]} />
+            {isArchivedDrop(p) && <CautionTape />}
           </div>
           {photos.length > 1 && (
             <div className="mt-3 flex flex-wrap gap-3">
