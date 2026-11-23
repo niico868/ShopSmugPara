@@ -85,7 +85,7 @@ export default function Home() {
                 {/* Cargo manifest label */}
                 <p className="mb-5 text-xs font-semibold uppercase leading-relaxed tracking-[.25em] text-acid">
                   {dock.phase === 'live' ? (
-                    <>Cargo {cargoNo(dock.cargo)}{cargo ? <> &mdash; &ldquo;{cargo.name}&rdquo;</> : null}<br />On the dock until {dock.last ? 'Christmas Eve' : 'Sunday'} 11:59pm</>
+                    <>Cargo {cargoNo(dock.cargo)}{cargo ? <> &mdash; &ldquo;{cargo.name}&rdquo;</> : null}<br />On the dock until {dock.last ? 'Christmas Eve' : 'Wednesday'} 11:59pm</>
                   ) : (
                     <>Dock closed<br />Next cargo lands Wednesday, 12pm</>
                   )}
@@ -97,7 +97,7 @@ export default function Home() {
                   {dock.phase === 'live'
                     ? dock.last
                       ? <>This drop leaves the dock on Christmas Eve at 11:59pm. It&rsquo;s the last shipment before Christmas. </>
-                      : <>This drop leaves the dock on Sunday at 11:59pm. A new shipment lands every Wednesday at noon till Christmas Eve. </>
+                      : <>This drop leaves the dock on Wednesday 11:59pm. A new shipment lands every Wednesday at noon till Christmas Eve. </>
                     : <>Last week&rsquo;s cargo is gone for good. The next one lands Wednesday at noon. </>}
                   {lookOutLink}
                 </p>

@@ -76,7 +76,7 @@ export const seedProducts = (): Product[] => [
   },
   {
     ...p('11-11-frtb', '11/11 FRTB', 350, 'Limited', ['#111111', '#FFFFFF'], '/products/frtb-tee-gold-front.jpg',
-      "Faith Rewards The Brave. Limited 11/11 drop, on sale until Sunday 11:59pm. Unisex. Pick the oversized tee or the regular-size cut sleeve vest. Black with a gold or red print, or white with a black print. 240gsm heavyweight cotton.", true),
+      "Faith Rewards The Brave. Limited 11/11 drop, on sale until Wednesday 11:59pm. Unisex. Pick the oversized tee or the regular-size cut sleeve vest. Black with a gold or red print, or white with a black print. 240gsm heavyweight cotton.", true),
     images: ['/products/frtb-tee-gold-back.jpg'],
     sizes: ['S', 'M', 'L', 'XL'],
     sale_ends_at: '2026-11-16T03:59:59Z',

@@ -16,6 +16,10 @@ export const CHARACTER_SLUGS = (['solo', 'duo', 'team'] as const).flatMap((k) =>
 export const TEAM_MIN_PEOPLE = 3
 export const TEAM_MAX_PEOPLE = 20
 export const HOODIE_EXTRA = 100
+/** Hoodies are off while the hoodie artwork is being made (owner, 23 Nov 2026). Flip to true to bring them back. */
+export const HOODIES_ON = false
+/** The garments customers can pick right now. */
+export const GARMENTS: Garment[] = HOODIES_ON ? ['tee', 'hoodie'] : ['tee']
 export const SIZES = ['S', 'M', 'L', 'XL', '2XL', '3XL']
 
 export const ENVIRONMENTS = [
@@ -31,11 +35,11 @@ export const MODE_COPY: Record<Mode, { label: string; eyebrow: string; title: st
     label: 'Solo portrait',
     eyebrow: 'Character Tees',
     title: 'Put yourself in the world',
-    intro: 'Send a selfie and get yourself drawn in Grand Theft inspired art, Smuggler World version, printed on heavyweight tees and hoodies.',
+    intro: `Send a selfie and get yourself drawn in Grand Theft inspired art, Smuggler World version, printed on heavyweight tees${HOODIES_ON ? ' and hoodies' : ''}.`,
     steps: [
       ['Send your photo.', 'One clear close-up: face the camera, daylight, no sunglasses, no filters.'],
       ['We draw you.', 'Proof on WhatsApp within 48 hours of payment. Two free tweaks.'],
-      ['Approve and wear it.', 'Printed on a heavyweight tee or hoodie, delivered or ready for pickup.'],
+      ['Approve and wear it.', `Printed on a heavyweight tee${HOODIES_ON ? ' or hoodie' : ''}, delivered or ready for pickup.`],
     ],
   },
   team: {

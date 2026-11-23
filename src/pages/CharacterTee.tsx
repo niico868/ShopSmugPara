@@ -11,7 +11,7 @@ import { useCart } from '../store/cart'
 import { toast } from '../components/Toast'
 import { sfx } from '../lib/feedback'
 import {
-  ADS_CONSENT, CONSENTS, ENVIRONMENTS, HOODIE_EXTRA, MODE_COPY, PHOTO_SLOTS, SIZES, TEAM_MAX_PEOPLE, TEAM_MIN_PEOPLE,
+  ADS_CONSENT, CONSENTS, ENVIRONMENTS, GARMENTS, HOODIE_EXTRA, MODE_COPY, PHOTO_SLOTS, SIZES, TEAM_MAX_PEOPLE, TEAM_MIN_PEOPLE,
   blankPerson, characterSlug, personGaps, shrinkPhoto,
   type CharacterBrief, type CharacterKind, type EnvironmentId, type Garment, type Mode, type Person, type PhotoSlot,
 } from '../lib/character'
@@ -154,9 +154,9 @@ export default function CharacterTee() {
           <p className="mt-4 text-ink-200">{copy.intro}{mode === 'team' && ' 2 free tweaks available. Print approved, produced and ready for delivery or pickup.'}</p>
 
           {/* Garment and price */}
-          <Section title="Tee or hoodie">
+          <Section title={GARMENTS.length > 1 ? 'Tee or hoodie' : 'Your tee'}>
             <div className="grid grid-cols-2 gap-2">
-              {(['tee', 'hoodie'] as Garment[]).map((g) => {
+              {GARMENTS.map((g) => {
                 const p = products[characterSlug(kind, g)]
                 return (
                   <Choice key={g} on={g === garment} onClick={() => { setGarment(g); if (g === 'hoodie') setColor('#111111') }}>

@@ -36,7 +36,7 @@ export function shortLeft(ms: number) {
 export function SaleCountdown({ endsAt, className }: { endsAt: string; className?: string }) {
   const left = useSaleLeft(endsAt)
   if (left === null) return null
-  // Always "Sunday 11:59pm", in Trinidad time, the same wording as the rest of the site.
+  // Reads the real end time, e.g. "Wednesday 11:59pm", in Trinidad time, the same wording as the rest of the site.
   const end = new Date(endsAt)
   const day = end.toLocaleString('en-US', { weekday: 'long', timeZone: 'America/Port_of_Spain' })
   const time = end.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/Port_of_Spain' }).replace(/\s/g, '').toLowerCase()

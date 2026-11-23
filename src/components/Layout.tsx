@@ -31,19 +31,20 @@ const FOOT_CONTACT = 'flex w-max items-center gap-2 py-3 text-white/60 hover:tex
 
 const links = [
   { to: '/shop', label: 'Shop' },
-  { to: '/character', label: 'Character Tees' },
-  { to: '/design', label: 'Design your own' },
-  { to: '/track', label: 'Track order' },
+  { to: '/character', label: 'SPxGTA' },
+  { to: '/design', label: 'Customs' },
+  { to: '/track', label: 'Track' },
   { to: '/faq', label: 'FAQ' },
 ]
 
 /** `tight`: the header on a signed-in phone, where the points counter needs the room, so the name waits for 420px. */
-export function Logo({ className, light, tight }: { className?: string; light?: boolean; tight?: boolean }) {
+/** `header`: in the top bar the name steps aside on small tablets (768-879px) so it never runs into the nav links. */
+export function Logo({ className, light, tight, header }: { className?: string; light?: boolean; tight?: boolean; header?: boolean }) {
   const { settings } = useSettings()
   return (
     <Link to="/" aria-label="Smugglers Paradise home" className={cx('group flex items-center gap-2.5', className)}>
       <img src={light ? '/brand/logo-mark-white.svg' : '/brand/logo-mark.svg'} alt="" className="h-9 w-auto sm:h-10 transition group-hover:-rotate-6" />
-      <span className={cx('whitespace-nowrap font-poster text-sm uppercase tracking-wider min-[400px]:text-base sm:text-lg', tight ? 'max-[419px]:hidden' : 'max-[379px]:hidden')}>{settings.store_name}</span>
+      <span className={cx('whitespace-nowrap font-poster text-sm uppercase tracking-wider min-[400px]:text-base sm:text-lg', tight ? 'max-[419px]:hidden' : 'max-[379px]:hidden', header && 'md:max-[879px]:hidden')}>{settings.store_name}</span>
     </Link>
   )
 }
@@ -87,13 +88,13 @@ export default function Layout() {
       </div>
       <header className="sticky top-0 z-40 border-b border-black/10 bg-white/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4">
-          <Logo tight={!!account} />
+          <Logo tight={!!account} header />
           <nav className="hidden items-center gap-1 md:flex">
             {links.map((l) => {
               const lit = beacon && l.to === '/design'
               return (
                 <span key={l.to} className="relative">
-                  <NavLink to={l.to} className={({ isActive }) => cx('block px-3 py-2 text-xs font-semibold uppercase tracking-[.18em] transition lg:px-4', isActive ? 'text-acid' : 'text-black hover:text-acid', lit && 'beacon')}>
+                  <NavLink to={l.to} className={({ isActive }) => cx('block whitespace-nowrap px-2 py-2 text-xs font-semibold uppercase tracking-[.12em] transition lg:px-4 lg:tracking-[.18em]', isActive ? 'text-acid' : 'text-black hover:text-acid', lit && 'beacon')}>
                     {l.label}
                   </NavLink>
                   {lit && <DesignTip onClose={() => setTipOff(true)} align="center" />}

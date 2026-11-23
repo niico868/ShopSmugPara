@@ -5,6 +5,7 @@ import { shortLeft, useSaleLeft } from './SaleTimer'
 import { fitStyle, usePhotoFit } from '../lib/photoFit'
 import { cardLines } from '../lib/cardLines'
 import { useOnWhite } from '../lib/onWhite'
+import { CautionTape, isArchivedDrop } from './CautionTape'
 
 /** `delay` staggers cards in a grid so they rise in one after another. */
 export function ProductCard({ product, delay = 0 }: { product: Product; delay?: number }) {
@@ -24,8 +25,9 @@ export function ProductCard({ product, delay = 0 }: { product: Product; delay?: 
             <img src={back} alt={`${product.name}, back`} loading="lazy" decoding="async" style={fitStyle(backFit)} className="absolute inset-0 h-full w-full object-contain opacity-0 transition duration-500 group-hover:opacity-100" />
           )}
         </div>
+        {isArchivedDrop(product) && <CautionTape />}
         {left !== null && (
-          <span className={left === 0 ? 'absolute left-2 top-2 max-w-[calc(100%-1rem)] bg-ink-800 px-2 py-1 text-[11px] font-bold uppercase leading-tight tracking-wide text-ink-400' : 'absolute left-2 top-2 max-w-[calc(100%-1rem)] bg-black px-2 py-1 text-[11px] font-bold uppercase leading-tight tracking-wide text-white'}>
+          <span className={left === 0 ? 'absolute left-2 top-2 z-20 max-w-[calc(100%-1rem)] bg-ink-800 px-2 py-1 text-[11px] font-bold uppercase leading-tight tracking-wide text-ink-400' : 'absolute left-2 top-2 max-w-[calc(100%-1rem)] bg-black px-2 py-1 text-[11px] font-bold uppercase leading-tight tracking-wide text-white'}>
             {left === 0 ? 'Drop closed' : `Limited · ${shortLeft(left)} left`}
           </span>
         )}
