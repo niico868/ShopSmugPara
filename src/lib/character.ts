@@ -15,6 +15,9 @@ export const CHARACTER_SLUGS = (['solo', 'duo', 'team'] as const).flatMap((k) =>
 
 export const TEAM_MIN_PEOPLE = 3
 export const TEAM_MAX_PEOPLE = 20
+/** Big teams (owner, 23 Nov 2026): 6 or more people pay the lower price of their own product (TTD 280 a tee). */
+export const TEAM_BIG_PEOPLE = 6
+export const TEAM_BIG_SLUG = 'character-team-6'
 export const HOODIE_EXTRA = 100
 /** Hoodies are off while the hoodie artwork is being made (owner, 23 Nov 2026). Flip to true to bring them back. */
 export const HOODIES_ON = false

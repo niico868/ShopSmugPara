@@ -8,9 +8,12 @@ import type { Product } from '../lib/types'
  * The tape runs diagonally from 20% down the left edge to 80% down the right edge, on every photo of it.
  *
  * TAPE_ART is the owner's caution tape art with its white background removed (a transparent PNG
- * in public/brand). While it is null, a drawn yellow and black tape stands in.
+ * in public/brand). While it is null, the drawn yellow and black tape is used (the owner chose to keep it).
  */
 export const TAPE_ART: string | null = null
+
+/** The words on the tape (owner, 23 Nov 2026). */
+const TAPE_TEXT = 'Caution: Don\u2019t miss the eagle'
 
 /** Drops that closed in this window are taped. Widen it to keep the rule going past December. */
 const TAPE_FROM = Date.UTC(2026, 10, 1, 4, 0, 0) // 1 Nov 2026, 12am TT
@@ -75,16 +78,16 @@ export function CautionTape({ className }: { className?: string }) {
   )
 }
 
-/** Stand-in tape: yellow band, black diagonal hazard stripes at the edges, a CAUTION word repeated. */
+/** The tape: yellow band, black hazard notches along both edges, the owner's wording repeated. */
 function DrawnTape({ height }: { height: number }) {
   const stripe = Math.max(4, height * 0.16)
-  const font = Math.max(9, height * 0.42)
+  const font = Math.max(8, height * 0.38)
   return (
     <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[#ffd400]">
       <span className="absolute inset-x-0 top-0" style={{ height: stripe, background: 'repeating-linear-gradient(-45deg,#111 0 8px,#ffd400 8px 16px)' }} />
       <span className="absolute inset-x-0 bottom-0" style={{ height: stripe, background: 'repeating-linear-gradient(-45deg,#111 0 8px,#ffd400 8px 16px)' }} />
-      <span className="whitespace-nowrap font-poster uppercase tracking-[.2em] text-black" style={{ fontSize: font, lineHeight: 1 }}>
-        {Array.from({ length: 12 }, () => 'Caution · Archived').join('   ·   ')}
+      <span className="whitespace-nowrap font-poster uppercase tracking-[.06em] text-black" style={{ fontSize: font, lineHeight: 1 }}>
+        {Array.from({ length: 9 }, () => TAPE_TEXT).join('   ·   ')}
       </span>
     </div>
   )
