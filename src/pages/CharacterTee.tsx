@@ -11,7 +11,7 @@ import { useCart } from '../store/cart'
 import { toast } from '../components/Toast'
 import { sfx } from '../lib/feedback'
 import {
-  ADS_CONSENT, CONSENTS, ENVIRONMENTS, GARMENTS, HOODIE_EXTRA, MODE_COPY, PHOTO_SLOTS, SIZES, TEAM_MAX_PEOPLE, TEAM_MIN_PEOPLE,
+  ADS_CONSENT, CONSENTS, ENVIRONMENTS, GARMENTS, PAGE_INTRO, HOODIE_EXTRA, MODE_COPY, PHOTO_SLOTS, SIZES, TEAM_MAX_PEOPLE, TEAM_MIN_PEOPLE,
   blankPerson, characterSlug, personGaps, shrinkPhoto,
   type CharacterBrief, type CharacterKind, type EnvironmentId, type Garment, type Mode, type Person, type PhotoSlot,
 } from '../lib/character'
@@ -48,8 +48,10 @@ export default function CharacterTee() {
 
   const kind: CharacterKind = mode === 'team' ? 'team' : crew.length > 1 ? 'duo' : 'solo'
   const product = products?.[characterSlug(kind, garment)]
-  // The picture follows the switch: the solo portrait or the team collage, on a tee or a hoodie.
-  const hero = products?.[characterSlug(mode, garment)] ?? products?.[characterSlug(mode, 'tee')]
+  // The picture follows "Who's on it": the solo portrait, the duo (couple) print or the team collage.
+  // A product without its own picture yet falls back to the solo one.
+  const hero = [characterSlug(kind, garment), characterSlug(kind, 'tee'), characterSlug('solo', 'tee')]
+    .map((slug) => products?.[slug]).find((p) => p?.image_url)
   // Character products keep their white-tee picture in images[0]; show it when White is picked.
   const pictureFor = (p: Product | undefined) => (p && color === '#FFFFFF' && garment === 'tee' && p.images?.[0]) || p?.image_url || ''
   const heroImage = pictureFor(hero)
@@ -73,6 +75,15 @@ export default function CharacterTee() {
     if (m === mode) return
     sfx('select'); setMode(m); setActive(0)
     setCrew((c) => (m === 'team' ? [...c, ...people(Math.max(0, TEAM_MIN_PEOPLE - c.length))] : c.slice(0, 2)))
+  }
+  /** One picker for everything: Just me, Me + 1 (Duo) or Team (3+). */
+  const pick = (who: CharacterKind) => {
+    if (who === 'team') return switchMode('team')
+    const n = who === 'duo' ? 2 : 1
+    if (mode !== 'solo' || crew.length !== n) sfx('select')
+    setMode('solo')
+    setCrew((c) => (n > c.length ? [...c, ...people(n - c.length)] : c.slice(0, n)))
+    setActive((a) => Math.min(a, n - 1))
   }
   const setCount = (n: number) => {
     const min = mode === 'team' ? TEAM_MIN_PEOPLE : 1
@@ -128,16 +139,6 @@ export default function CharacterTee() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-32 pt-8 md:pb-16">
-      {/* Solo / Team switch: changes the artwork, the copy and the form. */}
-      <div role="tablist" aria-label="Choose your tee" className="mx-auto mb-8 grid max-w-md grid-cols-2 rounded-full border border-ink-700 p-1">
-        {(['solo', 'team'] as Mode[]).map((m) => (
-          <button key={m} role="tab" aria-selected={m === mode} onClick={() => switchMode(m)}
-            className={cx('rounded-full px-4 py-2.5 text-sm font-semibold transition', m === mode ? 'bg-black text-white' : 'text-ink-400 hover:text-black')}>
-            {MODE_COPY[m].label}
-          </button>
-        ))}
-      </div>
-
       <div className="grid gap-10 md:grid-cols-2 [&>*]:min-w-0">
         <div className="md:sticky md:top-24 md:self-start">
           <div className="aspect-[4/5] overflow-hidden border border-ink-800 bg-ink-900">
@@ -149,9 +150,9 @@ export default function CharacterTee() {
         </div>
 
         <div>
-          <p className="text-sm font-semibold uppercase tracking-widest text-acid">{copy.eyebrow}</p>
-          <h1 className="mt-2 font-poster text-2xl uppercase leading-tight tracking-wide sm:text-3xl">{copy.title}</h1>
-          <p className="mt-4 text-ink-200">{copy.intro}{mode === 'team' && ' 2 free tweaks available. Print approved, produced and ready for delivery or pickup.'}</p>
+          <p className="text-sm font-semibold uppercase tracking-widest text-acid">{MODE_COPY.solo.eyebrow}</p>
+          <h1 className="mt-2 font-poster text-2xl uppercase leading-tight tracking-wide sm:text-3xl">{MODE_COPY.solo.title}</h1>
+          <p className="mt-4 text-ink-200">{PAGE_INTRO}</p>
 
           {/* Garment and price */}
           <Section title={GARMENTS.length > 1 ? 'Tee or hoodie' : 'Your tee'}>
@@ -178,16 +179,17 @@ export default function CharacterTee() {
           </Section>
 
           {/* Who is in it */}
-          {mode === 'solo' ? (
-            <Section title="Who's on it">
-              <div className="grid grid-cols-3 gap-2">
-                <Choice on={crew.length === 1} onClick={() => setCount(1)}><b className="block text-sm">Just me</b><span className="block text-xs opacity-70">{money(products[characterSlug('solo', garment)]?.price ?? 0)}</span></Choice>
-                <Choice on={crew.length === 2} onClick={() => setCount(2)}><b className="block text-sm">Me + 1 (Duo)</b><span className="block text-xs opacity-70">{money(products[characterSlug('duo', garment)]?.price ?? 0)} each</span></Choice>
-                <Choice on={false} onClick={() => switchMode('team')}><b className="block text-sm">Team (3+)</b><span className="block text-xs opacity-70">{money(products[characterSlug('team', garment)]?.price ?? 0)} each</span></Choice>
-              </div>
-              <MultiOffer />
-            </Section>
-          ) : (
+          <Section title="Who's on it">
+            <div className="grid grid-cols-3 gap-2">
+              <Choice on={kind === 'solo'} onClick={() => pick('solo')}><b className="block text-sm">Just me</b><span className="block text-xs opacity-70">{money(products[characterSlug('solo', garment)]?.price ?? 0)}</span></Choice>
+              <Choice on={kind === 'duo'} onClick={() => pick('duo')}><b className="block text-sm">Me + 1 (Duo)</b><span className="block text-xs opacity-70">{money(products[characterSlug('duo', garment)]?.price ?? 0)} each</span></Choice>
+              <Choice on={kind === 'team'} onClick={() => pick('team')}><b className="block text-sm">Team (3+)</b><span className="block text-xs opacity-70">{money(products[characterSlug('team', garment)]?.price ?? 0)} each</span></Choice>
+            </div>
+            <MultiOffer />
+          </Section>
+
+          {/* Team picked: the collage breakdown opens under the picker. */}
+          {mode === 'team' && (
             <Section title="1. Collage breakdown" hint="Tell us who is in it and what each person is doing in their panel.">
               <div className="space-y-4">
                 <label className="block">
@@ -202,7 +204,6 @@ export default function CharacterTee() {
                     <button className="rounded-full p-3 disabled:opacity-30" disabled={crew.length >= TEAM_MAX_PEOPLE} onClick={() => setCount(crew.length + 1)} aria-label="One more person"><Plus size={16} /></button>
                   </div>
                 </div>
-                <MultiOffer />
                 <ol className="space-y-2">
                   {crew.map((p, i) => (
                     <li key={p.id} className="rounded-xl border border-ink-800 p-3">

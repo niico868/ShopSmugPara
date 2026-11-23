@@ -29,6 +29,9 @@ export const ENVIRONMENTS = [
 ] as const
 export type EnvironmentId = (typeof ENVIRONMENTS)[number]['id']
 
+/** One intro for the whole page: solo, duo and team all start from the same heading. */
+export const PAGE_INTRO = `Send your photos and get drawn in Grand Theft inspired art, Smuggler World version, printed on heavyweight tees${HOODIES_ON ? ' and hoodies' : ''}. Just you, you and a partner, or your whole team in one collage.`
+
 /** The copy and artwork for each version of the page. */
 export const MODE_COPY: Record<Mode, { label: string; eyebrow: string; title: string; intro: string; steps: [string, string][] }> = {
   solo: {
