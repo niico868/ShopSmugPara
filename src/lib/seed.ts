@@ -97,6 +97,7 @@ export const seedProducts = (): Product[] => [
     ['character-duo-hoodie', 'Duo Character Hoodie', 425, '/products/character-solo.jpg'],
     ['character-team', 'Team Character Tee', 300, '/products/character-team.jpg'],
     ['character-team-hoodie', 'Team Character Hoodie', 400, '/products/character-team.jpg'],
+    ['character-team-6', 'Team Character Tee (6+)', 280, '/products/character-team.jpg'],
   ] as const).map(([slug, name, price, image]) => ({
     ...p(slug, name, price, 'Character', slug.endsWith('hoodie') ? ['#111111'] : ['#111111', '#FFFFFF'], image, 'Grand Theft inspired art, Smuggler World version.'),
     sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],

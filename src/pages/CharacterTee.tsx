@@ -11,7 +11,7 @@ import { useCart } from '../store/cart'
 import { toast } from '../components/Toast'
 import { sfx } from '../lib/feedback'
 import {
-  ADS_CONSENT, CONSENTS, DUO_ON, ENVIRONMENTS, GARMENTS, PAGE_INTRO, SPXGTA_PHOTOS, HOODIE_EXTRA, MODE_COPY, PHOTO_SLOTS, SIZES, TEAM_MAX_PEOPLE, TEAM_MIN_PEOPLE,
+  ADS_CONSENT, CONSENTS, DUO_ON, ENVIRONMENTS, GARMENTS, PAGE_INTRO, SPXGTA_PHOTOS, HOODIE_EXTRA, MODE_COPY, PHOTO_SLOTS, SIZES, TEAM_BIG_PEOPLE, TEAM_BIG_SLUG, TEAM_MAX_PEOPLE, TEAM_MIN_PEOPLE,
   blankPerson, characterSlug, personGaps, shrinkPhoto,
   type CharacterBrief, type CharacterKind, type EnvironmentId, type Garment, type Mode, type Person, type PhotoSlot,
 } from '../lib/character'
@@ -48,7 +48,11 @@ export default function CharacterTee() {
   }, [])
 
   const kind: CharacterKind = mode === 'team' ? 'team' : crew.length > 1 ? 'duo' : 'solo'
-  const product = products?.[characterSlug(kind, garment)]
+  // Teams of 6+ tees use the big-team product, so checkout charges its lower price too.
+  const bigTeam = kind === 'team' && garment === 'tee' && crew.length >= TEAM_BIG_PEOPLE ? products?.[TEAM_BIG_SLUG] : undefined
+  const product = bigTeam ?? products?.[characterSlug(kind, garment)]
+  const teamPrice = products?.[characterSlug('team', garment)]?.price ?? 0
+  const bigPrice = garment === 'tee' ? products?.[TEAM_BIG_SLUG]?.price : undefined
   // The picture follows "Who's on it": the solo portrait, the duo (couple) print or the team collage.
   // A product without its own picture yet falls back to the solo one.
   const hero = [characterSlug(kind, garment), characterSlug(kind, 'tee'), characterSlug('solo', 'tee')]
@@ -170,7 +174,7 @@ export default function CharacterTee() {
           <Section title={GARMENTS.length > 1 ? 'Tee or hoodie' : 'Your tee'}>
             <div className="grid grid-cols-2 gap-2">
               {GARMENTS.map((g) => {
-                const p = products[characterSlug(kind, g)]
+                const p = g === garment && product ? product : products[characterSlug(kind, g)]
                 return (
                   <Choice key={g} on={g === garment} onClick={() => { setGarment(g); if (g === 'hoodie') setColor('#111111') }}>
                     <b className="block text-sm">{g === 'tee' ? 'Heavyweight tee' : 'Heavyweight hoodie'}</b>
@@ -195,9 +199,9 @@ export default function CharacterTee() {
             <div className={cx('grid gap-2', DUO_ON ? 'grid-cols-3' : 'grid-cols-2')}>
               <Choice on={kind === 'solo'} onClick={() => pick('solo')}><b className="block text-sm">Just me</b><span className="block text-xs opacity-70">{money(products[characterSlug('solo', garment)]?.price ?? 0)}</span></Choice>
               {DUO_ON && <Choice on={kind === 'duo'} onClick={() => pick('duo')}><b className="block text-sm">Me + 1 (Duo)</b><span className="block text-xs opacity-70">{money(products[characterSlug('duo', garment)]?.price ?? 0)} each</span></Choice>}
-              <Choice on={kind === 'team'} onClick={() => pick('team')}><b className="block text-sm">Team (3+)</b><span className="block text-xs opacity-70">{money(products[characterSlug('team', garment)]?.price ?? 0)} each</span></Choice>
+              <Choice on={kind === 'team'} onClick={() => pick('team')}><b className="block text-sm">Team (3+)</b><span className="block text-xs opacity-70">{money(teamPrice)} each</span>{bigPrice != null && <span className="block text-xs opacity-70">{TEAM_BIG_PEOPLE}+ people: {money(bigPrice)} each</span>}</Choice>
             </div>
-            <MultiOffer />
+            <MultiOffer bigPrice={bigPrice} />
           </Section>
 
           {/* Team picked: the collage breakdown opens under the picker. */}
@@ -209,7 +213,7 @@ export default function CharacterTee() {
                   <Input value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="e.g. Las Cuevas Crew" maxLength={40} />
                 </label>
                 <div className="flex items-center justify-between gap-4 rounded-xl border border-ink-800 p-3">
-                  <div><b className="block text-sm">People in the collage</b><span className="text-xs text-ink-400">One {garment} each, {TEAM_MIN_PEOPLE}+ people, {money(products[characterSlug('team', garment)]?.price ?? 0)} each</span></div>
+                  <div><b className="block text-sm">People in the collage</b><span className="text-xs text-ink-400">One {garment} each, {money(product?.price ?? teamPrice)} each{bigPrice != null && !bigTeam ? `. Add ${TEAM_BIG_PEOPLE - crew.length} more for ${money(bigPrice)} each` : ''}</span></div>
                   <div className="flex items-center rounded-full border border-ink-700">
                     <button className="rounded-full p-3 disabled:opacity-30" disabled={crew.length <= TEAM_MIN_PEOPLE} onClick={() => setCount(crew.length - 1)} aria-label="One less person"><Minus size={16} /></button>
                     <span className="w-8 text-center text-lg font-bold" aria-live="polite">{crew.length}</span>
@@ -407,10 +411,10 @@ function PhotoTile({ slot, label, hint, required, photo, busy, onPick, onRemove 
 }
 
 /** All tees are the full price; Duo and Team prices are a limited offer for several tees of the same print. */
-function MultiOffer() {
+function MultiOffer({ bigPrice }: { bigPrice?: number }) {
   return (
     <p className="mt-3 border-l-2 border-acid pl-3 text-xs text-ink-400">
-      <b className="text-black">Limited offer:</b> {DUO_ON ? 'Duo and Team prices apply' : 'The Team price applies'} only when every tee is the same print.
+      <b className="text-black">Limited offer:</b> {DUO_ON ? 'Duo and Team prices apply' : bigPrice != null ? 'Team prices apply' : 'The Team price applies'} only when every tee is the same print.
     </p>
   )
 }
