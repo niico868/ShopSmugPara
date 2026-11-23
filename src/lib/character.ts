@@ -1,7 +1,7 @@
 // Character Tees: customers send photos and we draw them in Grand Theft inspired art, Smuggler World version.
 // Two versions: a Solo portrait (just you, or you + 1 as a Duo) and a Team collage (3+ people).
 // Prices live on the products (supabase/2026-11-21-character-tees.sql); this file holds the rules and the brief.
-// Wording rule: never say GTA, "game" or Vice City. Say Grand Theft, world and SmugCity.
+// Wording rule: never say GTA, "game" or Vice City. Say Grand Theft, world and Smug City.
 
 export type Mode = 'solo' | 'team'
 export type CharacterKind = 'solo' | 'duo' | 'team'
@@ -41,7 +41,7 @@ export const SIZES = ['S', 'M', 'L', 'XL', '2XL', '3XL']
 
 export const ENVIRONMENTS = [
   { id: 'north-coast', label: 'North Coast bay', hint: 'Golden bay, turquoise water, green hills' },
-  { id: 'smugcity', label: 'SmugCity sunset', hint: 'Pastel sunset over the SmugCity waterfront' },
+  { id: 'smugcity', label: 'Smug City sunset', hint: 'Pastel sunset over the Smug City waterfront' },
   { id: 'custom', label: 'Custom environment', hint: 'Describe your own scene' },
 ] as const
 export type EnvironmentId = (typeof ENVIRONMENTS)[number]['id']
@@ -53,8 +53,8 @@ export const PAGE_INTRO = `Send your photos and get drawn in Grand Theft inspire
 export const MODE_COPY: Record<Mode, { label: string; eyebrow: string; title: string; intro: string; steps: [string, string][] }> = {
   solo: {
     label: 'Solo portrait',
-    eyebrow: 'SmugCity Character Tees',
-    title: 'Put yourself in the world',
+    eyebrow: 'Smug City Character Tees',
+    title: 'Put yourself\nin the world',
     intro: `Send a selfie and get yourself drawn in Grand Theft inspired art, Smuggler World version, printed on heavyweight tees${HOODIES_ON ? ' and hoodies' : ''}.`,
     steps: [
       ['Send your photo.', 'One clear close-up: face the camera, daylight, no sunglasses, no filters.'],

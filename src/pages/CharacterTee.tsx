@@ -163,7 +163,7 @@ export default function CharacterTee() {
 
         <div>
           <p className="text-sm font-semibold uppercase tracking-widest text-acid">{MODE_COPY.solo.eyebrow}</p>
-          <h1 className="mt-2 font-poster text-2xl uppercase leading-tight tracking-wide sm:text-3xl">{MODE_COPY.solo.title}</h1>
+          <h1 className="mt-2 whitespace-pre-line font-poster text-2xl uppercase leading-tight tracking-wide sm:text-3xl">{MODE_COPY.solo.title}</h1>
           <p className="mt-4 text-ink-200">{PAGE_INTRO}</p>
 
           {/* Garment and price */}

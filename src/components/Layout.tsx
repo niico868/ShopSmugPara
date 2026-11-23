@@ -14,7 +14,7 @@ import { HuntCoin, TreasureMap } from './Contraband'
 import { huntSpot } from '../lib/contraband'
 import { SoundToggle } from './Intro'
 import { TikTokIcon, WhatsAppIcon } from './icons'
-import { BRAND_LINE, EMAIL, EMAIL_HREF, INSTAGRAM, PHONE, PHONE_HREF, TAGLINE, TIKTOK, WHATSAPP } from '../lib/brand'
+import { BRAND_LINE, COMMUNITY, COMMUNITY_NAME, EMAIL, EMAIL_HREF, INSTAGRAM, PHONE, PHONE_HREF, TAGLINE, TIKTOK, WHATSAPP_CHAT } from '../lib/brand'
 import { usePageMeta } from '../lib/usePageMeta'
 import { RouteProgress, SfxToggle, Tick, TopProgress } from './Feedback'
 
@@ -165,11 +165,18 @@ export default function Layout() {
           </div>
           <div className="text-sm">
             <p className="mb-1 text-xs font-semibold uppercase tracking-[.2em] text-acid-light md:mb-2">Get in touch</p>
-            <a {...huntSpot('footer-whatsapp')} className={FOOT_CONTACT} href={WHATSAPP} target="_blank" rel="noreferrer"><WhatsAppIcon size={16} /> WhatsApp us</a>
+            <a {...huntSpot('footer-whatsapp')} href={WHATSAPP_CHAT} target="_blank" rel="noreferrer"
+              className="my-2 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-bold text-black transition hover:bg-white">
+              <WhatsAppIcon size={18} /> Chat on WhatsApp
+            </a>
             <a className={FOOT_CONTACT} href={PHONE_HREF}><Phone size={16} /> {PHONE}</a>
             <a className={cx(FOOT_CONTACT, 'max-w-full break-all')} href={EMAIL_HREF}><Mail size={16} className="shrink-0" /> {EMAIL}</a>
             <a {...huntSpot('footer-instagram')} className={FOOT_CONTACT} href={INSTAGRAM} target="_blank" rel="noreferrer"><Instagram size={16} /> Instagram @smugglerparadise</a>
             <a className={FOOT_CONTACT} href={TIKTOK} target="_blank" rel="noreferrer"><TikTokIcon size={16} /> TikTok @smugglerparadise</a>
+            <a href={settings.community_url || COMMUNITY} target="_blank" rel="noreferrer"
+              className="mt-3 flex w-max max-w-full items-center gap-2 py-2 font-semibold text-acid-light underline decoration-2 underline-offset-4 hover:text-white">
+              <WhatsAppIcon size={16} /> Join the {COMMUNITY_NAME} &rarr;
+            </a>
             <SfxToggle className="mt-3 text-white/60 hover:text-white" />
             {/* The daily Contraband hunt lives here, so it's on every page without crowding the homepage hero. */}
             <TreasureMap className="mt-5" />
