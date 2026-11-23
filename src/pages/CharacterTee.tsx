@@ -150,7 +150,7 @@ export default function CharacterTee() {
 
         <div>
           <p className="text-sm font-semibold uppercase tracking-widest text-acid">{copy.eyebrow}</p>
-          <h1 className="mt-2 font-poster text-5xl leading-none sm:text-6xl">{copy.title}</h1>
+          <h1 className="mt-2 font-poster text-2xl uppercase leading-tight tracking-wide sm:text-3xl">{copy.title}</h1>
           <p className="mt-4 text-ink-200">{copy.intro}{mode === 'team' && ' 2 free tweaks available. Print approved, produced and ready for delivery or pickup.'}</p>
 
           {/* Garment and price */}
@@ -180,10 +180,12 @@ export default function CharacterTee() {
           {/* Who is in it */}
           {mode === 'solo' ? (
             <Section title="Who's on it">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <Choice on={crew.length === 1} onClick={() => setCount(1)}><b className="block text-sm">Just me</b><span className="block text-xs opacity-70">{money(products[characterSlug('solo', garment)]?.price ?? 0)}</span></Choice>
-                <Choice on={crew.length === 2} onClick={() => setCount(2)}><b className="block text-sm">Me + 1 (Duo)</b><span className="block text-xs opacity-70">{money(products[characterSlug('duo', garment)]?.price ?? 0)} each, 2 {garment}s</span></Choice>
+                <Choice on={crew.length === 2} onClick={() => setCount(2)}><b className="block text-sm">Me + 1 (Duo)</b><span className="block text-xs opacity-70">{money(products[characterSlug('duo', garment)]?.price ?? 0)} each</span></Choice>
+                <Choice on={false} onClick={() => switchMode('team')}><b className="block text-sm">Team (3+)</b><span className="block text-xs opacity-70">{money(products[characterSlug('team', garment)]?.price ?? 0)} each</span></Choice>
               </div>
+              <MultiOffer />
             </Section>
           ) : (
             <Section title="1. Collage breakdown" hint="Tell us who is in it and what each person is doing in their panel.">
@@ -193,13 +195,14 @@ export default function CharacterTee() {
                   <Input value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="e.g. Las Cuevas Crew" maxLength={40} />
                 </label>
                 <div className="flex items-center justify-between gap-4 rounded-xl border border-ink-800 p-3">
-                  <div><b className="block text-sm">People in the collage</b><span className="text-xs text-ink-400">One {garment} each, {TEAM_MIN_PEOPLE}+ people</span></div>
+                  <div><b className="block text-sm">People in the collage</b><span className="text-xs text-ink-400">One {garment} each, {TEAM_MIN_PEOPLE}+ people, {money(products[characterSlug('team', garment)]?.price ?? 0)} each</span></div>
                   <div className="flex items-center rounded-full border border-ink-700">
                     <button className="rounded-full p-3 disabled:opacity-30" disabled={crew.length <= TEAM_MIN_PEOPLE} onClick={() => setCount(crew.length - 1)} aria-label="One less person"><Minus size={16} /></button>
                     <span className="w-8 text-center text-lg font-bold" aria-live="polite">{crew.length}</span>
                     <button className="rounded-full p-3 disabled:opacity-30" disabled={crew.length >= TEAM_MAX_PEOPLE} onClick={() => setCount(crew.length + 1)} aria-label="One more person"><Plus size={16} /></button>
                   </div>
                 </div>
+                <MultiOffer />
                 <ol className="space-y-2">
                   {crew.map((p, i) => (
                     <li key={p.id} className="rounded-xl border border-ink-800 p-3">
@@ -210,7 +213,7 @@ export default function CharacterTee() {
                           {SIZES.map((s) => <option key={s}>{s}</option>)}
                         </Select>
                       </div>
-                      <Input value={p.action} onChange={(e) => patch(i, { action: e.target.value })} placeholder={`Action, e.g. ${ACTION_IDEAS[i % ACTION_IDEAS.length]}`} aria-label={`Person ${i + 1} action`} maxLength={120} className="!py-2 text-sm" />
+                      <Input value={p.action} onChange={(e) => patch(i, { action: e.target.value })} placeholder={`Desired pose or action, e.g. ${ACTION_IDEAS[i % ACTION_IDEAS.length]}`} aria-label={`Person ${i + 1} action`} maxLength={120} className="!py-2 text-sm" />
                     </li>
                   ))}
                 </ol>
@@ -251,7 +254,7 @@ export default function CharacterTee() {
                   <Select value={person.size} onChange={(e) => patch(active, { size: e.target.value })} aria-label="Size" className="!py-2">
                     {SIZES.map((s) => <option key={s} value={s}>Size {s}</option>)}
                   </Select>
-                  <Input value={person.action} onChange={(e) => patch(active, { action: e.target.value })} placeholder="Pose or action (optional)" maxLength={120} className="col-span-2 !py-2 text-sm" />
+                  <Input value={person.action} onChange={(e) => patch(active, { action: e.target.value })} placeholder="Desired pose or action (optional)" maxLength={120} className="col-span-2 !py-2 text-sm" />
                 </div>
               )}
               {mode === 'team' && (
@@ -390,3 +393,11 @@ function PhotoTile({ slot, label, hint, required, photo, busy, onPick, onRemove 
   )
 }
 
+/** All tees are the full price; Duo and Team prices are a limited offer for several tees of the same print. */
+function MultiOffer() {
+  return (
+    <p className="mt-3 border-l-2 border-acid pl-3 text-xs text-ink-400">
+      <b className="text-black">Limited offer:</b> Duo and Team prices apply only when every tee is the same print.
+    </p>
+  )
+}

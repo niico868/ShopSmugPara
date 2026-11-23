@@ -73,6 +73,8 @@ export default function Layout() {
   usePageMeta(loc.pathname)
   // Someone opened a shared design link: light up "Design your own" until they use it or close the tip.
   const beacon = loc.pathname.startsWith('/d/') && !tipOff
+  // Some pages swap the moving top bar for their own line (owner, 23 Nov 2026).
+  const topLine = loc.pathname.startsWith('/character') ? 'Place your order. It only takes 5 minutes if your pictures are ready.' : settings.announcement || TAGLINE
   const count = cartCount(items)
   const { account, ready } = useAccount()
   useEffect(() => { if (ready) syncPoints(!!account) }, [ready, account?.id])
@@ -82,7 +84,7 @@ export default function Layout() {
       <div className="overflow-hidden bg-black py-2 text-[11px] font-semibold uppercase tracking-[.25em] text-white">
         <div className="flex w-max animate-marquee gap-12 whitespace-nowrap">
           {Array.from({ length: 8 }).map((_, i) => (
-            <span key={i} className="flex items-center gap-2"><Sparkles size={12} className="text-acid-light" />{i % 2 ? BRAND_LINE : settings.announcement || TAGLINE}</span>
+            <span key={i} className="flex items-center gap-2"><Sparkles size={12} className="text-acid-light" />{i % 2 ? BRAND_LINE : topLine}</span>
           ))}
         </div>
       </div>

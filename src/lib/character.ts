@@ -33,7 +33,7 @@ export type EnvironmentId = (typeof ENVIRONMENTS)[number]['id']
 export const MODE_COPY: Record<Mode, { label: string; eyebrow: string; title: string; intro: string; steps: [string, string][] }> = {
   solo: {
     label: 'Solo portrait',
-    eyebrow: 'Character Tees',
+    eyebrow: 'SmugCity Character Tees',
     title: 'Put yourself in the world',
     intro: `Send a selfie and get yourself drawn in Grand Theft inspired art, Smuggler World version, printed on heavyweight tees${HOODIES_ON ? ' and hoodies' : ''}.`,
     steps: [
