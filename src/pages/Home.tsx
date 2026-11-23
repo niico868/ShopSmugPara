@@ -8,8 +8,8 @@ import { ProductCard } from '../components/ProductCard'
 import { TeeMockup } from '../components/TeeMockup'
 import { Button } from '../components/ui'
 import { useSettings } from '../lib/settings'
-import { CORE_MESSAGE, INSTAGRAM, TIKTOK, brandMark } from '../lib/brand'
-import { TikTokIcon } from '../components/icons'
+import { COMMUNITY, COMMUNITY_NAME, CORE_MESSAGE, INSTAGRAM, TIKTOK, brandMark } from '../lib/brand'
+import { TikTokIcon, WhatsAppIcon } from '../components/icons'
 import { cx } from '../lib/format'
 import { huntSpot } from '../lib/contraband'
 import { XrayScan, scanFrames } from '../components/XrayScan'
@@ -31,6 +31,15 @@ const CODES = [
   { t: 'Purpose', d: 'Every move answers to something.\nOurs isn\u2019t random.' },
 ]
 
+/** The homepage line about this week's drop. Change it when the next cargo lands. */
+const THIS_WEEK = (
+  <>
+    This week&rsquo;s drop:{' '}
+    <Link to="/character" className="font-semibold text-white underline decoration-acid-light decoration-2 underline-offset-4 hover:text-acid-light">Grand Theft inspo tees</Link>{' '}
+    (collage and loading screen tees). Get yours while the drop lasts.
+  </>
+)
+
 const FOLLOW = 'inline-flex items-center gap-2 border border-black px-6 py-3 text-xs font-semibold uppercase tracking-[.2em] transition hover:bg-black hover:text-white'
 
 export default function Home() {
@@ -47,6 +56,7 @@ export default function Home() {
   }, [])
   const [lookOut, setLookOut] = useState(false)
   const closeLookOut = useCallback(() => setLookOut(false), [])
+  const community = settings.community_url || COMMUNITY
   const lookOutLink = (
     <button type="button" onClick={() => setLookOut(true)} className="inline py-2.5 font-semibold text-white underline decoration-acid-light decoration-2 underline-offset-4 hover:text-acid-light">
       Look out.
@@ -93,7 +103,13 @@ export default function Home() {
                 <h1 {...huntSpot('home-headline')} className="font-pirate text-[13vw] leading-[.95] sm:text-7xl lg:text-8xl">
                   Faith Rewards<br /><span className="text-acid">The Brave.</span>
                 </h1>
-                <p className="mt-6 max-w-md text-base text-white/70">
+                {dock.phase === 'live' && (
+                  <p className="mt-6 max-w-md text-base text-white/80">
+                    {THIS_WEEK}
+                  </p>
+                )}
+                {/* The cut-off, highlighted so nobody misses it. */}
+                <p className="mt-4 max-w-md border-l-2 border-acid-light pl-3 text-sm italic text-acid-light sm:text-base">
                   {dock.phase === 'live'
                     ? dock.last
                       ? <>This drop leaves the dock on Christmas Eve at 11:59pm. It&rsquo;s the last shipment before Christmas. </>
@@ -169,6 +185,8 @@ export default function Home() {
         </div>
       </section>
 
+      <CommunityInvite href={community} />
+
       <section className="mx-auto max-w-2xl px-4 pt-20 text-center">
         <span aria-hidden className="mx-auto block h-20 w-20" style={brandMark('/brand/sp-monogram.svg', '#F34949')} />
         <h2 {...huntSpot('home-who')} className="mx-auto mt-6 w-max font-pirate text-4xl">Who We Are</h2>
@@ -187,6 +205,9 @@ export default function Home() {
           </a>
         </div>
         <p className="mt-3 text-xs font-semibold uppercase tracking-[.2em] text-ink-400">Follow @smugglerparadise</p>
+        <a href={community} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-acid underline decoration-2 underline-offset-4 hover:text-acid-dark">
+          <WhatsAppIcon size={16} /> Join the {COMMUNITY_NAME} <ArrowRight size={14} />
+        </a>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pt-24">
@@ -216,5 +237,34 @@ export default function Home() {
         </div>
       </section>
     </>
+  )
+}
+
+/**
+ * The community invite. Belonging first (the crew), then a reason to join now (first word on each
+ * Wednesday cargo), then the cost of saying yes kept tiny (free, one tap, leave anytime).
+ */
+function CommunityInvite({ href }: { href: string }) {
+  return (
+    <section className="mx-auto max-w-7xl px-4 pt-20">
+      <div className="relative overflow-hidden bg-black px-6 py-10 text-white sm:px-12 sm:py-14">
+        <span aria-hidden className="pointer-events-none absolute -left-24 top-1/2 h-64 w-96 -translate-y-1/2 opacity-[.06]" style={brandMark('/brand/emblem.svg', '#ffffff')} />
+        <div className="relative grid items-center gap-8 md:grid-cols-[1.4fr_1fr]">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[.3em] text-acid-light">The inner circle</p>
+            <h2 className="mt-3 font-pirate text-4xl leading-none sm:text-5xl">Join Smuggler World</h2>
+            <p className="mt-4 max-w-lg text-white/70">
+              Be first to know when each Wednesday cargo lands, get the drop details before everyone scrolls past them, and link up with the rest of the crew.
+            </p>
+          </div>
+          <div className="md:justify-self-end">
+            <a href={href} target="_blank" rel="noreferrer" className="inline-flex w-full items-center justify-center gap-2 bg-[#25D366] px-7 py-4 text-sm font-bold uppercase tracking-[.15em] text-black transition hover:bg-white sm:w-auto">
+              <WhatsAppIcon size={20} /> Join the community
+            </a>
+            <p className="mt-3 text-center text-xs text-white/50 md:text-right">Free. Opens WhatsApp. Leave anytime.</p>
+          </div>
+        </div>
+      </div>
+    </section>
   )
 }

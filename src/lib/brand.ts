@@ -16,6 +16,9 @@ export const PHONE = '1-868-338-1386'
 export const PHONE_HREF = 'tel:+18683381386'
 /** Smuggler World Community WhatsApp group. Any rewards badge unlocks it. Admin > Settings can override it. */
 export const COMMUNITY = 'https://chat.whatsapp.com/JtNEjq0gi4WHlFLU5mePNP'
+export const COMMUNITY_NAME = 'Smuggler World Community'
+/** Chat straight to the brand number (+1 868 338 1386), with a first line typed in for the customer. */
+export const WHATSAPP_CHAT = `https://wa.me/18683381386?text=${encodeURIComponent("Hi Smuggler's Paradise, I have a question.")}`
 
 /** Paints a one-colour brand SVG (from public/brand) in any colour, as a CSS mask. */
 export const brandMark = (src: string, color: string): CSSProperties => ({
