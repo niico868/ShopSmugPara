@@ -18,6 +18,23 @@ export const TEAM_MAX_PEOPLE = 20
 export const HOODIE_EXTRA = 100
 /** Hoodies are off while the hoodie artwork is being made (owner, 23 Nov 2026). Flip to true to bring them back. */
 export const HOODIES_ON = false
+/** Duo (Me + 1) is off until the couple design is ready (owner, 23 Nov 2026). Flip to true to bring it back. */
+export const DUO_ON = false
+
+/** The owner's SPxGTA mockups (public/products/spxgta), shown instead of the database pictures. Both designs share the same back. */
+type Tone = 'black' | 'white'
+const SPX = '/products/spxgta/'
+export const SPXGTA_PHOTOS: Record<Mode, Record<Tone, { front: string; back: string }>> = {
+  solo: {
+    black: { front: `${SPX}solo-black-front.jpg`, back: `${SPX}black-back.jpg` },
+    white: { front: `${SPX}solo-white-front.jpg`, back: `${SPX}white-back.jpg` },
+  },
+  team: {
+    black: { front: `${SPX}team-black-front.jpg`, back: `${SPX}black-back.jpg` },
+    white: { front: `${SPX}team-white-front.jpg`, back: `${SPX}white-back.jpg` },
+  },
+}
+
 /** The garments customers can pick right now. */
 export const GARMENTS: Garment[] = HOODIES_ON ? ['tee', 'hoodie'] : ['tee']
 export const SIZES = ['S', 'M', 'L', 'XL', '2XL', '3XL']
@@ -30,7 +47,7 @@ export const ENVIRONMENTS = [
 export type EnvironmentId = (typeof ENVIRONMENTS)[number]['id']
 
 /** One intro for the whole page: solo, duo and team all start from the same heading. */
-export const PAGE_INTRO = `Send your photos and get drawn in Grand Theft inspired art, Smuggler World version, printed on heavyweight tees${HOODIES_ON ? ' and hoodies' : ''}. Just you, you and a partner, or your whole team in one collage.`
+export const PAGE_INTRO = `Send your photos and get drawn in Grand Theft inspired art, Smuggler World version, printed on heavyweight tees${HOODIES_ON ? ' and hoodies' : ''}. Just you${DUO_ON ? ', you and a partner,' : ''} or your whole team in one collage.`
 
 /** The copy and artwork for each version of the page. */
 export const MODE_COPY: Record<Mode, { label: string; eyebrow: string; title: string; intro: string; steps: [string, string][] }> = {

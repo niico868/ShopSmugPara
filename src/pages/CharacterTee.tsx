@@ -11,7 +11,7 @@ import { useCart } from '../store/cart'
 import { toast } from '../components/Toast'
 import { sfx } from '../lib/feedback'
 import {
-  ADS_CONSENT, CONSENTS, ENVIRONMENTS, GARMENTS, PAGE_INTRO, HOODIE_EXTRA, MODE_COPY, PHOTO_SLOTS, SIZES, TEAM_MAX_PEOPLE, TEAM_MIN_PEOPLE,
+  ADS_CONSENT, CONSENTS, DUO_ON, ENVIRONMENTS, GARMENTS, PAGE_INTRO, SPXGTA_PHOTOS, HOODIE_EXTRA, MODE_COPY, PHOTO_SLOTS, SIZES, TEAM_MAX_PEOPLE, TEAM_MIN_PEOPLE,
   blankPerson, characterSlug, personGaps, shrinkPhoto,
   type CharacterBrief, type CharacterKind, type EnvironmentId, type Garment, type Mode, type Person, type PhotoSlot,
 } from '../lib/character'
@@ -28,6 +28,7 @@ export default function CharacterTee() {
   const [products, setProducts] = useState<Record<string, Product> | null | undefined>()
   const [mode, setMode] = useState<Mode>('solo')
   const [garment, setGarment] = useState<Garment>('tee')
+  const [side, setSide] = useState<'front' | 'back'>('front')
   const [color, setColor] = useState('#111111')
   const [crew, setCrew] = useState<Person[]>(() => people(1))
   const [active, setActive] = useState(0)
@@ -54,7 +55,9 @@ export default function CharacterTee() {
     .map((slug) => products?.[slug]).find((p) => p?.image_url)
   // Character products keep their white-tee picture in images[0]; show it when White is picked.
   const pictureFor = (p: Product | undefined) => (p && color === '#FFFFFF' && garment === 'tee' && p.images?.[0]) || p?.image_url || ''
-  const heroImage = pictureFor(hero)
+  // The owner's mockups lead: solo design for Just me (and Duo), collage for Team, in the picked colour, front or back.
+  const tone = color === '#FFFFFF' ? 'white' : 'black'
+  const heroImage = garment === 'tee' ? SPXGTA_PHOTOS[mode][tone][side] : pictureFor(hero)
   const copy = MODE_COPY[mode]
   const total = (product?.price ?? 0) * crew.length
   const ready = crew.filter((p) => personGaps(p, mode).length === 0).length
@@ -127,7 +130,7 @@ export default function CharacterTee() {
     for (const p of crew) bySize.set(p.size, (bySize.get(p.size) ?? 0) + 1)
     let first = true
     for (const [size, qty] of bySize) {
-      const line: OrderItem = { id: uid(), kind: 'catalog', product_id: product.id, name: product.name, color, size, qty, unit_price: product.price, image_url: pictureFor(product), brief: first ? brief : null }
+      const line: OrderItem = { id: uid(), kind: 'catalog', product_id: product.id, name: product.name, color, size, qty, unit_price: product.price, image_url: garment === 'tee' ? SPXGTA_PHOTOS[mode][tone].front : pictureFor(product), brief: first ? brief : null }
       add(line); first = false
     }
     toast.success(`${product.name} added to your bag`)
@@ -141,9 +144,18 @@ export default function CharacterTee() {
     <div className="mx-auto max-w-6xl px-4 pb-32 pt-8 md:pb-16">
       <div className="grid gap-10 md:grid-cols-2 [&>*]:min-w-0">
         <div className="md:sticky md:top-24 md:self-start">
-          <div className="aspect-[4/5] overflow-hidden border border-ink-800 bg-ink-900">
-            {heroImage && <ProductImg src={heroImage} alt={`${copy.label} example`} className="block h-full w-full animate-rise object-cover" key={heroImage} />}
+          <div className="relative aspect-square overflow-hidden border border-ink-800 bg-white">
+            {heroImage && <ProductImg src={heroImage} alt={`${copy.label} tee, ${tone}, ${side}`} className="block h-full w-full animate-rise object-contain" key={heroImage} />}
           </div>
+            {garment === 'tee' && (
+              <div className="mx-auto mt-3 flex w-max rounded-full border border-ink-700 p-1 text-xs font-semibold" role="group" aria-label="Front or back">
+                {(['front', 'back'] as const).map((s) => (
+                  <button key={s} onClick={() => setSide(s)} aria-pressed={s === side}
+                    className={cx('rounded-full px-4 py-1.5 capitalize transition', s === side ? 'bg-black text-white' : 'text-ink-400 hover:text-black')}>{s}</button>
+                ))}
+              </div>
+            )}
+
           <ol className="mt-6 space-y-3 text-sm text-ink-400">
             {copy.steps.map(([head, body], i) => <li key={head}><b className="text-black">{i + 1}. {head}</b> {body}</li>)}
           </ol>
@@ -180,9 +192,9 @@ export default function CharacterTee() {
 
           {/* Who is in it */}
           <Section title="Who's on it">
-            <div className="grid grid-cols-3 gap-2">
+            <div className={cx('grid gap-2', DUO_ON ? 'grid-cols-3' : 'grid-cols-2')}>
               <Choice on={kind === 'solo'} onClick={() => pick('solo')}><b className="block text-sm">Just me</b><span className="block text-xs opacity-70">{money(products[characterSlug('solo', garment)]?.price ?? 0)}</span></Choice>
-              <Choice on={kind === 'duo'} onClick={() => pick('duo')}><b className="block text-sm">Me + 1 (Duo)</b><span className="block text-xs opacity-70">{money(products[characterSlug('duo', garment)]?.price ?? 0)} each</span></Choice>
+              {DUO_ON && <Choice on={kind === 'duo'} onClick={() => pick('duo')}><b className="block text-sm">Me + 1 (Duo)</b><span className="block text-xs opacity-70">{money(products[characterSlug('duo', garment)]?.price ?? 0)} each</span></Choice>}
               <Choice on={kind === 'team'} onClick={() => pick('team')}><b className="block text-sm">Team (3+)</b><span className="block text-xs opacity-70">{money(products[characterSlug('team', garment)]?.price ?? 0)} each</span></Choice>
             </div>
             <MultiOffer />
@@ -398,7 +410,7 @@ function PhotoTile({ slot, label, hint, required, photo, busy, onPick, onRemove 
 function MultiOffer() {
   return (
     <p className="mt-3 border-l-2 border-acid pl-3 text-xs text-ink-400">
-      <b className="text-black">Limited offer:</b> Duo and Team prices apply only when every tee is the same print.
+      <b className="text-black">Limited offer:</b> {DUO_ON ? 'Duo and Team prices apply' : 'The Team price applies'} only when every tee is the same print.
     </p>
   )
 }
